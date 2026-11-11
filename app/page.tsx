@@ -1,3 +1,5 @@
+import { Portada } from "@/components/Portada";
+
 export default function Page() {
-  return <main>La Hora Trece</main>;
+  return <Portada />;
 }
