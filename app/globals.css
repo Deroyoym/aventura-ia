@@ -1,0 +1,398 @@
+@import "tailwindcss";
+
+/* Libro de cuentos oscuro: noche afuera, pergamino adentro, luz de vela. */
+@theme {
+  --color-tinta: #0b0c16;
+  --color-noche: #12142b;
+  --color-noche-2: #1d2044;
+  --color-ciruela: #2b1d3f;
+  --color-bruma: #a3a6c8;
+  --color-hueso: #efe6d2;
+  --color-pergamino: #eadfc4;
+  --color-pergamino-2: #d9c79f;
+  --color-sepia: #6b553a;
+  --color-tinta-texto: #2a2018;
+  --color-ambar: #e6a93c;
+  --color-ambar-claro: #f5cf7f;
+  --color-brasa: #c2552f;
+  --color-sangre: #8f2d2d;
+  --color-oro: #b8923f;
+  --color-musgo: #55764a;
+  --color-cardenillo: #3f8179;
+
+  --font-titulo: "IM Fell English SC", "IM Fell English", Georgia, serif;
+  --font-cuento: "IM Fell English", Georgia, serif;
+  --font-texto: "EB Garamond Variable", "EB Garamond", Georgia, serif;
+}
+
+:root {
+  --ruido: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .38  0 0 0 0 .27  0 0 0 0 .13  0 0 0 .55 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.33'/%3E%3C/svg%3E");
+  --amenaza: 0;
+  color-scheme: dark;
+}
+
+html {
+  height: 100%;
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  min-height: 100%;
+  margin: 0;
+  background:
+    radial-gradient(900px 520px at 50% -8%, #2c3066 0%, transparent 62%),
+    radial-gradient(700px 480px at 85% 108%, #33204a 0%, transparent 62%),
+    var(--color-tinta);
+  background-attachment: fixed;
+  color: var(--color-hueso);
+  font-family: var(--font-texto);
+  font-size: 18px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  -webkit-tap-highlight-color: transparent;
+  overscroll-behavior-y: none;
+}
+
+/* Estrellas fijas detrás de todo. */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -2;
+  pointer-events: none;
+  background-image:
+    radial-gradient(1px 1px at 12% 18%, #fff8 50%, transparent 51%),
+    radial-gradient(1px 1px at 78% 9%, #fff7 50%, transparent 51%),
+    radial-gradient(1.5px 1.5px at 34% 6%, #fffa 50%, transparent 51%),
+    radial-gradient(1px 1px at 61% 24%, #fff6 50%, transparent 51%),
+    radial-gradient(1px 1px at 91% 31%, #fff5 50%, transparent 51%),
+    radial-gradient(1.5px 1.5px at 6% 41%, #fff6 50%, transparent 51%),
+    radial-gradient(1px 1px at 47% 14%, #fff7 50%, transparent 51%);
+}
+
+/* La bruma: se espesa con la amenaza (variable --amenaza, de 0 a 10). */
+.bruma {
+  position: fixed;
+  inset: -10% -30%;
+  z-index: -1;
+  pointer-events: none;
+  opacity: calc(0.16 + var(--amenaza) * 0.055);
+  background:
+    radial-gradient(42% 22% at 22% 78%, #b9bce0 0%, transparent 70%),
+    radial-gradient(48% 20% at 74% 88%, #9a8fc0 0%, transparent 70%),
+    radial-gradient(36% 16% at 55% 64%, #c8c9e6 0%, transparent 70%);
+  filter: blur(26px);
+  animation: deriva 46s ease-in-out infinite alternate;
+  transition: opacity 1.6s ease;
+}
+
+@keyframes deriva {
+  from {
+    transform: translate3d(-4%, 0, 0);
+  }
+  to {
+    transform: translate3d(4%, -2%, 0);
+  }
+}
+
+/* En la capa base: así las clases de componentes pueden pisar color y fuente. */
+@layer base {
+  button,
+  input,
+  textarea,
+  select {
+    font: inherit;
+    color: inherit;
+  }
+
+  button {
+    cursor: pointer;
+  }
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-ambar);
+  outline-offset: 2px;
+}
+
+@layer components {
+  .pergamino {
+    position: relative;
+    background:
+      var(--ruido),
+      radial-gradient(130% 90% at 50% 0%, #f4ecd6 0%, var(--color-pergamino) 46%, var(--color-pergamino-2) 100%);
+    color: var(--color-tinta-texto);
+    border: 1px solid #9c8352;
+    border-radius: 7px;
+    box-shadow:
+      inset 0 0 0 1px #fff5,
+      inset 0 0 42px #78592a45,
+      0 14px 34px #000a;
+  }
+
+  /* Doble filete interior, como una portada vieja. */
+  .pergamino-filete::after {
+    content: "";
+    position: absolute;
+    inset: 6px;
+    border: 1px solid #6b553a55;
+    border-radius: 4px;
+    pointer-events: none;
+  }
+
+  .titulo {
+    font-family: var(--font-titulo);
+    letter-spacing: 0.04em;
+    line-height: 1.1;
+  }
+
+  .versalitas {
+    font-family: var(--font-titulo);
+    font-size: 0.78rem;
+    letter-spacing: 0.14em;
+    text-transform: lowercase;
+  }
+
+  .cuento {
+    font-family: var(--font-cuento);
+  }
+
+  .capitular::first-letter {
+    float: left;
+    font-family: var(--font-titulo);
+    font-size: 3.35em;
+    line-height: 0.82;
+    padding: 0.06em 0.09em 0 0;
+    color: var(--color-sangre);
+    text-shadow: 1px 1px 0 #0002;
+  }
+
+  .boton {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    min-height: 48px;
+    padding: 0.55rem 1.15rem;
+    border-radius: 5px;
+    border: 1px solid transparent;
+    font-family: var(--font-titulo);
+    font-size: 1.02rem;
+    letter-spacing: 0.06em;
+    line-height: 1.15;
+    text-align: center;
+    transition:
+      transform 0.12s ease,
+      filter 0.15s ease,
+      background-color 0.15s ease;
+    touch-action: manipulation;
+  }
+  .boton:active:not(:disabled) {
+    transform: translateY(1px) scale(0.99);
+  }
+  .boton:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+  }
+
+  .boton-vela {
+    background: linear-gradient(180deg, var(--color-ambar-claro) 0%, var(--color-ambar) 55%, #c98a23 100%);
+    color: #2a1a05;
+    border-color: #8a5d12;
+    box-shadow:
+      inset 0 1px 0 #fff8,
+      0 0 22px #e6a93c44,
+      0 3px 0 #6d470c;
+  }
+  .boton-vela:hover:not(:disabled) {
+    filter: brightness(1.06);
+  }
+
+  .boton-noche {
+    background: #ffffff0d;
+    color: var(--color-hueso);
+    border-color: #a3a6c855;
+  }
+  .boton-noche:hover:not(:disabled) {
+    background: #ffffff17;
+  }
+
+  .boton-tinta {
+    background: var(--color-tinta-texto);
+    color: var(--color-pergamino);
+    border-color: #000;
+    box-shadow: 0 2px 0 #0006;
+  }
+
+  .boton-sepia {
+    background: #6b553a14;
+    color: var(--color-tinta-texto);
+    border-color: #6b553a66;
+  }
+
+  .campo {
+    width: 100%;
+    min-height: 48px;
+    padding: 0.55rem 0.8rem;
+    border-radius: 5px;
+    border: 1px solid #6b553a88;
+    background: #fff8ea99;
+    color: var(--color-tinta-texto);
+    font-size: 1.05rem;
+  }
+  .campo::placeholder {
+    color: #6b553aaa;
+    font-style: italic;
+  }
+  .campo-noche {
+    background: #00000040;
+    border-color: #a3a6c866;
+    color: var(--color-hueso);
+  }
+  .campo-noche::placeholder {
+    color: #a3a6c8aa;
+  }
+
+  .tarjeta {
+    border: 1px solid #6b553a55;
+    border-radius: 6px;
+    background: #fff8ea66;
+    transition:
+      border-color 0.15s ease,
+      background-color 0.15s ease,
+      box-shadow 0.15s ease;
+  }
+  .tarjeta-elegida {
+    border-color: var(--color-sangre);
+    background: #fff8eacc;
+    box-shadow:
+      0 0 0 1px var(--color-sangre),
+      0 4px 14px #0003;
+  }
+
+  .hoja-inferior {
+    background: linear-gradient(180deg, #171936f2 0%, #0d0e1df7 100%);
+    border-top: 1px solid #a3a6c833;
+    box-shadow: 0 -12px 30px #0009;
+    backdrop-filter: blur(8px);
+  }
+
+  .barra-superior {
+    background: linear-gradient(180deg, #0d0e1df5 0%, #151733e6 100%);
+    border-bottom: 1px solid #a3a6c82e;
+    backdrop-filter: blur(8px);
+  }
+}
+
+/* Cursor de pluma mientras el máster escribe. */
+.escribiendo::after {
+  content: "";
+  display: inline-block;
+  width: 0.5em;
+  height: 1.05em;
+  margin-left: 0.12em;
+  vertical-align: -0.16em;
+  background: var(--color-sangre);
+  animation: parpadeo 0.9s steps(2, start) infinite;
+}
+
+@keyframes parpadeo {
+  to {
+    visibility: hidden;
+  }
+}
+
+.puntos span {
+  display: inline-block;
+  animation: latir 1.2s ease-in-out infinite;
+}
+.puntos span:nth-child(2) {
+  animation-delay: 0.18s;
+}
+.puntos span:nth-child(3) {
+  animation-delay: 0.36s;
+}
+@keyframes latir {
+  0%,
+  100% {
+    opacity: 0.25;
+    transform: translateY(0);
+  }
+  50% {
+    opacity: 1;
+    transform: translateY(-3px);
+  }
+}
+
+/* El dado. */
+.dado-rodando {
+  animation: rodar 1.15s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+}
+@keyframes rodar {
+  0% {
+    transform: translateY(-46px) rotate(-420deg) scale(0.55);
+    opacity: 0;
+  }
+  35% {
+    opacity: 1;
+  }
+  70% {
+    transform: translateY(6px) rotate(18deg) scale(1.08);
+  }
+  85% {
+    transform: translateY(-3px) rotate(-6deg) scale(0.98);
+  }
+  100% {
+    transform: translateY(0) rotate(0) scale(1);
+  }
+}
+
+.aparecer {
+  animation: aparecer 0.45s ease both;
+}
+@keyframes aparecer {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.subir {
+  animation: subir 0.28s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+@keyframes subir {
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: none;
+  }
+}
+
+.resplandor {
+  animation: resplandor 2.6s ease-in-out infinite;
+}
+@keyframes resplandor {
+  0%,
+  100% {
+    filter: drop-shadow(0 0 4px #e6a93c88);
+  }
+  50% {
+    filter: drop-shadow(0 0 11px #f5cf7fcc);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
