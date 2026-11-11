@@ -1,3 +1,4 @@
+import "server-only";
 import type { EstadoServidor } from "@/lib/protocolo";
 
 // Lectura de variables de entorno. Fuera de Vercel, lo que falte se reemplaza

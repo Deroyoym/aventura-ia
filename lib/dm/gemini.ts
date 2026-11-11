@@ -1,3 +1,4 @@
+import "server-only";
 import { GoogleGenAI, HarmBlockThreshold, HarmCategory, type ThinkingLevel } from "@google/genai";
 import { ESQUEMA_ADJUDICACION, ESQUEMA_NARRACION } from "./esquema";
 import type { Narrador } from "./narrador";

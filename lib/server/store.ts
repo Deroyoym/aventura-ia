@@ -1,3 +1,4 @@
+import "server-only";
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import type { Asiento, EstadoJuego, Tirada } from "@/lib/game/tipos";
 import { entorno, estadoServidor } from "./config";

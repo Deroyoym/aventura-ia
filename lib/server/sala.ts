@@ -1,8 +1,9 @@
+import "server-only";
 import { createHash, randomBytes, randomInt } from "node:crypto";
 import { estadoInicial } from "@/lib/game/motor";
 import { ASIENTOS, ErrorJuego, type Asiento, type EstadoJuego, type NivelTerror } from "@/lib/game/tipos";
 import { vistaPara } from "@/lib/game/vista";
-import type { Credencial, InfoPublica, Instantanea } from "@/lib/protocolo";
+import { LARGO_CODIGO, normalizarCodigo, type Credencial, type InfoPublica, type Instantanea } from "@/lib/protocolo";
 import { estadoServidor } from "./config";
 import { obtenerStore, type FilaAsiento, type Sala } from "./store";
 
@@ -10,14 +11,10 @@ import { obtenerStore, type FilaAsiento, type Sala } from "./store";
 
 /** Sin 0/O, 1/I/L: se dicta por teléfono sin errores. */
 const ALFABETO = "ABCDEFGHJKMNPQRSTUVWXYZ23456789";
-const LARGO_CODIGO = 5;
 /** Un asiento cuenta como activo si su celular pidió el estado hace poco. */
 const ACTIVO_MS = 45_000;
 /** Pasado este tiempo, un bloqueo de narración se considera abandonado. */
 export const NARRACION_VENCE_MS = 90_000;
-
-export const normalizarCodigo = (texto: string): string =>
-  texto.toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, LARGO_CODIGO);
 
 const nuevoCodigo = (): string =>
   Array.from({ length: LARGO_CODIGO }, () => ALFABETO[randomInt(ALFABETO.length)]).join("");

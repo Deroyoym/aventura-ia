@@ -10,6 +10,13 @@ export const CABECERA_TOKEN = "x-asiento-token";
 export const EVENTO_SALA = "sala";
 export const canalDeSala = (salaId: string) => `sala-${salaId}`;
 
+export const LARGO_CODIGO = 5;
+export const normalizarCodigo = (texto: string): string =>
+  texto
+    .toUpperCase()
+    .replace(/[^A-Z0-9]/g, "")
+    .slice(0, LARGO_CODIGO);
+
 export interface ModoServidor {
   narrador: "gemini" | "simulado";
   almacen: "supabase" | "memoria";

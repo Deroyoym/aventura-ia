@@ -1,3 +1,4 @@
+import "server-only";
 import { EVENTO_SALA, canalDeSala, type EventoSala } from "@/lib/protocolo";
 import { entorno } from "./config";
 

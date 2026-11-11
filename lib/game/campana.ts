@@ -1,3 +1,4 @@
+import "server-only";
 import { COMPANEROS, MEJORAS, NOMBRE_ATRIBUTO } from "./contenido";
 import type { CompaneroId, Lugar, Opcion, OpcionVoto, VotoId } from "./tipos";
 
@@ -508,6 +509,13 @@ export const VOTOS: Record<VotoId, VotoDef> = {
       aviso: `Mejora del refugio: ${m.titulo.toLowerCase()}.`,
     })),
   },
+};
+
+/** Qué debe mostrar el máster cuando la amenaza cruza cada umbral. */
+export const EVENTOS_AMENAZA: Record<number, string> = {
+  4: "La amenaza cruzó 4: la Bruma se cuela. Mostrá una señal inquietante y concreta en la escena (algo fuera de lugar, un sonido que no corresponde).",
+  7: "La amenaza cruzó 7: la Bruma aprieta. Hacé aparecer brevemente a un Ausente (figura sin rostro) o una manifestación directa; el pueblo se vuelve hostil al forastero.",
+  10: "La amenaza llegó a 10: la Bruma está adentro. La Dama del Umbral repara en los personajes; uno de ellos escucha su propio nombre dicho con la voz de alguien que perdió.",
 };
 
 export const escenaDef = (indice: number): EscenaDef => {

@@ -358,29 +358,23 @@ export const ETIQUETAS_RELACION: Record<number, string> = {
   3: "Aliado",
 };
 
-export const UMBRALES_AMENAZA: { valor: number; titulo: string; aviso: string; evento: string }[] = [
-  {
-    valor: 4,
-    titulo: "La Bruma se cuela",
-    aviso: "La Bruma se cuela por las rendijas. Algo los ha notado.",
-    evento:
-      "La amenaza cruzó 4: la Bruma se cuela. Mostrá una señal inquietante y concreta en la escena (algo fuera de lugar, un sonido que no corresponde).",
-  },
-  {
-    valor: 7,
-    titulo: "La Bruma aprieta",
-    aviso: "La Bruma aprieta. Todas las tiradas son un punto más difíciles.",
-    evento:
-      "La amenaza cruzó 7: la Bruma aprieta. Hacé aparecer brevemente a un Ausente (figura sin rostro) o una manifestación directa; el pueblo se vuelve hostil al forastero.",
-  },
+export const UMBRALES_AMENAZA: { valor: number; titulo: string; aviso: string }[] = [
+  { valor: 4, titulo: "La Bruma se cuela", aviso: "La Bruma se cuela por las rendijas. Algo los ha notado." },
+  { valor: 7, titulo: "La Bruma aprieta", aviso: "La Bruma aprieta. Todas las tiradas son un punto más difíciles." },
   {
     valor: 10,
     titulo: "La hora trece",
     aviso: "La hora trece los alcanza. Tiran con desventaja hasta que la Bruma ceda.",
-    evento:
-      "La amenaza llegó a 10: la Bruma está adentro. La Dama del Umbral repara en los personajes; uno de ellos escucha su propio nombre dicho con la voz de alguien que perdió.",
   },
 ];
+
+/** Atributos finales de un personaje: la base de la clase más el bono de la raza. */
+export function atributosDe(razaId: string, claseId: string): Record<Atributo, number> | null {
+  const raza = RAZAS.find((r) => r.id === razaId);
+  const clase = CLASES.find((c) => c.id === claseId);
+  if (!raza || !clase) return null;
+  return { ...clase.atributos, [raza.bono]: clase.atributos[raza.bono] + 1 };
+}
 
 export const AMENAZA_MAX = 10;
 export const INVENTARIO_MAX = 8;

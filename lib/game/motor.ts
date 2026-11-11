@@ -1,4 +1,13 @@
-import { ESCENAS, NPCS, VOTOS, escenaDef, npcDef, pistaDef, type EfectosVoto } from "./campana";
+import {
+  ESCENAS,
+  EVENTOS_AMENAZA,
+  NPCS,
+  VOTOS,
+  escenaDef,
+  npcDef,
+  pistaDef,
+  type EfectosVoto,
+} from "./campana";
 import {
   AMENAZA_MAX,
   CD,
@@ -11,6 +20,7 @@ import {
   OBJETOS,
   RAZAS,
   UMBRALES_AMENAZA,
+  atributosDe,
 } from "./contenido";
 import { AVANCE_POR_RESULTADO, resolverTirada, type Rng } from "./dados";
 import {
@@ -124,8 +134,7 @@ export function armarPersonaje(asiento: Asiento, datos: DatosPersonaje): Persona
   if (rasgo.length < 2) throw new ErrorJuego("rasgo", "Elegí o escribí un rasgo.");
   if (secreto.length < 5) throw new ErrorJuego("secreto", "Tu personaje necesita un secreto.");
 
-  const atributos = { ...clase.atributos };
-  atributos[raza.bono] += 1;
+  const atributos = atributosDe(raza.id, clase.id)!;
 
   return {
     asiento,
@@ -392,7 +401,7 @@ function ajustarAmenaza(e: EstadoJuego, delta: number): void {
   for (const u of UMBRALES_AMENAZA) {
     if (antes < u.valor && e.amenaza >= u.valor) {
       aviso(e, u.aviso, "mal");
-      e.eventos.push(u.evento);
+      e.eventos.push(EVENTOS_AMENAZA[u.valor]);
     }
   }
 }

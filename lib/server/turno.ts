@@ -1,3 +1,4 @@
+import "server-only";
 import { interpretarAdjudicacion, interpretarSalida, type Adjudicacion } from "@/lib/dm/esquema";
 import { narradorGemini } from "@/lib/dm/gemini";
 import { extraerNarracion } from "@/lib/dm/narracion-parcial";
