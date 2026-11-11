@@ -19,7 +19,7 @@ import { conectarSala, type ConexionSala } from "./realtime";
 // el canal de Realtime solo trae la narración en vivo y el aviso de "cambió
 // algo". Si el canal no está, se sondea el snapshot cada pocos segundos.
 
-const SONDEO_VIVO_MS = 20_000;
+const SONDEO_VIVO_MS = 10_000;
 const SONDEO_MS = 4_000;
 const SONDEO_NARRANDO_MS = 1_500;
 
