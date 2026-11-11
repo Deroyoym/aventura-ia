@@ -159,9 +159,9 @@ function Ayuda({ activa, alTocar, children }: { activa: boolean; alTocar: () => 
       type="button"
       aria-pressed={activa}
       onClick={alTocar}
-      className={`boton min-h-11 w-full justify-start px-3 py-1.5 text-left text-[0.98rem] ${activa ? "boton-vela" : "boton-noche"}`}
+      className={`boton min-h-11 w-full justify-start px-3 py-1.5 text-left ${activa ? "boton-vela" : "boton-noche"}`}
     >
-      {children}
+      <span className="font-[family-name:var(--font-texto)] text-[1.02rem] leading-snug tracking-normal">{children}</span>
     </button>
   );
 }
@@ -200,8 +200,9 @@ function PanelTirada({ sala }: { sala: SalaEnVivo }) {
         tirada de {NOMBRE_ATRIBUTO[p.pedida.atributo]} · {NOMBRE_DIFICULTAD[p.pedida.dificultad]}
       </Encabezado>
       <p className="mb-2.5 text-[1.05rem] leading-snug text-hueso">
-        Tenés que llegar a <strong className="text-ambar-claro">{p.cd}</strong>. Con tu {conSigno(modificador + bono)}{" "}
-        alcanza un <strong className="text-ambar-claro">{necesita}</strong> o más en el dado.
+        Tenés que llegar a <strong className="text-ambar-claro">{p.cd}</strong>. Tu {NOMBRE_ATRIBUTO[p.pedida.atributo]}{" "}
+        suma {conSigno(modificador + bono)}: necesitás un <strong className="text-ambar-claro">{necesita}</strong> o más
+        en el dado.
         {desventaja && <span className="block italic text-brasa">La hora trece: tirás con desventaja.</span>}
       </p>
 

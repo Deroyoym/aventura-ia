@@ -20,6 +20,7 @@ const PAUSA_LARGA_MS = 10 * 60 * 1000;
 
 function BarraSuperior({ sala, alAbrir }: { sala: SalaEnVivo; alAbrir: (p: Pestana) => void }) {
   const { vista, asientos } = sala.snap!;
+  const turnosRestantes = Math.max(0, vista.escena.tope - vista.escena.turnos);
   const enLinea = (a: 1 | 2) => a === vista.yo || (sala.vivo ? sala.presentes.includes(a) : asientos[a].activo);
 
   return (
@@ -37,11 +38,11 @@ function BarraSuperior({ sala, alAbrir }: { sala: SalaEnVivo; alAbrir: (p: Pesta
           <p className="versalitas truncate text-bruma">
             capítulo {ROMANOS[vista.capitulo.numero - 1]} · escena {ROMANOS[vista.escena.indice]}
           </p>
-          <p className="titulo truncate text-[1.08rem] leading-tight text-hueso">{vista.escena.titulo}</p>
+          <p className="titulo line-clamp-2 text-[1.02rem] leading-[1.15] text-hueso">{vista.escena.titulo}</p>
         </button>
         <div className="shrink-0 text-right">
           <MedidorAmenaza valor={vista.amenaza} />
-          {vista.fase === "jugando" && (
+          {vista.fase === "jugando" && !vista.voto && (
             <p
               className="mt-1 flex items-center justify-end gap-1 text-[0.7rem] text-bruma"
               title={`Avance de la escena: ${vista.escena.avance} de ${vista.escena.meta}`}
@@ -53,7 +54,7 @@ function BarraSuperior({ sala, alAbrir }: { sala: SalaEnVivo; alAbrir: (p: Pesta
                 />
               ))}
               <span className="ml-1 tabular-nums">
-                {Math.max(0, vista.escena.tope - vista.escena.turnos)} turnos
+                {turnosRestantes === 1 ? "1 turno" : `${turnosRestantes} turnos`}
               </span>
             </p>
           )}
@@ -79,10 +80,7 @@ function BarraSuperior({ sala, alAbrir }: { sala: SalaEnVivo; alAbrir: (p: Pesta
                 style={{ background: enLinea(a) ? COLOR_JUGADOR[a] : "transparent", border: `1px solid ${COLOR_JUGADOR[a]}` }}
                 title={enLinea(a) ? "En la sala" : "Desconectado"}
               />
-              <span className="min-w-0 flex-1 truncate">
-                {p.nombre}
-                {a === vista.yo && <span className="text-bruma"> (vos)</span>}
-              </span>
+              <span className={`min-w-0 flex-1 truncate ${a === vista.yo ? "text-ambar-claro" : ""}`}>{p.nombre}</span>
               {conFarol && <IconoFarol tam={15} className="resplandor shrink-0 text-ambar" />}
               <Vida vida={p.vida} max={p.vidaMax} compacta />
             </button>
