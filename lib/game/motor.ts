@@ -575,6 +575,9 @@ function cerrarEscena(e: EstadoJuego, plan: Plan, salida: SalidaDM): void {
   const def = escenaDef(e.escena.indice);
   if (plan.motivoCierre === "agotada") {
     aviso(e, "Se les acabó el tiempo: la escena se resuelve, pero a un costo.", "mal");
+  } else {
+    // Resolver bien una escena le quita terreno a la Bruma.
+    ajustarAmenaza(e, -1);
   }
   e.resumenes.push({
     capitulo: e.capitulo,

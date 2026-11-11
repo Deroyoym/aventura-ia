@@ -63,7 +63,7 @@ describe("tiradas", () => {
   });
 
   it("con ventaja queda el dado mayor y con desventaja el menor", () => {
-    const base = { atributo: "fuerza", dificultad: "media", cd: 12, modificador: 0, bono: 0, ayudas: [] } as const;
+    const base = { atributo: "fuerza" as const, dificultad: "media" as const, cd: 12, modificador: 0, bono: 0, ayudas: [] as string[] };
     expect(resolverTirada({ ...base, ventaja: true, desventaja: false }, dados(4, 15)).dado).toBe(15);
     expect(resolverTirada({ ...base, ventaja: false, desventaja: true }, dados(4, 15)).dado).toBe(4);
     const anuladas = resolverTirada({ ...base, ventaja: true, desventaja: true }, dados(7));
@@ -229,6 +229,8 @@ describe("escenas y votos", () => {
   it("al llenar el reloj la escena cierra y abre el voto", () => {
     const e = cerrarEscena1();
     expect(e.voto?.id).toBe("companero");
+    // Resolver bien la escena le quita un punto a la Bruma.
+    expect(e.amenaza).toBe(1);
     expect(e.opciones).toEqual([]);
     expect(e.resumenes).toEqual([
       { capitulo: 1, escena: 0, titulo: ESCENAS[0].titulo, texto: "Llegaron a la posada." },
