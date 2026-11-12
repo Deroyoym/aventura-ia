@@ -434,7 +434,9 @@ export function Vineta({ lugar, className = "" }: { lugar: Lugar; className?: st
       </defs>
       <g clipPath={`url(#${id})`}>
         <rect width="320" height="190" fill="url(#cielo)" />
+        {/* El dibujo queda debajo como respaldo mientras carga la ilustración pintada. */}
         <Escena />
+        <image href={`/escenas/${lugar}.webp`} width="320" height="190" preserveAspectRatio="xMidYMid slice" />
       </g>
       <path d="M6 190V70C6 34 70 6 160 6s154 28 154 64v120" fill="none" stroke="#8a6f3a" strokeWidth={2} />
       <path d="M11 190V71C11 39 73 11 160 11s149 28 149 60v119" fill="none" stroke="#8a6f3a" strokeWidth={0.7} opacity={0.6} />
