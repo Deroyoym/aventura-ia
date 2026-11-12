@@ -536,12 +536,84 @@ describe("capítulo 2", () => {
     }
     expect(vioMejora).toBe(true);
     expect(e.capitulo).toBe(2);
-    expect(e.resumenes).toHaveLength(ESCENAS.length);
+    expect(e.resumenes).toHaveLength(escenasDe(1).length + escenasDe(2).length);
     expect(e.refugio.mejoras).toHaveLength(2);
     expect(e.decisiones.ancla).toBeDefined();
     expect(e.decisiones.regreso).toBeDefined();
+    expect(vistaPara(e, 1, false).hayOtroCapitulo).toBe(true);
+  });
+});
+
+describe("capítulo 3", () => {
+  /** Juega hasta cerrar el capítulo en curso; `votos` fija qué se elige en cada votación. */
+  function cerrar(inicial: EstadoJuego, votos: Record<string, string> = {}): EstadoJuego {
+    let e = inicial;
+    let guardia = 0;
+    while (e.fase !== "fin_capitulo" || e.voto) {
+      if (guardia++ > 200) throw new Error("El capítulo no termina");
+      if (e.voto) {
+        const opcion = votos[e.voto.id] ?? e.voto.opciones[0].id;
+        e = votar(votar(e, 1, opcion, AHORA).estado, 2, opcion, AHORA).estado;
+        if (e.pendiente) e = aplicarNarracion(e, planificar(e), salidaDeRespaldo(e, planificar(e)), AHORA);
+        continue;
+      }
+      const asiento = e.farol;
+      let s = prepararAccion(e, asiento, { tipo: "opcion", id: "a" }, AHORA);
+      s = tirar(s, asiento, {}, dados(14), AHORA);
+      e = aplicarNarracion(s, planificar(s), salidaDeRespaldo(s, planificar(s)), AHORA);
+    }
+    return e;
+  }
+  const abrir = (e: EstadoJuego) => {
+    const s = empezarCapitulo(e, AHORA);
+    return aplicarNarracion(s, planificar(s), salidaDeRespaldo(s, planificar(s)), AHORA);
+  };
+  const hastaElTres = (votos: Record<string, string> = {}) => abrir(cerrar(abrir(cerrar(enJuego(), votos)), votos));
+
+  it("abre en el archivo y el máster recibe la guía y las escenas del capítulo", () => {
+    const fin2 = cerrar(abrir(cerrar(enJuego())));
+    const s = empezarCapitulo(fin2, AHORA);
+    expect(s.capitulo).toBe(3);
+    const sistema = instruccionSistema(s);
+    expect(sistema).toContain("Los Siete");
+    expect(sistema).toContain("La cripta de los Siete");
+    expect(sistema).not.toContain("Bruma adentro");
+    const vista = vistaPara(aplicarNarracion(s, planificar(s), salidaDeRespaldo(s, planificar(s)), AHORA), 1, false);
+    expect(vista.escena).toMatchObject({ numero: 1, total: 5, titulo: "El archivo del cabildo" });
+  });
+
+  it("se puede jugar entero y quedan dos votos propios más la mejora", () => {
+    const e = cerrar(hastaElTres());
+    expect(e.capitulo).toBe(3);
+    expect(e.resumenes).toHaveLength(ESCENAS.length);
+    expect(e.decisiones.cripta).toBeDefined();
+    expect(e.decisiones.septima).toBeDefined();
+    expect(e.refugio.mejoras).toHaveLength(3);
     expect(vistaPara(e, 1, false).hayOtroCapitulo).toBe(false);
     expect(() => empezarCapitulo(e, AHORA)).toThrow(ErrorJuego);
+  });
+
+  it("entregar a Úrsula baja la Bruma y la enemista; callar deja la firma", () => {
+    const base = hastaElTres();
+    const entregada = cerrar(base, { septima: "entregarla" });
+    expect(entregada.npcs.ursula.relacion).toBeLessThan(base.npcs.ursula.relacion);
+    expect(entregada.memoria.some((m) => m.includes("Úrsula Vane"))).toBe(true);
+    const callada = cerrar(base, { septima: "callar" });
+    expect(callada.personajes[2]!.inventario.some((o) => o.id === "firma")).toBe(true);
+  });
+
+  it("bajar con Anselmo adelanta una pista de la cripta", () => {
+    let e = hastaElTres();
+    let guardia = 0;
+    while (e.voto?.id !== "cripta") {
+      if (guardia++ > 60) throw new Error("No llegó el voto de la cripta");
+      const asiento = e.farol;
+      let s = prepararAccion(e, asiento, { tipo: "opcion", id: "a" }, AHORA);
+      s = tirar(s, asiento, {}, dados(14), AHORA);
+      e = aplicarNarracion(s, planificar(s), salidaDeRespaldo(s, planificar(s)), AHORA);
+    }
+    const r = votar(votar(e, 1, "anselmo", AHORA).estado, 2, "anselmo", AHORA).estado;
+    expect(r.pistas).toContain("tumbas_vacias");
   });
 });
 

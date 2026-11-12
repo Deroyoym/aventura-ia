@@ -27,10 +27,10 @@ export const NIVELES_TERROR: readonly NivelTerror[] = ["suave", "media", "fuerte
 
 export type Resultado = "critico" | "exito" | "costo" | "fallo" | "pifia";
 
-export type Lugar = "posada" | "cuarto" | "plaza" | "campanario" | "refugio" | "linde" | "bruma" | "espejo";
+export type Lugar = "posada" | "cuarto" | "plaza" | "campanario" | "refugio" | "linde" | "bruma" | "espejo" | "cripta" | "umbral";
 
 export type CompaneroId = "cuervo" | "perro" | "gata";
-export type VotoId = "companero" | "dilema" | "mejora" | "ancla" | "regreso";
+export type VotoId = "companero" | "dilema" | "mejora" | "ancla" | "regreso" | "cripta" | "septima";
 
 export interface Objeto {
   id: string;

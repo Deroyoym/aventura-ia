@@ -294,6 +294,72 @@ function Espejo() {
   );
 }
 
+function Cripta() {
+  // Siete tumbas en círculo, vistas desde la escalera: seis abiertas, una cerrada.
+  const tumbas = [
+    [44, 150, 1], [84, 128, 0.85], [128, 116, 0.75], [176, 114, 0.75], [222, 126, 0.85], [262, 148, 1],
+  ] as const;
+  return (
+    <>
+      <rect width={320} height={190} fill="#0b0c1a" opacity={0.72} />
+      {/* bóvedas */}
+      <g fill="none" stroke="#3a3c66" strokeWidth={2.2} opacity={0.8}>
+        <path d="M0 96C30 30 90 20 110 96M105 96C130 26 190 26 215 96M210 96C230 20 290 30 320 96" />
+      </g>
+      <g fill={TINTA}>
+        <path d="M0 190v-36h320v36z" />
+        <path d="M104 190V92h8v98zM208 190V92h8v98z" />
+      </g>
+      {tumbas.map(([x, y, e]) => (
+        <g key={x}>
+          <path d={`M${x - 16 * e} ${y}h${32 * e}l${4 * e} ${14 * e}h-${40 * e}z`} fill="#23254a" stroke={TINTA} strokeWidth={1} />
+          <path d={`M${x - 12 * e} ${y + 2}h${24 * e}l${2.5 * e} ${9 * e}h-${29 * e}z`} fill="#05060f" />
+          <circle cx={x} cy={y + 5 * e} r={1.6 * e} fill={VELA} />
+          <Luz x={x} y={y + 5 * e} r={10 * e} />
+        </g>
+      ))}
+      {/* la séptima, cerrada y sin nombre */}
+      <path d="M134 150h52l6 22h-64z" fill="#4a4c7a" stroke={TINTA} strokeWidth={1.2} />
+      <path d="M140 154h40l3 12h-46z" fill="#5b5d8c" />
+      {/* la grieta por donde sube la bruma */}
+      <path d="M150 190l6-10-4-6 8-4" stroke="#c9cbe8" strokeWidth={1.4} fill="none" opacity={0.5} />
+      <Niebla y={172} opacidad={0.42} />
+    </>
+  );
+}
+
+function Umbral() {
+  const figuras = [40, 78, 112, 208, 242, 280];
+  return (
+    <>
+      <rect width={320} height={190} fill="#0b0c1a" opacity={0.78} />
+      <path d="M0 190v-30c60-14 260-14 320 0v30z" fill={TINTA} />
+      {/* la puerta sin pared */}
+      <ellipse cx={160} cy={110} rx={54} ry={74} fill="#c9cbe8" opacity={0.12} filter="url(#difuso)" />
+      <path d="M132 168V84a28 28 0 0156 0v84z" fill="#d9d2e6" opacity={0.3} />
+      <path d="M138 168V86a22 22 0 0144 0v82z" fill="#eeeaf6" opacity={0.28} filter="url(#difuso-suave)" />
+      <path d="M126 170V84a34 34 0 0168 0v86h-8V84a26 26 0 00-52 0v86z" fill="#2c2e55" stroke={TINTA} strokeWidth={1.2} />
+      {/* la ordenanza en el dintel */}
+      <path d="M150 56h20v9h-20z" fill="#d9c79a" stroke={TINTA} strokeWidth={0.8} />
+      <path d="M153 59h14M153 62h9" stroke={HILO} strokeWidth={0.9} />
+      {/* los seis fundadores */}
+      <g fill="#2a2c52" stroke={TINTA} strokeWidth={0.8}>
+        {figuras.map((x, i) => {
+          const alto = 46 + (i % 3) * 5;
+          return (
+            <path
+              key={x}
+              d={`M${x - 9} 172v-${alto - 16}c0-7 3-9 3-15a6 6 0 0112 0c0 6 3 8 3 15v${alto - 16}z`}
+              opacity={0.92}
+            />
+          );
+        })}
+      </g>
+      <Niebla y={166} opacidad={0.5} />
+    </>
+  );
+}
+
 const ESCENAS: Record<Lugar, () => ReactNode> = {
   posada: Posada,
   cuarto: Cuarto,
@@ -303,6 +369,8 @@ const ESCENAS: Record<Lugar, () => ReactNode> = {
   linde: Linde,
   bruma: Bruma,
   espejo: Espejo,
+  cripta: Cripta,
+  umbral: Umbral,
 };
 
 export function Vineta({ lugar, className = "" }: { lugar: Lugar; className?: string }) {

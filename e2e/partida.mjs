@@ -13,7 +13,7 @@ import { mkdirSync } from 'node:fs';
 const BASE = process.env.BASE ?? 'http://localhost:3000';
 const SALIDA = process.env.CAPTURAS ?? './e2e/capturas';
 const ESCALA = Number(process.env.ESCALA ?? 1);
-const MAX_TURNOS = Number(process.env.MAX_TURNOS ?? 90);
+const MAX_TURNOS = Number(process.env.MAX_TURNOS ?? 140);
 mkdirSync(SALIDA, { recursive: true });
 
 const navegador = await chromium.launch();
@@ -97,15 +97,15 @@ for (;;) {
     // Fin de un capítulo: si hay otro, lo abre el segundo celular.
     const otro = B.getByRole('button', { name: /Empezar el capítulo/ });
     if (!(await otro.waitFor({ timeout: 8000 }).then(() => true, () => false))) break;
-    ok(votos === 3, 'capítulo 1: se votó compañero, dilema y mejora');
-    await foto(A, '11-fin-capitulo-1');
+    ok(votos === capitulos * 3, `capítulo ${capitulos}: se resolvieron sus tres votaciones`);
+    await foto(A, `11-fin-capitulo-${capitulos}`);
     await otro.click();
     await A.getByText('Continuará…').waitFor({ state: 'hidden', timeout: 30000 });
-    await A.getByText('La mesa servida').first().waitFor({ timeout: 30000 });
-    ok(true, 'los dos pasan al capítulo 2');
+    await A.getByText(/llevás el farol|lleva el farol/).first().waitFor({ timeout: 40000 });
+    ok(true, `los dos pasan al capítulo ${capitulos + 1}`);
     await quieto(A); await quieto(B);
     await A.waitForTimeout(600);
-    await foto(A, '11b-capitulo-2');
+    await foto(A, `11b-capitulo-${capitulos + 1}`);
     capitulos++;
     continue;
   }
@@ -162,7 +162,7 @@ for (;;) {
   if (turnos === 4) { await P.waitForTimeout(3600); await foto(P, '10-historia'); }
 }
 console.log(`  ${Math.floor(turnos)} turnos, ${votos} votos`);
-ok(capitulos === 2 && votos === 6, 'capítulo 2: se votó quién sostiene el hilo, el regreso y otra mejora');
+ok(capitulos === 3 && votos === 9, 'se jugaron los tres capítulos, con tres votaciones cada uno');
 await A.waitForTimeout(500);
 await foto(A, '11-fin');
 await B.getByText('Continuará…').waitFor({ timeout: 15000 });
