@@ -6,6 +6,7 @@ import type { SalaEnVivo } from "@/lib/client/useSala";
 import { ASIENTOS, otroAsiento } from "@/lib/game/tipos";
 import type { Vista } from "@/lib/game/vista";
 import { Acciones } from "./Acciones";
+import { Avatar } from "./Avatar";
 import { DadoEnVivo } from "./Dado";
 import { Historia } from "./Historia";
 import { Libro, type Pestana } from "./Libro";
@@ -76,10 +77,12 @@ function BarraSuperior({ sala, alAbrir }: { sala: SalaEnVivo; alAbrir: (p: Pesta
               } ${p.quebrado ? "opacity-55" : ""}`}
             >
               <span
-                className="size-2 shrink-0 rounded-full"
-                style={{ background: enLinea(a) ? COLOR_JUGADOR[a] : "transparent", border: `1px solid ${COLOR_JUGADOR[a]}` }}
+                className={`shrink-0 rounded-full ${enLinea(a) ? "" : "opacity-45 grayscale"}`}
+                style={{ boxShadow: `0 0 0 1.5px ${COLOR_JUGADOR[a]}` }}
                 title={enLinea(a) ? "En la sala" : "Desconectado"}
-              />
+              >
+                <Avatar avatar={p.avatar} raza={p.raza} clase={p.clase} retrato={p.retrato.url} tam={26} emblema={false} className="block" />
+              </span>
               <span className={`min-w-0 flex-1 truncate ${a === vista.yo ? "text-ambar-claro" : ""}`}>{p.nombre}</span>
               {conFarol && <IconoFarol tam={15} className="resplandor shrink-0 text-ambar" />}
               <Vida vida={p.vida} max={p.vidaMax} compacta />

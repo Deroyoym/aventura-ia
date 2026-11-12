@@ -5,10 +5,11 @@ import { useState } from "react";
 import type { SalaEnVivo } from "@/lib/client/useSala";
 import { NIVELES_ORDEN, NOMBRE_ATRIBUTO } from "@/lib/game/contenido";
 import { NIVELES_TERROR, otroAsiento } from "@/lib/game/tipos";
+import { Avatar, OpcionesAvatar } from "./Avatar";
 import { Atributos, FichaCorta, efectoDe, nombreClase, nombreRaza, usosDe } from "./Hoja";
 import { SelectorTerror } from "./Portada";
 import { Compartir } from "./Preparacion";
-import { IconoCerrar, IconoHuella, Ornamento, Vida } from "./ui";
+import { IconoCerrar, IconoHuella, Ornamento, Puntos, Vida } from "./ui";
 
 // El libro del jugador: su hoja, el diario de lo descubierto y los ajustes de
 // la sala. Se abre como un cajón sobre la partida.
@@ -34,11 +35,59 @@ function PestanaHoja({ sala }: { sala: SalaEnVivo }) {
   const vista = sala.snap!.vista;
   const yo = vista.personajes[vista.yo];
   const otro = vista.personajes[otroAsiento(vista.yo)];
+  const [retocando, setRetocando] = useState(false);
   if (!yo) return null;
 
   return (
     <div className="space-y-5">
-      <header className="text-center">
+      <header className="flex flex-col items-center text-center">
+        <Avatar
+          avatar={yo.avatar}
+          raza={yo.raza}
+          clase={yo.clase}
+          retrato={retocando ? null : yo.retrato.url}
+          tam={retocando ? 96 : 132}
+          titulo={`Retrato de ${yo.nombre}`}
+        />
+        <button
+          type="button"
+          className="mb-1 mt-1 text-[0.95rem] italic text-sangre underline"
+          aria-expanded={retocando}
+          onClick={() => setRetocando(!retocando)}
+        >
+          {retocando ? "Listo" : "Cambiar retrato"}
+        </button>
+        {retocando && (
+          <div className="mb-3 w-full space-y-3 text-left">
+            <OpcionesAvatar
+              avatar={yo.avatar}
+              alCambiar={(parte) => void sala.accion({ tipo: "avatar", avatar: { ...yo.avatar, ...parte } })}
+            />
+          </div>
+        )}
+        {vista.retratos && (
+          <div className="mb-3">
+            {yo.retrato.pintando ? (
+              <p className="text-[0.95rem] italic text-sepia" role="status">
+                El retratista está pintando <Puntos />
+              </p>
+            ) : (
+              <button
+                type="button"
+                className="boton boton-sepia"
+                disabled={yo.retrato.restantes === 0}
+                onClick={() => void sala.accion({ tipo: "retrato" })}
+              >
+                {yo.retrato.url ? "Pintar otro retrato" : "Pintar mi retrato"}
+              </button>
+            )}
+            <p className="mt-1 text-[0.85rem] italic text-sepia">
+              {yo.retrato.restantes === 0
+                ? "Ya no quedan retratos para este personaje."
+                : `Se pinta con lo que elegiste. Quedan ${yo.retrato.restantes}.`}
+            </p>
+          </div>
+        )}
         <h2 className="titulo text-3xl">{yo.nombre}</h2>
         <p className="italic text-sepia">
           {nombreRaza(yo.raza)} · {nombreClase(yo.clase)}

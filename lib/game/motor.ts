@@ -27,6 +27,7 @@ import {
   UMBRALES_AMENAZA,
   atributosDe,
 } from "./contenido";
+import { avatarPorDefecto, normalizarAvatar, type Avatar } from "./avatar";
 import { AVANCE_POR_RESULTADO, resolverTirada, type Rng } from "./dados";
 import {
   ASIENTOS,
@@ -56,6 +57,9 @@ import {
 const MAX_ENTRADAS = 40;
 const MAX_MEMORIA = 12;
 const MAX_SUSURROS = 8;
+/** Un susurro pierde efecto si llega en todos los turnos: se deja pasar uno cada tantos por jugador. */
+const TURNOS_ENTRE_SUSURROS = 3;
+const PISTAS_POR_NARRACION = 1;
 const AMENAZA_INICIAL = 2;
 const VIDA_AL_LEVANTARSE = 3;
 const AVANCES_LIBRES_POR_ESCENA = 1;
@@ -125,7 +129,14 @@ export interface DatosPersonaje {
   clase: string;
   rasgo: string;
   secreto: string;
+  avatar?: Partial<Avatar>;
+  apariencia?: string;
 }
+
+const semillaDeAvatar = (p: { nombre: string; raza: string; clase: string }) => `${p.nombre}|${p.raza}|${p.clase}`;
+
+/** El retrato de un personaje, o uno estable si se creó antes de que existieran. */
+export const avatarDe = (p: Personaje): Avatar => p.avatar ?? avatarPorDefecto(semillaDeAvatar(p));
 
 export function armarPersonaje(asiento: Asiento, datos: DatosPersonaje): Personaje {
   const nombre = limpiar(datos.nombre, 24);
@@ -144,6 +155,8 @@ export function armarPersonaje(asiento: Asiento, datos: DatosPersonaje): Persona
   return {
     asiento,
     nombre,
+    avatar: normalizarAvatar(datos.avatar, semillaDeAvatar({ nombre, raza: raza.id, clase: clase.id })),
+    apariencia: limpiar(datos.apariencia, 120),
     raza: raza.id,
     clase: clase.id,
     rasgo,
@@ -168,7 +181,10 @@ export function definirPersonaje(
     throw new ErrorJuego("ya_empezo", "La partida ya empezó: el personaje no se puede cambiar.", 409);
   }
   const e = structuredClone(estado);
+  const previo = e.personajes[asiento];
   e.personajes[asiento] = armarPersonaje(asiento, datos);
+  // El retrato pintado y su cuenta siguen: rehacer el personaje no regala intentos.
+  if (previo?.retrato) e.personajes[asiento]!.retrato = previo.retrato;
   e.actualizado = ahora;
   return e;
 }
@@ -525,11 +541,15 @@ function aplicarCambios(e: EstadoJuego, plan: Plan, salida: SalidaDM, actor: Asi
   }
   ajustarAmenaza(e, amenaza);
 
-  // Pistas: solo las del capítulo en curso que ya pueden haber aparecido.
-  for (const id of c.pistas) {
+  // Pistas: solo las del capítulo en curso que ya pueden haber aparecido, de a
+  // una por narración y nunca en la apertura, para que no se gasten de entrada.
+  let nuevas = 0;
+  for (const id of plan.tipo === "apertura" ? [] : c.pistas) {
     const pista = pistaDef(id);
     if (!pista || pista.escena > e.escena.indice || escenaDef(pista.escena).capitulo !== e.capitulo) continue;
+    if (e.pistas.includes(id) || nuevas >= PISTAS_POR_NARRACION) continue;
     descubrir(e, id);
+    nuevas += 1;
   }
 
   if (plan.tipo !== "apertura") {
@@ -552,8 +572,10 @@ function aplicarCambios(e: EstadoJuego, plan: Plan, salida: SalidaDM, actor: Asi
     const s = salida.susurros.find((x) => x.jugador === asiento);
     const texto = s && limpiar(s.texto, 280);
     if (!texto || !e.personajes[asiento]) continue;
+    const ultimo = e.susurros.findLast((x) => x.para === asiento);
+    if (ultimo && e.turno - (ultimo.turno ?? e.turno) < TURNOS_ENTRE_SUSURROS) continue;
     e.secuencia += 1;
-    e.susurros.push({ id: e.secuencia, para: asiento, texto });
+    e.susurros.push({ id: e.secuencia, para: asiento, texto, turno: e.turno });
   }
   if (e.susurros.length > MAX_SUSURROS) e.susurros.splice(0, e.susurros.length - MAX_SUSURROS);
 }
@@ -885,6 +907,73 @@ export function cambiarTerror(
   const e = structuredClone(estado);
   e.terror = nivel;
   if (e.fase !== "preparacion") aviso(e, `Intensidad del terror: ${NOMBRE_TERROR[nivel].toLowerCase()}.`);
+  e.actualizado = ahora;
+  return e;
+}
+
+/** El retrato se puede cambiar en cualquier momento: no toca las reglas. */
+export function cambiarAvatar(estado: EstadoJuego, asiento: Asiento, avatar: unknown, ahora: number): EstadoJuego {
+  const e = structuredClone(estado);
+  const p = personajeDe(e, asiento);
+  p.avatar = normalizarAvatar(avatar, semillaDeAvatar(p));
+  e.actualizado = ahora;
+  return e;
+}
+
+// ───────────────────────── Retrato pintado ─────────────────────────
+
+export const RETRATOS_MAX = 6;
+const PINTANDO_VENCE_MS = 120_000;
+
+export const estaPintando = (p: Personaje, ahora: number): boolean =>
+  !!p.retrato?.pintando && ahora - p.retrato.pintando < PINTANDO_VENCE_MS;
+
+/**
+ * Reserva un intento de retrato. Devuelve null si no hay nada que pintar: ya
+ * hay uno con esa misma descripción, hay otro en curso o se acabaron los intentos.
+ */
+export function empezarRetrato(
+  estado: EstadoJuego,
+  asiento: Asiento,
+  firma: string,
+  ahora: number,
+  pedido: boolean,
+): EstadoJuego | null {
+  const actual = personajeDe(estado, asiento);
+  const r = actual.retrato;
+  if (estaPintando(actual, ahora)) {
+    if (pedido) throw new ErrorJuego("pintando", "Tu retrato todavía se está pintando.", 409);
+    return null;
+  }
+  if ((r?.hechos ?? 0) >= RETRATOS_MAX) {
+    if (pedido) throw new ErrorJuego("sin_retratos", "Ya no quedan retratos para este personaje.", 409);
+    return null;
+  }
+  if (!pedido && r?.url && r.firma === firma) return null;
+  const e = structuredClone(estado);
+  e.personajes[asiento]!.retrato = { url: r?.url ?? null, firma: r?.firma ?? "", hechos: (r?.hechos ?? 0) + 1, pintando: ahora };
+  e.actualizado = ahora;
+  return e;
+}
+
+/** Cierra el intento: con `url` guarda el retrato nuevo; sin ella deja el anterior y devuelve el intento. */
+export function terminarRetrato(
+  estado: EstadoJuego,
+  asiento: Asiento,
+  firma: string,
+  url: string | null,
+  ahora: number,
+): EstadoJuego {
+  const e = structuredClone(estado);
+  const p = e.personajes[asiento];
+  if (!p?.retrato) return estado;
+  p.retrato.pintando = null;
+  if (url) {
+    p.retrato.url = url;
+    p.retrato.firma = firma;
+  } else {
+    p.retrato.hechos = Math.max(0, p.retrato.hechos - 1);
+  }
   e.actualizado = ahora;
   return e;
 }

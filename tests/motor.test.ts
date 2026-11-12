@@ -1,12 +1,19 @@
 import { describe, expect, it } from "vitest";
 import { ESCENAS, escenasDe } from "@/lib/game/campana";
 import { instruccionSistema, mensajeTurno } from "@/lib/dm/prompt";
+import { AVATAR, avatarPorDefecto, normalizarAvatar } from "@/lib/game/avatar";
 import { clasificar, resolverTirada } from "@/lib/game/dados";
 import {
   aplicarNarracion,
   armarPersonaje,
+  RETRATOS_MAX,
+  cambiarAvatar,
+  definirPersonaje,
+  empezarRetrato,
+  terminarRetrato,
   cambiarTerror,
   empezarCapitulo,
+  iniciar,
   opcionesValidas,
   pasarFarol,
   planificar,
@@ -316,6 +323,103 @@ describe("escenas y votos", () => {
     expect(e.refugio.mejoras).toHaveLength(1);
     expect(e.companero).not.toBeNull();
     expect(e.decisiones.dilema).toBeDefined();
+  });
+});
+
+describe("ritmo de pistas y susurros", () => {
+  const turno = (e: EstadoJuego, s: ReturnType<typeof salida>) => {
+    let x = prepararAccion(e, e.farol, { tipo: "opcion", id: e.opciones[0].id }, AHORA);
+    x = tirar(x, e.farol, {}, dados(9), AHORA);
+    return aplicarNarracion(x, planificar(x), s, AHORA);
+  };
+
+  it("la apertura no entrega pistas y cada narración entrega una sola", () => {
+    const abierta = iniciar(preparada(), AHORA);
+    const e = aplicarNarracion(abierta, planificar(abierta), salida({ cambios: { pistas: ["plato_de_mas"] } }), AHORA);
+    expect(e.pistas).toEqual([]);
+    const r = turno(e, salida({ cambios: { pistas: ["plato_de_mas", "registro_raspado"] } }));
+    expect(r.pistas).toEqual(["plato_de_mas"]);
+  });
+
+  it("no deja pasar un susurro por turno al mismo jugador", () => {
+    const susurro = (n: number) => salida({ susurros: [{ jugador: 1, texto: `Susurro ${n}, dicho muy bajo.` }, { jugador: 2, texto: `Otro ${n}.` }] });
+    let e = enJuego();
+    const vistos: number[] = [];
+    for (let n = 1; n <= 4 && e.fase === "jugando" && !e.voto; n++) {
+      e = turno(e, susurro(n));
+      vistos.push(e.susurros.filter((s) => s.para === 1).length);
+    }
+    expect(vistos.slice(0, 3)).toEqual([1, 1, 1]);
+    expect(e.susurros.filter((s) => s.para === 2)).toHaveLength(e.susurros.filter((s) => s.para === 1).length);
+  });
+});
+
+describe("retrato", () => {
+  const base = { nombre: "Aldric", raza: "enano", clase: "espada", rasgo: "Valiente", secreto: "Un secreto." };
+
+  it("guarda lo elegido y descarta lo que no existe", () => {
+    const p = armarPersonaje(1, { ...base, avatar: { peinado: "capucha", marca: "parche", piel: "verde" } });
+    expect(p.avatar).toMatchObject({ peinado: "capucha", marca: "parche" });
+    expect(AVATAR.piel.opciones.map((o) => o.id)).toContain(p.avatar!.piel);
+  });
+
+  it("sin elegir nada, el retrato es siempre el mismo para el mismo personaje", () => {
+    expect(armarPersonaje(1, base).avatar).toEqual(armarPersonaje(2, base).avatar);
+    expect(avatarPorDefecto("a")).toEqual(avatarPorDefecto("a"));
+    expect(normalizarAvatar("basura", "a")).toEqual(avatarPorDefecto("a"));
+  });
+
+  it("un personaje guardado sin retrato recibe uno en la vista", () => {
+    const e = enJuego();
+    delete e.personajes[1]!.avatar;
+    const vista = vistaPara(e, 2, false);
+    expect(vista.personajes[1]!.avatar).toEqual(avatarPorDefecto("Aldric|enano|espada"));
+  });
+
+  it("se puede cambiar con la partida empezada, y solo el propio", () => {
+    const e = cambiarAvatar(enJuego(), 2, { peinado: "sombrero", pelo: "<script>" }, AHORA);
+    expect(e.personajes[2]!.avatar!.peinado).toBe("sombrero");
+    expect(AVATAR.pelo.opciones.map((o) => o.id)).toContain(e.personajes[2]!.avatar!.pelo);
+    expect(e.personajes[1]).toEqual(enJuego().personajes[1]);
+  });
+});
+
+describe("retrato pintado", () => {
+  it("reserva un intento, no repite el mismo y devuelve el intento si falla", () => {
+    const e0 = enJuego();
+    const e1 = empezarRetrato(e0, 1, "abc", AHORA, false)!;
+    expect(e1.personajes[1]!.retrato).toMatchObject({ hechos: 1, pintando: AHORA, url: null });
+    expect(vistaPara(e1, 1, false, { ahora: AHORA + 1000 }).personajes[1]!.retrato).toEqual({ url: null, pintando: true, restantes: RETRATOS_MAX - 1 });
+    // mientras pinta no se reserva otro
+    expect(empezarRetrato(e1, 1, "abc", AHORA + 1000, false)).toBeNull();
+    expect(codigo(() => empezarRetrato(e1, 1, "abc", AHORA + 1000, true))).toBe("pintando");
+
+    const fallo = terminarRetrato(e1, 1, "abc", null, AHORA + 2000);
+    expect(fallo.personajes[1]!.retrato).toMatchObject({ hechos: 0, pintando: null, url: null });
+
+    const listo = terminarRetrato(e1, 1, "abc", "https://x/r.webp", AHORA + 2000);
+    expect(listo.personajes[1]!.retrato).toMatchObject({ hechos: 1, url: "https://x/r.webp", firma: "abc" });
+    // misma descripción: no se vuelve a pintar solo, pero sí a pedido
+    expect(empezarRetrato(listo, 1, "abc", AHORA + 3000, false)).toBeNull();
+    expect(empezarRetrato(listo, 1, "abc", AHORA + 3000, true)).not.toBeNull();
+    expect(empezarRetrato(listo, 1, "otra", AHORA + 3000, false)).not.toBeNull();
+  });
+
+  it("tiene un tope de intentos por personaje y sobrevive a rehacer el personaje", () => {
+    let e = preparada();
+    for (let i = 0; i < RETRATOS_MAX; i++) {
+      e = terminarRetrato(empezarRetrato(e, 1, `f${i}`, AHORA, true)!, 1, `f${i}`, `u${i}`, AHORA);
+    }
+    expect(codigo(() => empezarRetrato(e, 1, "mas", AHORA, true))).toBe("sin_retratos");
+    expect(empezarRetrato(e, 1, "mas", AHORA, false)).toBeNull();
+    e = definirPersonaje(e, 1, { nombre: "Otro", raza: "elfo", clase: "juglar", rasgo: "Valiente", secreto: "Un secreto." }, AHORA);
+    expect(e.personajes[1]!.retrato?.hechos).toBe(RETRATOS_MAX);
+  });
+
+  it("un intento colgado vence solo", () => {
+    const e = empezarRetrato(enJuego(), 2, "abc", AHORA, true)!;
+    expect(vistaPara(e, 2, false, { ahora: AHORA + 5 * 60_000 }).personajes[2]!.retrato.pintando).toBe(false);
+    expect(empezarRetrato(e, 2, "abc", AHORA + 5 * 60_000, true)).not.toBeNull();
   });
 });
 

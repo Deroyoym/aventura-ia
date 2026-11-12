@@ -61,6 +61,7 @@ LA VERDAD (solo para vos; los jugadores la descubren de a poco, por pistas):
 - Los vecinos no saben nada. Sienten huecos: un plato de más, una cuna vacía, un apodo sin dueño. Les incomoda y cambian de tema.
 - El amor resiste al olvido. Tobías todavía recuerda a su hermana Lía, borrada hace tres noches. Esa grieta es la clave para romper el pacto en capítulos futuros.
 - Los forasteros no están atados al pacto: los personajes recuerdan lo que el pueblo olvida. Por eso la Dama se interesa en ellos.
+- Cuando suena la campanada trece, la gente del pueblo queda inmóvil un instante y después olvida. Los personajes de los jugadores NUNCA quedan inmóviles ni olvidan: los dos lo ven todo.
 - Dentro de la bruma hay un reflejo de Valdebruma: las mismas calles, con todas las ventanas encendidas y las mesas servidas. Los Ausentes viven allí sin saber que fueron olvidados. Recuperan el rostro por un instante cuando alguien dice su nombre en voz alta.
 - La Dama lleva la cuenta de los entregados. Nadie sale de la bruma sin que la cuenta cierre: si uno sale, otro ocupa su lugar. Y la cuenta arrastra un hueco desde el principio: siete firmaron el pacto, seis pagaron.
 - Giro reservado para más adelante (NO lo reveles en los capítulos 1 y 2): la Peste Gris nunca fue una enfermedad; era la propia Dama. Uno de los siete fundadores lo sabía.
@@ -93,7 +94,7 @@ export const NPCS: Npc[] = [
     id: "tobias",
     nombre: "Tobías",
     rol: "Mozo de cuadra, diez años",
-    guia: "Flaco, callado, observador. Es el único que recuerda a su hermana Lía y ya aprendió a no decirlo. Confía en los animales más que en la gente. Habla poco y en frases cortas.",
+    guia: "Flaco, callado, observador. Huérfano: vive en la posada y Brígida lo cría a los gritos. Es el único que recuerda a su hermana Lía y ya aprendió a no decirlo: no la nombra antes de la escena del cuarto, y solo si se ganaron su confianza. Confía en los animales más que en la gente. Habla poco y en frases cortas.",
   },
   {
     id: "corvino",

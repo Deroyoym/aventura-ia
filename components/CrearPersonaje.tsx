@@ -11,22 +11,27 @@ import {
   SECRETOS,
   atributosDe,
 } from "@/lib/game/contenido";
+import { avatarAlAzar, avatarPorDefecto, type Avatar as DatosAvatar } from "@/lib/game/avatar";
 import type { PeticionPersonaje } from "@/lib/protocolo";
+import { Avatar, OpcionesAvatar } from "./Avatar";
 import { Atributos } from "./Hoja";
 import { ICONO_ENFOQUE, IconoCorazon, Ornamento } from "./ui";
 
-// Creación de personaje en cuatro pasos cortos, pensada para una mano.
+// Creación de personaje en cinco pasos cortos, pensada para una mano.
 
-const PASOS = ["Quién llega", "Su oficio", "Su sombra", "La hoja"] as const;
+const PASOS = ["Quién llega", "Su oficio", "Su rostro", "Su sombra", "La hoja"] as const;
 
 const VACIO: PeticionPersonaje = { nombre: "", raza: "", clase: "", rasgo: "", secreto: "" };
 
 export function CrearPersonaje({
   inicial,
+  retratos = false,
   alGuardar,
   alCancelar,
 }: {
   inicial?: PeticionPersonaje;
+  /** Si el servidor pinta retratos: habilita la descripción libre del aspecto. */
+  retratos?: boolean;
   alGuardar: (datos: PeticionPersonaje) => Promise<void>;
   alCancelar?: () => void;
 }) {
@@ -35,6 +40,9 @@ export function CrearPersonaje({
   const [guardando, setGuardando] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const cambiar = (parte: Partial<PeticionPersonaje>) => setD((previo) => ({ ...previo, ...parte }));
+  // Hasta que el jugador toque algo, el retrato sale del nombre, la raza y la clase.
+  const avatar: DatosAvatar = { ...avatarPorDefecto(`${d.nombre.trim()}|${d.raza}|${d.clase}`), ...d.avatar };
+  const retocar = (parte: Partial<DatosAvatar>) => cambiar({ avatar: { ...avatar, ...parte } });
 
   const raza = RAZAS.find((r) => r.id === d.raza);
   const clase = CLASES.find((c) => c.id === d.clase);
@@ -42,6 +50,7 @@ export function CrearPersonaje({
   const completo = [
     d.nombre.trim().length >= 2 && !!raza,
     !!clase,
+    true,
     d.rasgo.trim().length >= 2 && d.secreto.trim().length >= 5,
     true,
   ];
@@ -50,7 +59,7 @@ export function CrearPersonaje({
     setGuardando(true);
     setError(null);
     try {
-      await alGuardar(d);
+      await alGuardar({ ...d, avatar });
     } catch (e) {
       setError(e instanceof Error ? e.message : "No se pudo guardar el personaje.");
       setGuardando(false);
@@ -146,6 +155,37 @@ export function CrearPersonaje({
       )}
 
       {paso === 2 && (
+        <div className="space-y-3">
+          <div className="flex flex-col items-center gap-2">
+            <Avatar avatar={avatar} raza={d.raza} clase={d.clase} tam={132} titulo={`Retrato de ${d.nombre.trim()}`} />
+            <button type="button" className="text-[0.95rem] italic text-sangre underline" onClick={() => cambiar({ avatar: avatarAlAzar() })}>
+              Probar otro al azar
+            </button>
+          </div>
+          <OpcionesAvatar avatar={avatar} alCambiar={retocar} />
+          {retratos && (
+            <div>
+              <label htmlFor="apariencia" className="versalitas mb-1 block text-sepia">
+                algo más (opcional)
+              </label>
+              <input
+                id="apariencia"
+                className="campo"
+                value={d.apariencia ?? ""}
+                onChange={(e) => cambiar({ apariencia: e.target.value })}
+                maxLength={120}
+                placeholder="Ojos verdes, un aro de plata, mirada cansada…"
+                autoComplete="off"
+              />
+              <p className="mt-1 text-[0.9rem] italic leading-snug text-sepia">
+                Al guardar, un retratista lo pinta con todo esto. Mientras tanto se ve este boceto.
+              </p>
+            </div>
+          )}
+        </div>
+      )}
+
+      {paso === 3 && (
         <div className="space-y-5">
           <fieldset>
             <legend className="versalitas mb-1 text-sepia">rasgo</legend>
@@ -207,9 +247,10 @@ export function CrearPersonaje({
         </div>
       )}
 
-      {paso === 3 && raza && clase && atributos && (
+      {paso === 4 && raza && clase && atributos && (
         <div className="space-y-4">
-          <div className="text-center">
+          <div className="flex flex-col items-center text-center">
+            <Avatar avatar={avatar} raza={raza.id} clase={clase.id} tam={96} className="mb-2" />
             <p className="titulo text-3xl">{d.nombre.trim()}</p>
             <p className="italic text-sepia">
               {raza.nombre} · {clase.nombre}

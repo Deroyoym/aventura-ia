@@ -1,3 +1,4 @@
+import type { Avatar } from "@/lib/game/avatar";
 import type { DatosPersonaje } from "@/lib/game/motor";
 import type { Asiento, Fase, NivelTerror, Tirada } from "@/lib/game/tipos";
 import type { Vista } from "@/lib/game/vista";
@@ -29,6 +30,7 @@ export interface EstadoServidor extends ModoServidor {
   /** Nombres de los modelos configurados, para comprobar el deploy. No son secretos. */
   modelo: string | null;
   modeloRespaldo: string | null;
+  modeloImagenes: string | null;
 }
 
 export interface Instantanea {
@@ -72,7 +74,10 @@ export type PeticionAccion =
   | { tipo: "votar"; opcion: string }
   | { tipo: "pasar" }
   | { tipo: "terror"; nivel: NivelTerror }
-  | { tipo: "usar"; objeto: string };
+  | { tipo: "usar"; objeto: string }
+  | { tipo: "avatar"; avatar: Avatar }
+  /** Pide que el modelo de imágenes pinte el retrato con lo elegido. */
+  | { tipo: "retrato" };
 
 export interface RespuestaAccion {
   ok: true;

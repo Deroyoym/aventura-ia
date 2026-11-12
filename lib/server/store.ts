@@ -41,7 +41,11 @@ export interface Store {
   ocupar(salaId: string, asiento: Asiento, tokenHash: string, reemplazar: boolean): Promise<boolean>;
   visto(salaId: string, asiento: Asiento): Promise<void>;
   registrarTurno(salaId: string, fila: FilaTurno): Promise<void>;
+  /** Guarda una imagen y devuelve la dirección desde la que el navegador puede cargarla. */
+  guardarImagen(ruta: string, bytes: Buffer, tipo: string): Promise<string>;
 }
+
+export const DEPOSITO_RETRATOS = "retratos";
 
 // ───────────────────────── Supabase ─────────────────────────
 
@@ -134,6 +138,13 @@ function storeSupabase(db: SupabaseClient): Store {
       });
       if (error) falla("registrar turno", error);
     },
+
+    async guardarImagen(ruta, bytes, tipo) {
+      const deposito = db.storage.from(DEPOSITO_RETRATOS);
+      const { error } = await deposito.upload(ruta, bytes, { contentType: tipo, upsert: true, cacheControl: "31536000" });
+      if (error) falla("guardar imagen", error);
+      return deposito.getPublicUrl(ruta).data.publicUrl;
+    },
   };
 }
 
@@ -183,6 +194,10 @@ function storeMemoria(salas: Map<string, SalaEnMemoria>): Store {
     },
     async registrarTurno(salaId, fila) {
       porId(salaId)?.turnos.push(fila);
+    },
+    // Sin depósito, la imagen viaja dentro del estado. Solo para desarrollo.
+    async guardarImagen(_ruta, bytes, tipo) {
+      return `data:${tipo};base64,${bytes.toString("base64")}`;
     },
   };
 }

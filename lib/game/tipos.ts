@@ -1,6 +1,8 @@
 // Tipos del dominio. Todo el estado de una partida es un único documento JSON
 // (EstadoJuego) que vive en el servidor; el cliente solo recibe una Vista filtrada.
 
+import type { Avatar } from "./avatar";
+
 export type Asiento = 1 | 2;
 export const ASIENTOS: readonly Asiento[] = [1, 2];
 export const otroAsiento = (a: Asiento): Asiento => (a === 1 ? 2 : 1);
@@ -45,6 +47,12 @@ export interface Objeto {
 export interface Personaje {
   asiento: Asiento;
   nombre: string;
+  /** Retrato elegido. Falta en personajes creados antes de que existieran. */
+  avatar?: Avatar;
+  /** Lo que el jugador quiso agregar sobre su aspecto, con sus palabras. */
+  apariencia?: string;
+  /** Retrato pintado por el modelo de imágenes, si hay uno. */
+  retrato?: Retrato;
   raza: string;
   clase: string;
   rasgo: string;
@@ -58,6 +66,16 @@ export interface Personaje {
   /** En 0 de vida: fuera de juego hasta que cierre la escena. */
   quebrado: boolean;
   secretoRevelado: boolean;
+}
+
+export interface Retrato {
+  url: string | null;
+  /** Huella de la descripción con la que se pintó, para no repetir el mismo. */
+  firma: string;
+  /** Cuántos se pintaron para este personaje. */
+  hechos: number;
+  /** Marca de tiempo (ms) mientras se está pintando. */
+  pintando: number | null;
 }
 
 export interface TiradaPedida {
@@ -136,6 +154,8 @@ export interface Susurro {
   id: number;
   para: Asiento;
   texto: string;
+  /** Turno en que llegó. Falta en susurros guardados antes de que se registrara. */
+  turno?: number;
 }
 
 export interface ResumenEscena {

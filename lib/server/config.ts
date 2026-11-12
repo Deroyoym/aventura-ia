@@ -14,6 +14,8 @@ export function entorno() {
     geminiClave: env.GEMINI_API_KEY || "",
     geminiModelo: env.GEMINI_MODEL || "",
     geminiRespaldo: env.GEMINI_MODEL_RESPALDO || "",
+    /** Modelo de imágenes para los retratos. Sin él, se usan los dibujados por piezas. */
+    geminiImagenes: (env.GEMINI_API_KEY && env.GEMINI_IMAGE_MODEL) || (env.SIMULAR_RETRATOS ? "simulado" : ""),
     enVercel: !!env.VERCEL,
   };
 }
@@ -36,5 +38,6 @@ export function estadoServidor(): EstadoServidor {
     almacen: supabase ? "supabase" : "memoria",
     modelo: e.geminiModelo || null,
     modeloRespaldo: e.geminiRespaldo || null,
+    modeloImagenes: e.geminiImagenes || null,
   };
 }
