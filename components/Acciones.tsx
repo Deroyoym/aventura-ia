@@ -3,7 +3,7 @@
 import { useState } from "react";
 import type { SalaEnVivo } from "@/lib/client/useSala";
 import { CD, NOMBRE_ATRIBUTO, NOMBRE_DIFICULTAD, NOMBRE_ENFOQUE } from "@/lib/game/contenido";
-import { otroAsiento, type Opcion, type TiradaPedida } from "@/lib/game/tipos";
+import { ASIENTOS, type Opcion, type TiradaPedida } from "@/lib/game/tipos";
 import type { Vista, VotoVista } from "@/lib/game/vista";
 import { D20 } from "./Dado";
 import { conSigno, efectoDe, usosDe } from "./Hoja";
@@ -61,10 +61,10 @@ function TarjetaOpcion({
 function PanelOpciones({ sala }: { sala: SalaEnVivo }) {
   const vista = sala.snap!.vista;
   const yo = vista.yo;
-  const otro = otroAsiento(yo);
   const esMiTurno = vista.farol === yo;
   const portador = vista.personajes[vista.farol];
-  const companero = vista.personajes[otro];
+  const mesaGrande = vista.campana.max > 2;
+  const jugadores = ASIENTOS.filter((a) => vista.personajes[a] && !vista.personajes[a]!.quebrado).length;
   const [elegida, setElegida] = useState<string | null>(null);
   const [libre, setLibre] = useState<string | null>(null);
 
@@ -83,6 +83,16 @@ function PanelOpciones({ sala }: { sala: SalaEnVivo }) {
         <IconoFarol tam={16} className="resplandor text-ambar" />
         {esMiTurno ? "llevás el farol: ¿qué hacés?" : `${portador?.nombre ?? "tu compañero"} lleva el farol`}
       </Encabezado>
+      {vista.campana.rondas && (
+        <p className="-mt-1 mb-2 text-[0.92rem] italic text-bruma">
+          {vista.yaActuaron.includes(yo)
+            ? "Ya actuaste en esta ronda. "
+            : esMiTurno
+              ? "Actúan todos antes de que el máster narre. "
+              : ""}
+          Van {vista.yaActuaron.length} de {jugadores}.
+        </p>
+      )}
 
       <div className="space-y-2">
         {vista.opciones.map((o) => (
@@ -91,7 +101,7 @@ function PanelOpciones({ sala }: { sala: SalaEnVivo }) {
             opcion={o}
             vista={vista}
             elegida={libre === null && elegida === o.id}
-            senalada={sala.sugerencia === o.id ? (companero?.nombre ?? "Tu compañero") : null}
+            senalada={sala.sugerencia === o.id ? (mesaGrande ? "Alguien" : "Tu compañero") : null}
             alTocar={() => tocar(o.id)}
           />
         ))}
@@ -132,13 +142,13 @@ function PanelOpciones({ sala }: { sala: SalaEnVivo }) {
               Hacerlo
             </button>
           </div>
-          {companero && !companero.quebrado && (
+          {jugadores > 1 && (
             <button
               type="button"
               className="mx-auto mt-2 block text-sm italic text-bruma underline"
               onClick={() => void sala.accion({ tipo: "pasar" })}
             >
-              Pasarle el farol a {companero.nombre}
+              {mesaGrande ? "Pasarle el farol al siguiente" : "Pasarle el farol a mi compañero"}
             </button>
           )}
         </>
@@ -245,8 +255,10 @@ function PanelTirada({ sala }: { sala: SalaEnVivo }) {
 function PanelVoto({ sala, voto }: { sala: SalaEnVivo; voto: VotoVista }) {
   const vista = sala.snap!.vista;
   const yo = vista.yo;
-  const otro = otroAsiento(yo);
+  const mesaGrande = vista.campana.max > 2;
+  const otro = ASIENTOS.find((a) => a !== yo && vista.personajes[a]) ?? yo;
   const companero = vista.personajes[otro]?.nombre ?? "tu compañero";
+  const faltan = voto.faltan.map((a) => vista.personajes[a]?.nombre ?? `Jugador ${a}`);
   const [elegida, setElegida] = useState<string | null>(null);
   const [cambiando, setCambiando] = useState(false);
   const [enviando, setEnviando] = useState(false);
@@ -263,7 +275,9 @@ function PanelVoto({ sala, voto }: { sala: SalaEnVivo; voto: VotoVista }) {
 
   return (
     <div>
-      <Encabezado>decisión de los dos{voto.ronda > 1 ? " · segunda vuelta" : ""}</Encabezado>
+      <Encabezado>
+        {mesaGrande ? "decisión de la mesa · por mayoría" : `decisión de los dos${voto.ronda > 1 ? " · segunda vuelta" : ""}`}
+      </Encabezado>
       <h3 className="titulo text-[1.35rem] leading-tight text-ambar-claro">{voto.pregunta}</h3>
       <p className="cuento mb-2.5 mt-1 text-[1rem] italic leading-snug text-bruma">{voto.contexto}</p>
 
@@ -281,7 +295,7 @@ function PanelVoto({ sala, voto }: { sala: SalaEnVivo; voto: VotoVista }) {
             Votaste: <strong className="text-ambar-claro">{titulo(voto.miEleccion ?? undefined)}</strong>
           </p>
           <p className="mt-1 italic text-bruma">
-            Falta {companero} <Puntos />
+            {mesaGrande ? `Faltan: ${faltan.join(", ")}` : `Falta ${companero}`} <Puntos />
           </p>
           <button type="button" className="mt-2 text-sm italic text-bruma underline" onClick={() => setCambiando(true)}>
             Cambiar mi voto

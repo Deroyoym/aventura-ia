@@ -1,12 +1,13 @@
 import {
-  EVENTOS_AMENAZA,
-  NPCS,
   VOTOS,
+  campanaDe,
   capituloDef,
+  npcsDe,
+  ordenDe,
+  siguienteCapitulo,
   esUltimaDelCapitulo,
   escenaDef,
   escenasDe,
-  hayCapitulo,
   npcDef,
   pistaDef,
   pistasDe,
@@ -32,8 +33,9 @@ import { AVANCE_POR_RESULTADO, resolverTirada, type Rng } from "./dados";
 import {
   ASIENTOS,
   ErrorJuego,
-  otroAsiento,
+  type AccionRonda,
   type Asiento,
+  type CampanaId,
   type Enfoque,
   type Entrada,
   type EstadoJuego,
@@ -64,6 +66,24 @@ const AMENAZA_INICIAL = 2;
 const VIDA_AL_LEVANTARSE = 3;
 const AVANCES_LIBRES_POR_ESCENA = 1;
 
+const CAPITULO_INICIAL: Record<CampanaId, number> = { trece: 1, coche: 101 };
+
+/** Asientos que tienen personaje, en orden. */
+export const activos = (e: EstadoJuego): Asiento[] => ASIENTOS.filter((a) => e.personajes[a]);
+
+/** El siguiente asiento con personaje que cumple la condición, dando la vuelta; null si no hay otro. */
+function siguienteAsiento(e: EstadoJuego, desde: Asiento, sirve: (a: Asiento) => boolean): Asiento | null {
+  const orden = activos(e);
+  const i = orden.indexOf(desde);
+  for (let paso = 1; paso < orden.length; paso++) {
+    const a = orden[(i + paso) % orden.length];
+    if (sirve(a)) return a;
+  }
+  return null;
+}
+
+const enPie = (e: EstadoJuego) => (a: Asiento) => !e.personajes[a]!.quebrado;
+
 const acotar = (n: number, min: number, max: number) => Math.min(max, Math.max(min, n));
 
 /** Recorta, colapsa espacios y quita caracteres de control de un texto escrito por un jugador o por el modelo. */
@@ -76,17 +96,19 @@ export function limpiar(texto: unknown, max: number): string {
     .slice(0, max);
 }
 
-export function estadoInicial(terror: NivelTerror, ahora: number): EstadoJuego {
+export function estadoInicial(terror: NivelTerror, ahora: number, campana: CampanaId = "trece"): EstadoJuego {
+  const capitulo = CAPITULO_INICIAL[campana];
   return {
+    campana,
     fase: "preparacion",
     terror,
-    capitulo: 1,
+    capitulo,
     personajes: {},
-    escena: { indice: 0, avance: 0, turnos: 0, libres: 0 },
+    escena: { indice: escenasDe(capitulo)[0], avance: 0, turnos: 0, libres: 0 },
     farol: 1,
     amenaza: AMENAZA_INICIAL,
     pistas: [],
-    npcs: Object.fromEntries(NPCS.map((n) => [n.id, { relacion: 0, conocido: false }])),
+    npcs: Object.fromEntries(npcsDe(campana).map((n) => [n.id, { relacion: 0, conocido: false }])),
     companero: null,
     refugio: { mejoras: [] },
     decisiones: {},
@@ -190,14 +212,29 @@ export function definirPersonaje(
 }
 
 export const puedeEmpezar = (e: EstadoJuego): boolean =>
-  e.fase === "preparacion" && ASIENTOS.every((a) => e.personajes[a]);
+  e.fase === "preparacion" && activos(e).length >= campanaDe(e).jugadores.min;
 
 export function iniciar(estado: EstadoJuego, ahora: number): EstadoJuego {
   if (estado.fase !== "preparacion") throw new ErrorJuego("ya_empezo", "La partida ya empezó.", 409);
   if (!puedeEmpezar(estado)) {
-    throw new ErrorJuego("faltan_personajes", "Faltan personajes: tienen que estar listos los dos.");
+    throw new ErrorJuego(
+      "faltan_personajes",
+      `Faltan personajes: hacen falta al menos ${campanaDe(estado).jugadores.min} para empezar.`,
+    );
   }
   const e = structuredClone(estado);
+  e.farol = activos(e)[0];
+  // Encargos secretos: se barajan y se reparte uno por jugador.
+  const encargos = campanaDe(e).encargos.map((x) => x.id);
+  if (encargos.length) {
+    let semilla = ahora % 2147483647;
+    for (let i = encargos.length - 1; i > 0; i--) {
+      semilla = (semilla * 48271) % 2147483647;
+      const j = semilla % (i + 1);
+      [encargos[i], encargos[j]] = [encargos[j], encargos[i]];
+    }
+    e.encargos = Object.fromEntries(activos(e).map((a, i) => [a, encargos[i % encargos.length]]));
+  }
   e.pendiente = { tipo: "inicio" };
   e.actualizado = ahora;
   return e;
@@ -223,7 +260,7 @@ export function validarTurnoDe(e: EstadoJuego, asiento: Asiento): void {
   if (e.fase !== "jugando") throw new ErrorJuego("fase", "Ahora no se puede actuar.", 409);
   if (e.voto) throw new ErrorJuego("hay_voto", "Primero tienen que votar.", 409);
   if (e.pendiente) throw new ErrorJuego("hay_pendiente", "Ya hay una acción en curso.", 409);
-  if (e.farol !== asiento) throw new ErrorJuego("no_es_tu_turno", "El farol lo lleva tu compañero.", 409);
+  if (e.farol !== asiento) throw new ErrorJuego("no_es_tu_turno", "El farol lo lleva otro jugador.", 409);
   if (personajeDe(e, asiento).quebrado) {
     throw new ErrorJuego("quebrado", "Tu personaje está fuera de juego hasta que termine la escena.", 409);
   }
@@ -310,7 +347,7 @@ export function tirar(
     throw new ErrorJuego("sin_tirada", "No hay ninguna tirada pendiente.", 409);
   }
   if (previo.tirada) throw new ErrorJuego("ya_tirado", "Esa tirada ya se hizo.", 409);
-  if (previo.asiento !== asiento) throw new ErrorJuego("no_es_tu_turno", "La tirada es de tu compañero.", 409);
+  if (previo.asiento !== asiento) throw new ErrorJuego("no_es_tu_turno", "La tirada es de otro jugador.", 409);
 
   const e = structuredClone(estado);
   const p = e.pendiente as typeof previo;
@@ -359,6 +396,48 @@ export function tirar(
   return e;
 }
 
+// ───────────────────────── Rondas ─────────────────────────
+
+/**
+ * En campañas por rondas: si la acción pendiente ya está resuelta, la anota en
+ * la ronda y le pasa el farol al siguiente que no actuó. Cuando actuaron todos,
+ * deja pendiente la narración de la ronda entera.
+ */
+export function avanzarRonda(estado: EstadoJuego, ahora: number): EstadoJuego {
+  const p = estado.pendiente;
+  if (!campanaDe(estado).rondas || p?.tipo !== "accion" || (p.pedida && !p.tirada)) return estado;
+  const e = structuredClone(estado);
+  const ronda = (e.ronda ??= []);
+  ronda.push({
+    asiento: p.asiento,
+    texto: p.texto,
+    enfoque: p.enfoque,
+    resultado: p.tirada?.resultado ?? null,
+    avanza: p.avanza,
+  });
+  const falta = siguienteAsiento(e, p.asiento, (a) => enPie(e)(a) && !ronda.some((x) => x.asiento === a));
+  if (falta) {
+    e.farol = falta;
+    e.pendiente = null;
+    // Las opciones siguen en pie para los que faltan.
+    e.opciones = estado.opciones.length ? estado.opciones : escenaDef(e.escena.indice).opcionesBase;
+  } else {
+    e.pendiente = { tipo: "ronda" };
+  }
+  e.actualizado = ahora;
+  return e;
+}
+
+const SALIO_BIEN: Resultado[] = ["critico", "exito", "costo"];
+const PEOR_PRIMERO: Resultado[] = ["pifia", "fallo", "costo", "exito", "critico"];
+
+/** Cuánto avanza la escena con una ronda: un paso si a la mitad o más le salió bien; dos si además nadie falló y hubo un crítico. */
+function avanceDeRonda(ronda: AccionRonda[]): number {
+  const bien = ronda.filter((x) => (x.resultado ? SALIO_BIEN.includes(x.resultado) : x.avanza)).length;
+  if (bien * 2 < ronda.length) return 0;
+  return bien === ronda.length && ronda.some((x) => x.resultado === "critico") ? 2 : 1;
+}
+
 // ───────────────────────── Plan del turno ─────────────────────────
 
 /** Decide, antes de llamar al modelo, qué tiene que pasar en esta narración. */
@@ -378,9 +457,21 @@ export function planificar(e: EstadoJuego): Plan {
   if (p.tipo === "inicio") return { ...base, tipo: "apertura", abre: escenasDe(e.capitulo)[0] };
   if (p.tipo === "voto") return { ...base, tipo: "tras_voto", abre: e.escena.indice + 1 };
 
-  if (p.pedida && !p.tirada) throw new ErrorJuego("falta_tirada", "Falta tirar el dado.", 409);
-  const resultado: Resultado | null = p.tirada?.resultado ?? null;
-  const avance = resultado ? AVANCE_POR_RESULTADO[resultado] : p.avanza ? 1 : 0;
+  const ronda = p.tipo === "ronda" ? (e.ronda ?? []) : undefined;
+  if (p.tipo === "accion" && p.pedida && !p.tirada) throw new ErrorJuego("falta_tirada", "Falta tirar el dado.", 409);
+  // En una ronda, los límites a lo que puede cobrar el modelo los fija el peor resultado.
+  const resultado: Resultado | null = ronda
+    ? (PEOR_PRIMERO.find((r) => ronda.some((x) => x.resultado === r)) ?? null)
+    : p.tipo === "accion"
+      ? (p.tirada?.resultado ?? null)
+      : null;
+  const avance = ronda
+    ? avanceDeRonda(ronda)
+    : resultado
+      ? AVANCE_POR_RESULTADO[resultado]
+      : p.tipo === "accion" && p.avanza
+        ? 1
+        : 0;
   const def = escenaDef(e.escena.indice);
   const resuelta = e.escena.avance + avance >= def.meta;
   const agotada = !resuelta && e.escena.turnos + 1 >= def.tope;
@@ -395,6 +486,7 @@ export function planificar(e: EstadoJuego): Plan {
     motivoCierre: resuelta ? "resuelta" : agotada ? "agotada" : null,
     siguiente,
     amenazaForzada: (resultado === "pifia" ? 1 : 0) + (agotada ? 1 : 0),
+    ronda,
     abre: siguiente === "escena" ? e.escena.indice + 1 : null,
     eventos: [...e.eventos],
   };
@@ -422,7 +514,7 @@ function ajustarAmenaza(e: EstadoJuego, delta: number): void {
   for (const u of UMBRALES_AMENAZA) {
     if (antes < u.valor && e.amenaza >= u.valor) {
       aviso(e, u.aviso, "mal");
-      e.eventos.push(EVENTOS_AMENAZA[u.valor]);
+      e.eventos.push(campanaDe(e).eventosAmenaza[u.valor]);
     }
   }
 }
@@ -519,7 +611,10 @@ function aplicarCambios(e: EstadoJuego, plan: Plan, salida: SalidaDM, actor: Asi
   // Vida: se suma por jugador y se acota al rango que permite el resultado.
   for (const asiento of ASIENTOS) {
     const suma = c.vida.filter((v) => v.jugador === asiento).reduce((s, v) => s + Math.round(v.delta), 0);
-    const delta = acotar(suma, -limite.danio, CURA_MAX_POR_TURNO);
+    // En una ronda, a cada uno solo lo puede lastimar su propio resultado.
+    const propio = plan.ronda?.find((x) => x.asiento === asiento);
+    const danio = plan.ronda ? (propio ? LIMITES[propio.resultado ?? "ninguno"].danio : 1) : limite.danio;
+    const delta = acotar(suma, -danio, CURA_MAX_POR_TURNO);
     if (delta < 0) huboCosto = true;
     ajustarVida(e, asiento, delta);
   }
@@ -678,7 +773,7 @@ function cerrarEscena(e: EstadoJuego, plan: Plan, salida: SalidaDM): void {
   }
 }
 
-/** Marca a quien llegó a 0 de vida. Si caen los dos, la Bruma cobra y los devuelve. */
+/** Marca a quien llegó a 0 de vida. Si caen todos, la Bruma cobra y los devuelve. */
 function revisarQuebrados(e: EstadoJuego): void {
   for (const asiento of ASIENTOS) {
     const p = e.personajes[asiento];
@@ -693,7 +788,7 @@ function revisarQuebrados(e: EstadoJuego): void {
       p.quebrado = false;
       p.vida = VIDA_AL_LEVANTARSE;
     }
-    aviso(e, "Caen los dos. La Bruma los cubre un momento… y los suelta. Despiertan con frío en los huesos.", "mal");
+    aviso(e, "Caen todos. La Bruma los cubre un momento… y los suelta. Despiertan con frío en los huesos.", "mal");
     ajustarAmenaza(e, 2);
   }
 }
@@ -724,6 +819,13 @@ export function aplicarNarracion(
     e.escena.turnos += 1;
     if (p?.tipo === "accion" && !p.pedida && plan.avance > 0) e.escena.libres += 1;
   }
+  // Ronda narrada: la próxima la abre quien sigue al que abrió esta.
+  if (plan.ronda?.length) {
+    const abrio = plan.ronda[0].asiento;
+    e.ronda = [];
+    e.farol = abrio;
+    e.farol = siguienteAsiento(e, abrio, enPie(e)) ?? abrio;
+  }
 
   revisarQuebrados(e);
   if (plan.cierra) cerrarEscena(e, plan, salida);
@@ -732,11 +834,7 @@ export function aplicarNarracion(
   e.opciones = e.voto || e.fase === "fin_capitulo" ? [] : opcionesValidas(salida.opciones, e.escena.indice, e.escena.libres);
 
   // El farol cambia de mano después de cada acción, salvo que el otro esté caído.
-  if (actor) {
-    const otro = otroAsiento(actor);
-    const puede = (a: Asiento) => !!e.personajes[a] && !e.personajes[a]!.quebrado;
-    e.farol = puede(otro) ? otro : actor;
-  }
+  if (actor) e.farol = siguienteAsiento(e, actor, enPie(e)) ?? actor;
 
   e.pendiente = null;
   e.narrando = null;
@@ -768,6 +866,17 @@ function aplicarEfectos(e: EstadoJuego, efectos: EfectosVoto): void {
     }
   }
   if (efectos.mejora) e.refugio.mejoras.push(efectos.mejora);
+  if (efectos.revelaFarol) {
+    const p = e.personajes[e.farol];
+    if (p && !p.secretoRevelado) {
+      p.secretoRevelado = true;
+      aviso(e, `El secreto de ${p.nombre} sale a la luz.`, "neutro");
+    }
+  }
+  if (efectos.danio) {
+    for (const asiento of ASIENTOS) if (e.personajes[asiento]) ajustarVida(e, asiento, -efectos.danio);
+    revisarQuebrados(e);
+  }
   if (efectos.vidaMax) {
     for (const asiento of ASIENTOS) {
       const p = e.personajes[asiento];
@@ -798,13 +907,28 @@ export function votar(
 
   voto.elecciones[asiento] = opcionId;
   e.actualizado = ahora;
-  const elegidas = ASIENTOS.map((a) => voto.elecciones[a]);
+  const votantes = activos(e);
+  const elegidas = votantes.map((a) => voto.elecciones[a]);
   if (elegidas.some((x) => !x)) return { estado: e, resuelto: false, narrar: false };
 
   let ganadora: string | null = null;
-  if (elegidas[0] === elegidas[1]) ganadora = elegidas[0]!;
-  // Segundo desacuerdo: decide quien lleva el farol.
-  else if (voto.ronda >= 2) ganadora = voto.elecciones[e.farol]!;
+  let desempate = false;
+  if (votantes.length <= 2) {
+    if (elegidas[0] === elegidas[1]) ganadora = elegidas[0]!;
+    // Segundo desacuerdo: decide quien lleva el farol.
+    else if (voto.ronda >= 2) {
+      ganadora = voto.elecciones[e.farol]!;
+      desempate = true;
+    }
+  } else {
+    // Mesa grande: gana la opción más votada; si hay empate, entre las empatadas decide el farol.
+    const cuenta = new Map<string, number>();
+    for (const x of elegidas) cuenta.set(x!, (cuenta.get(x!) ?? 0) + 1);
+    const tope = Math.max(...cuenta.values());
+    const punteras = [...cuenta].filter(([, n]) => n === tope).map(([id]) => id);
+    desempate = punteras.length > 1;
+    ganadora = punteras.includes(voto.elecciones[e.farol]!) ? voto.elecciones[e.farol]! : punteras[0];
+  }
 
   if (!ganadora) {
     voto.anteriores = { ...voto.elecciones };
@@ -814,7 +938,7 @@ export function votar(
   }
 
   const opcion = def.opciones.find((o) => o.id === ganadora)!;
-  if (elegidas[0] !== elegidas[1]) {
+  if (desempate) {
     aviso(e, `No hubo acuerdo: decide ${personajeDe(e, e.farol).nombre}, que lleva el farol.`, "neutro");
   }
   aviso(e, opcion.aviso, "neutro");
@@ -851,7 +975,7 @@ function aplicarMejora(e: EstadoJuego, id: string | undefined): void {
 }
 
 export const hayOtroCapitulo = (e: EstadoJuego): boolean =>
-  e.fase === "fin_capitulo" && !e.voto && !e.pendiente && hayCapitulo(e.capitulo + 1);
+  e.fase === "fin_capitulo" && !e.voto && !e.pendiente && siguienteCapitulo(e.capitulo) !== null;
 
 /** Pasa al capítulo siguiente: un día de descanso en el refugio y la mejora elegida rinde. */
 export function empezarCapitulo(estado: EstadoJuego, ahora: number): EstadoJuego {
@@ -859,12 +983,13 @@ export function empezarCapitulo(estado: EstadoJuego, ahora: number): EstadoJuego
     throw new ErrorJuego("fase", "El capítulo todavía no terminó.", 409);
   }
   if (estado.pendiente) throw new ErrorJuego("hay_pendiente", "El capítulo ya está empezando.", 409);
-  if (!hayCapitulo(estado.capitulo + 1)) {
+  const proximo = siguienteCapitulo(estado.capitulo);
+  if (proximo === null) {
     throw new ErrorJuego("sin_capitulo", "El capítulo siguiente todavía no está escrito.", 409);
   }
   const e = structuredClone(estado);
-  e.capitulo += 1;
-  aviso(e, `Capítulo ${e.capitulo}: ${capituloDef(e.capitulo).titulo}. Un día de descanso en la Casa del Guarda.`);
+  e.capitulo = proximo;
+  aviso(e, `Capítulo ${ordenDe(e.capitulo)}: ${capituloDef(e.capitulo).titulo}. Un día de descanso.`);
   // La mejora se aplica antes de curar, para que la vida máxima nueva cuente.
   aplicarMejora(e, e.refugio.mejoras[e.refugio.mejoras.length - 1]);
   for (const asiento of ASIENTOS) {
@@ -885,10 +1010,11 @@ export function empezarCapitulo(estado: EstadoJuego, ahora: number): EstadoJuego
 
 export function pasarFarol(estado: EstadoJuego, asiento: Asiento, ahora: number): EstadoJuego {
   validarTurnoDe(estado, asiento);
-  const otro = otroAsiento(asiento);
-  const companero = estado.personajes[otro];
-  if (!companero || companero.quebrado) {
-    throw new ErrorJuego("no_puede", "Tu compañero no puede tomar el farol ahora.", 409);
+  const yaActuo = (a: Asiento) => !!estado.ronda?.some((x) => x.asiento === a);
+  const otro = siguienteAsiento(estado, asiento, (a) => enPie(estado)(a) && !yaActuo(a));
+  const companero = otro && estado.personajes[otro];
+  if (!otro || !companero) {
+    throw new ErrorJuego("no_puede", "Nadie más puede tomar el farol ahora.", 409);
   }
   const e = structuredClone(estado);
   e.farol = otro;

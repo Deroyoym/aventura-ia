@@ -1,5 +1,7 @@
 "use client";
 
+import { CAMPANAS_PUBLICAS } from "@/lib/game/contenido";
+import type { CampanaId } from "@/lib/game/tipos";
 import { useRouter } from "next/navigation";
 import { useEffect, useState, useSyncExternalStore } from "react";
 import {
@@ -52,6 +54,8 @@ export function Portada() {
   const guardadas = useSyncExternalStore(suscribirSalasGuardadas, leerSalasGuardadas, sinSalasGuardadas);
   const [, refrescarLista] = useState(0);
   const [terror, setTerror] = useState<NivelTerror>("media");
+  const [campana, setCampana] = useState<CampanaId>("trece");
+  const elegida = CAMPANAS_PUBLICAS.find((c) => c.id === campana)!;
   const [codigo, setCodigo] = useState("");
   const [ocupado, setOcupado] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -65,7 +69,7 @@ export function Portada() {
     setOcupado(true);
     setError(null);
     try {
-      const credencial = await api.crearSala(terror);
+      const credencial = await api.crearSala(terror, campana);
       guardarSala(credencial);
       router.push(`/sala/${credencial.codigo}`);
     } catch (e) {
@@ -79,13 +83,13 @@ export function Portada() {
   return (
     <main className="mx-auto flex min-h-dvh w-full max-w-md flex-col gap-5 px-4 pb-10 pt-[max(1.25rem,env(safe-area-inset-top))]">
       <header className="aparecer text-center">
-        <Vineta lugar="campanario" className="mx-auto max-w-[19rem]" />
-        <p className="versalitas mt-4 text-bruma">un cuento de bruma para dos</p>
-        <h1 className="titulo mt-1 text-[2.9rem] text-ambar-claro [text-shadow:0_0_26px_#e6a93c55]">
-          La Hora Trece
+        <Vineta key={elegida.id} lugar={elegida.lugar} className="aparecer mx-auto max-w-[19rem]" />
+        <p className="versalitas mt-4 text-bruma">{elegida.bajada}</p>
+        <h1 className="titulo mt-1 text-[2.9rem] leading-none text-ambar-claro [text-shadow:0_0_26px_#e6a93c55]">
+          {elegida.titulo}
         </h1>
         <p className="cuento mx-auto mt-2 max-w-[20rem] text-[1.05rem] italic leading-snug text-bruma">
-          En Valdebruma suena cada noche una campanada que no existe. Y cada vez, alguien deja de haber existido.
+          {elegida.premisa}
         </p>
       </header>
 
@@ -98,6 +102,25 @@ export function Portada() {
 
       <section className="pergamino pergamino-filete aparecer space-y-4 p-5">
         <h2 className="titulo text-center text-2xl">Abrir una sala</h2>
+        <fieldset>
+          <legend className="versalitas mb-1.5 text-sepia">Historia</legend>
+          <div className="grid grid-cols-2 gap-2">
+            {CAMPANAS_PUBLICAS.map((c) => (
+              <button
+                key={c.id}
+                type="button"
+                aria-pressed={campana === c.id}
+                onClick={() => setCampana(c.id)}
+                className={`tarjeta px-2 py-2 text-center leading-tight ${
+                  campana === c.id ? "outline outline-2 outline-sangre" : ""
+                }`}
+              >
+                <span className="titulo block text-[1.05rem]">{c.titulo}</span>
+                <span className="block text-[0.85rem] italic text-sepia">{c.jugadores}</span>
+              </button>
+            ))}
+          </div>
+        </fieldset>
         <SelectorTerror valor={terror} alCambiar={setTerror} />
         <button type="button" className="boton boton-tinta w-full" disabled={ocupado} onClick={crear}>
           {ocupado ? "Abriendo…" : "Abrir una sala nueva"}

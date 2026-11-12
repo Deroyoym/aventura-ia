@@ -54,7 +54,8 @@ const sala = (codigo: string, resto = "") => `/api/salas/${encodeURIComponent(co
 
 export const api = {
   estado: () => json<EstadoServidor>(pedir("/api/estado")),
-  crearSala: (terror: string) => json<Credencial>(pedir("/api/salas", { cuerpo: { terror } })),
+  crearSala: (terror: string, campana: string) =>
+    json<Credencial>(pedir("/api/salas", { cuerpo: { terror, campana } })),
   unirse: (codigo: string, reclamar?: number) =>
     json<Credencial>(pedir(sala(codigo, "/unirse"), { cuerpo: { reclamar } })),
   instantanea: (codigo: string, token: string | null) => json<Instantanea>(pedir(sala(codigo), { token })),

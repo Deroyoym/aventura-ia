@@ -1,4 +1,6 @@
 import type {
+  CampanaId,
+  Lugar,
   Atributo,
   CompaneroId,
   Dificultad,
@@ -405,3 +407,30 @@ export function atributosDe(razaId: string, claseId: string): Record<Atributo, n
 
 export const AMENAZA_MAX = 10;
 export const INVENTARIO_MAX = 8;
+
+/** Lo que se puede mostrar de cada campaña antes de jugarla. */
+export const CAMPANAS_PUBLICAS: {
+  id: CampanaId;
+  titulo: string;
+  bajada: string;
+  premisa: string;
+  jugadores: string;
+  lugar: Lugar;
+}[] = [
+  {
+    id: "trece",
+    titulo: "La Hora Trece",
+    bajada: "un cuento de bruma para dos",
+    premisa: "En Valdebruma suena cada noche una campanada que no existe. Y cada vez, alguien deja de haber existido.",
+    jugadores: "2 jugadores · 4 capítulos",
+    lugar: "campanario",
+  },
+  {
+    id: "coche",
+    titulo: "El Último Coche",
+    bajada: "un viaje de noche para cuatro a seis",
+    premisa: "Una diligencia cruza el páramo con un pasajero más de los que dice la lista. Cada uno lleva una carta, y un encargo que no piensa contar.",
+    jugadores: "4 a 6 jugadores · capítulo I",
+    lugar: "coche",
+  },
+];

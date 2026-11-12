@@ -6,6 +6,8 @@ Juego de rol narrativo cooperativo para dos jugadores, con una IA como máster. 
 
 Cada jugador entra con un código de sala, crea su personaje (raza, clase, un retrato armado por piezas, rasgo y un secreto que el otro no ve) y juegan por turnos. La campaña completa son cuatro capítulos, de 20 a 30 minutos cada uno: «La posada del Farol Tuerto», «Los Ausentes», «Los Siete» y «La Dama del Umbral», con tres finales posibles. Lo que se decide en uno pesa en el siguiente.
 
+Al crear la sala se elige la historia. La segunda, «El Último Coche», es para 4 a 6 jugadores: se juega por rondas (actúan todos y el máster narra el conjunto), las decisiones se votan por mayoría y cada jugador lleva un encargo secreto que choca con el de otro. Por ahora tiene su primer capítulo.
+
 ## Cómo se juega
 
 - **El farol.** Quien lo lleva decide la acción del turno: una de las tres opciones del máster (acción, ingenio o diálogo) o algo escrito con sus palabras. El otro puede señalar una opción como sugerencia. Después de cada acción, el farol cambia de mano.

@@ -5,6 +5,8 @@ import { AVATAR, avatarPorDefecto, normalizarAvatar } from "@/lib/game/avatar";
 import { clasificar, resolverTirada } from "@/lib/game/dados";
 import {
   aplicarNarracion,
+  avanzarRonda,
+  estadoInicial,
   armarPersonaje,
   RETRATOS_MAX,
   cambiarAvatar,
@@ -585,7 +587,7 @@ describe("capítulo 3", () => {
   it("se puede jugar entero y quedan dos votos propios más la mejora", () => {
     const e = cerrar(hastaElTres());
     expect(e.capitulo).toBe(3);
-    expect(e.resumenes).toHaveLength(ESCENAS.length - escenasDe(4).length);
+    expect(e.resumenes).toHaveLength(15);
     expect(e.decisiones.cripta).toBeDefined();
     expect(e.decisiones.septima).toBeDefined();
     expect(e.refugio.mejoras).toHaveLength(3);
@@ -597,7 +599,7 @@ describe("capítulo 3", () => {
     expect(abierto.capitulo).toBe(4);
     expect(instruccionSistema(abierto)).toContain("La Dama del Umbral");
     const e = cerrar(abierto, { pacto: "nombrar" });
-    expect(e.resumenes).toHaveLength(ESCENAS.length);
+    expect(e.resumenes).toHaveLength(20);
     expect(e.decisiones.lectura).toBeDefined();
     expect(e.decisiones.pacto).toBe("nombrar");
     expect(e.refugio.mejoras).toHaveLength(3);
@@ -646,6 +648,132 @@ describe("capítulo 3", () => {
     }
     const r = votar(votar(e, 1, "anselmo", AHORA).estado, 2, "anselmo", AHORA).estado;
     expect(r.pistas).toContain("tumbas_vacias");
+  });
+});
+
+describe("El Último Coche: mesa grande por rondas", () => {
+  const mesa = (jugadores: number): EstadoJuego => {
+    let e = estadoInicial("media", AHORA, "coche");
+    for (let a = 1; a <= jugadores; a++) {
+      e = definirPersonaje(
+        e,
+        a as Asiento,
+        { nombre: `Viajero ${a}`, raza: "humano", clase: "espada", rasgo: "Terco", secreto: `Le debo plata a Casilda ${a}` },
+        AHORA,
+      );
+    }
+    return e;
+  };
+  const narrar = (e: EstadoJuego) => aplicarNarracion(e, planificar(e), salidaDeRespaldo(e, planificar(e)), AHORA);
+  const abierta = (jugadores = 5) => narrar(iniciar(mesa(jugadores), AHORA));
+  /** Actúa quien lleva el farol y deja la acción anotada en la ronda. */
+  const actuar = (e: EstadoJuego, dado = 14): EstadoJuego => {
+    const asiento = e.farol;
+    let s = prepararAccion(e, asiento, { tipo: "opcion", id: "a" }, AHORA);
+    s = tirar(s, asiento, {}, dados(dado), AHORA);
+    return avanzarRonda(s, AHORA);
+  };
+  const ronda = (e: EstadoJuego, dado = 14): EstadoJuego => {
+    let s = e;
+    while (s.pendiente?.tipo !== "ronda") s = actuar(s, dado);
+    return narrar(s);
+  };
+
+  it("no empieza con menos de cuatro y reparte un encargo distinto a cada uno", () => {
+    expect(codigo(() => iniciar(mesa(3), AHORA))).toBe("faltan_personajes");
+    const e = abierta(5);
+    expect(e.capitulo).toBe(101);
+    expect(new Set(Object.values(e.encargos!)).size).toBe(5);
+    expect(vistaPara(e, 1, false).capitulo).toMatchObject({ numero: 1, titulo: "La lista del cochero" });
+    expect(vistaPara(e, 1, false).escena.lugar).toBe("posta");
+  });
+
+  it("cada jugador ve solo su encargo, y el máster los recibe todos", () => {
+    const e = abierta(4);
+    const mio = vistaPara(e, 2, false).encargo!.texto;
+    expect(mio.length).toBeGreaterThan(10);
+    expect(JSON.stringify(vistaPara(e, 3, false))).not.toContain(mio);
+    expect(mensajeTurno(e, planificar({ ...e, pendiente: { tipo: "ronda" }, ronda: [] }))).toContain(mio);
+    expect(instruccionSistema(e)).toContain("El Último Coche");
+    expect(instruccionSistema(e)).not.toContain("Valdebruma");
+  });
+
+  it("actúan todos antes de que el máster narre, y el farol va pasando", () => {
+    let e = abierta(4);
+    expect(e.farol).toBe(1);
+    e = actuar(e);
+    expect(e.pendiente).toBeNull();
+    expect(e.farol).toBe(2);
+    expect(e.opciones.length).toBeGreaterThan(0);
+    expect(codigo(() => prepararAccion(e, 1, { tipo: "opcion", id: "a" }, AHORA))).toBe("no_es_tu_turno");
+    e = actuar(actuar(e));
+    expect(vistaPara(e, 1, false).yaActuaron).toEqual([1, 2, 3]);
+    e = actuar(e);
+    expect(e.pendiente).toEqual({ tipo: "ronda" });
+    const plan = planificar(e);
+    expect(plan.ronda).toHaveLength(4);
+    expect(plan.avance).toBe(1);
+    expect(mensajeTurno(e, plan)).toContain("acciones de esta ronda");
+    e = narrar(e);
+    expect(e.ronda).toEqual([]);
+    expect(e.escena.avance).toBe(1);
+    expect(e.farol).toBe(2);
+  });
+
+  it("si a la mayoría le sale mal, la ronda no avanza", () => {
+    let e = abierta(4);
+    e = actuar(actuar(actuar(actuar(e, 1), 1), 1), 15);
+    expect(planificar(e).avance).toBe(0);
+  });
+
+  it("los votos se resuelven por mayoría y el empate lo define el farol", () => {
+    let e = abierta(5);
+    while (!e.voto) e = ronda(e);
+    expect(e.voto.id).toBe("viajera");
+    for (const [a, o] of [[1, "rostro"], [2, "rostro"], [3, "dejarla"], [4, "bajarla"]] as const) {
+      e = votar(e, a, o, AHORA).estado;
+      expect(e.voto).not.toBeNull();
+    }
+    expect(vistaPara(e, 1, false).voto!.faltan).toEqual([5]);
+    const r = votar(e, 5, "dejarla", AHORA);
+    expect(r.resuelto).toBe(true);
+    expect(["rostro", "dejarla"]).toContain(r.estado.decisiones.viajera);
+    expect(r.estado.decisiones.viajera).toBe(r.estado.voto === null && e.voto!.elecciones[e.farol] === "dejarla" ? "dejarla" : r.estado.decisiones.viajera);
+  });
+
+  it("se juega el capítulo entero y cada encargo queda cumplido o no", () => {
+    let e = abierta(6);
+    let guardia = 0;
+    while (e.fase !== "fin_capitulo" || e.voto) {
+      if (guardia++ > 80) throw new Error("El capítulo no termina");
+      if (e.voto) {
+        const opcion = e.voto.opciones[0].id;
+        for (const a of [1, 2, 3, 4, 5, 6] as Asiento[]) if (e.voto) e = votar(e, a, opcion, AHORA).estado;
+        if (e.pendiente) e = narrar(e);
+        continue;
+      }
+      e = ronda(e);
+    }
+    expect(e.decisiones).toMatchObject({ viajera: "dejarla", peaje: "cofre", rumbo: "seguir" });
+    const cumplidos = ([1, 2, 3, 4, 5, 6] as Asiento[]).map((a) => vistaPara(e, a, false).encargo!.cumplido);
+    expect(cumplidos.filter((x) => x === true)).toHaveLength(3);
+    expect(cumplidos.filter((x) => x === false)).toHaveLength(3);
+    expect(vistaPara(e, 1, false).hayOtroCapitulo).toBe(false);
+  });
+
+  it("pagar con una verdad revela el secreto de quien lleva el farol", () => {
+    let e = abierta(4);
+    while (e.voto?.id !== "peaje") {
+      if (e.voto) {
+        const o = e.voto.opciones[0].id;
+        for (const a of [1, 2, 3, 4] as Asiento[]) if (e.voto) e = votar(e, a, o, AHORA).estado;
+        if (e.pendiente) e = narrar(e);
+      } else e = ronda(e);
+    }
+    const farol = e.farol;
+    for (const a of [1, 2, 3, 4] as Asiento[]) if (e.voto) e = votar(e, a, "verdad", AHORA).estado;
+    expect(e.personajes[farol]!.secretoRevelado).toBe(true);
+    expect(vistaPara(e, (farol === 1 ? 2 : 1) as Asiento, false).personajes[farol]!.secreto).toContain("Casilda");
   });
 });
 

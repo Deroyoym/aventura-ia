@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import type { SalaEnVivo } from "@/lib/client/useSala";
-import { otroAsiento } from "@/lib/game/tipos";
+import { ASIENTOS } from "@/lib/game/tipos";
 import { CrearPersonaje } from "./CrearPersonaje";
 import { FichaCorta } from "./Hoja";
 import { SelectorTerror } from "./Portada";
@@ -40,11 +40,13 @@ export function Compartir({ codigo, className = "" }: { codigo: string; classNam
 export function Preparacion({ sala }: { sala: SalaEnVivo }) {
   const { vista, codigo, asientos } = sala.snap!;
   const yo = vista.yo;
-  const otro = otroAsiento(yo);
   const mio = vista.personajes[yo];
-  const suyo = vista.personajes[otro];
   const [editando, setEditando] = useState(false);
-  const companeroEnSala = asientos[otro].ocupado;
+  // Las otras sillas de la mesa: con personaje, armándolo o vacías.
+  const sillas = ASIENTOS.filter((a) => a !== yo && asientos[a]);
+  const vacias = sillas.filter((a) => !asientos[a]!.ocupado).length;
+  const armando = sillas.filter((a) => asientos[a]!.ocupado && !vista.personajes[a]).length;
+  const mesaGrande = vista.campana.max > 2;
 
   return (
     <main className="mx-auto flex min-h-dvh w-full max-w-md flex-col gap-5 px-4 pb-10 pt-[max(1.25rem,env(safe-area-inset-top))]">
@@ -88,19 +90,27 @@ export function Preparacion({ sala }: { sala: SalaEnVivo }) {
             }
           />
 
-          {suyo ? (
-            <FichaCorta personaje={suyo} etiqueta="tu compañero" />
-          ) : (
+          {sillas.map((a) => {
+            const suyo = vista.personajes[a];
+            return suyo ? <FichaCorta key={a} personaje={suyo} etiqueta={mesaGrande ? `jugador ${a}` : "tu compañero"} /> : null;
+          })}
+          {(armando > 0 || vacias > 0) && (
             <div className="tarjeta px-3 py-3 text-center text-[1.02rem] italic text-sepia" aria-live="polite">
-              {companeroEnSala ? (
-                <>
-                  Tu compañero está armando su personaje <Puntos />
-                </>
-              ) : (
-                <>
-                  La otra silla está vacía. Pasale el código <strong className="not-italic tracking-widest">{codigo}</strong>{" "}
-                  a quien te acompañe.
-                </>
+              {armando > 0 && (
+                <p>
+                  {mesaGrande
+                    ? `${armando === 1 ? "Alguien está armando" : `${armando} están armando`} su personaje`
+                    : "Tu compañero está armando su personaje"}{" "}
+                  <Puntos />
+                </p>
+              )}
+              {vacias > 0 && (
+                <p>
+                  {mesaGrande
+                    ? `${vacias === 1 ? "Queda una silla vacía" : `Quedan ${vacias} sillas vacías`}.`
+                    : "La otra silla está vacía."}{" "}
+                  Pasale el código <strong className="not-italic tracking-widest">{codigo}</strong> a quien te acompañe.
+                </p>
               )}
             </div>
           )}
@@ -117,9 +127,16 @@ export function Preparacion({ sala }: { sala: SalaEnVivo }) {
           >
             {sala.enviando ? "Abriendo el libro…" : "Abrir el libro"}
           </button>
+          {vista.puedeEmpezar && armando > 0 && (
+            <p className="text-center text-[0.95rem] italic text-sepia">
+              Ojo: quien no tenga su personaje listo al abrir el libro se queda afuera.
+            </p>
+          )}
           {!vista.puedeEmpezar && (
             <p className="text-center text-[0.95rem] italic text-sepia">
-              La historia empieza cuando los dos personajes estén listos.
+              {mesaGrande
+                ? `La historia empieza con al menos ${vista.campana.min} personajes listos.`
+                : "La historia empieza cuando los dos personajes estén listos."}
             </p>
           )}
           {sala.error && (

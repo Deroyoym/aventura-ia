@@ -38,7 +38,7 @@ export interface Instantanea {
   salaId: string;
   version: number;
   vista: Vista;
-  asientos: Record<Asiento, { ocupado: boolean; activo: boolean }>;
+  asientos: Partial<Record<Asiento, { ocupado: boolean; activo: boolean }>>;
   modo: ModoServidor;
 }
 

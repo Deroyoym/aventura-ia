@@ -1,7 +1,8 @@
 import "server-only";
 import { createHash, randomBytes, randomInt } from "node:crypto";
+import { campanaDe } from "@/lib/game/campana";
 import { estadoInicial } from "@/lib/game/motor";
-import { ASIENTOS, ErrorJuego, type Asiento, type EstadoJuego, type NivelTerror } from "@/lib/game/tipos";
+import { ASIENTOS, ErrorJuego, type Asiento, type CampanaId, type EstadoJuego, type NivelTerror } from "@/lib/game/tipos";
 import { vistaPara } from "@/lib/game/vista";
 import { LARGO_CODIGO, normalizarCodigo, type Credencial, type InfoPublica, type Instantanea } from "@/lib/protocolo";
 import { entorno, estadoServidor } from "./config";
@@ -41,11 +42,14 @@ async function salaOError(codigo: string): Promise<Sala> {
   return sala;
 }
 
-export async function crearSala(terror: NivelTerror): Promise<Credencial> {
+/** Los lugares que tiene la sala según la campaña que se juega. */
+const plazas = (sala: Sala): Asiento[] => ASIENTOS.slice(0, campanaDe(sala.estado).jugadores.max);
+
+export async function crearSala(terror: NivelTerror, campana: CampanaId = "trece"): Promise<Credencial> {
   const store = obtenerStore();
   const { token, hash } = nuevoToken();
   for (let intento = 0; intento < 6; intento++) {
-    const sala = await store.crearSala(nuevoCodigo(), estadoInicial(terror, Date.now()), hash);
+    const sala = await store.crearSala(nuevoCodigo(), estadoInicial(terror, Date.now(), campana), hash);
     if (sala) return { codigo: sala.codigo, asiento: 1, token };
   }
   throw new ErrorJuego("sin_codigo", "No se pudo generar un código de sala. Probá de nuevo.", 503);
@@ -56,7 +60,7 @@ function infoPublica(sala: Sala, filas: FilaAsiento[]): InfoPublica {
   return {
     codigo: sala.codigo,
     fase: sala.estado.fase,
-    asientos: ASIENTOS.map((asiento) => {
+    asientos: plazas(sala).map((asiento) => {
       const fila = filas.find((f) => f.asiento === asiento);
       return {
         asiento,
@@ -85,9 +89,15 @@ export async function unirse(codigo: string, reclamar?: Asiento): Promise<Creden
     return { codigo: sala.codigo, asiento: reclamar, token };
   }
 
-  const libre = ASIENTOS.find((a) => !filas.some((f) => f.asiento === a));
-  if (!libre || !(await store.ocupar(sala.id, libre, hash, false))) {
-    throw new ErrorJuego("sala_llena", "La sala ya tiene a sus dos jugadores.", 409);
+  const libre = plazas(sala).find((a) => !filas.some((f) => f.asiento === a));
+  // Con la partida empezada, un lugar vacío ya no sirve: no hay cómo crear el personaje.
+  const cerrada = sala.estado.fase !== "preparacion" || !!sala.estado.pendiente;
+  if (!libre || cerrada || !(await store.ocupar(sala.id, libre, hash, false))) {
+    throw new ErrorJuego(
+      "sala_llena",
+      libre && cerrada ? "La partida ya empezó: no se puede sumar nadie más." : "La sala ya tiene a todos sus jugadores.",
+      409,
+    );
   }
   return { codigo: sala.codigo, asiento: libre, token };
 }
@@ -116,7 +126,7 @@ export function instantanea({ sala, asiento, filas }: Acceso): Instantanea {
   const ahora = Date.now();
   const { narrador, almacen } = estadoServidor();
   const asientos = Object.fromEntries(
-    ASIENTOS.map((a) => {
+    plazas(sala).map((a) => {
       const fila = filas.find((f) => f.asiento === a);
       // Quien pide el snapshot está activo por definición.
       return [a, { ocupado: !!fila, activo: a === asiento || activo(fila, ahora) }];
@@ -144,5 +154,5 @@ export async function mutar(
     const guardada = await store.guardar(acceso.sala, cambio(acceso.sala.estado, acceso.asiento));
     if (guardada) return { ...acceso, sala: guardada };
   }
-  throw new ErrorJuego("conflicto", "Los dos tocaron algo a la vez. Probá de nuevo.", 409);
+  throw new ErrorJuego("conflicto", "Dos jugadores tocaron algo a la vez. Probá de nuevo.", 409);
 }

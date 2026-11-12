@@ -189,4 +189,11 @@ export function MedidorAmenaza({ valor }: { valor: number }) {
 }
 
 /** Colores que identifican a cada jugador en la bitácora. */
-export const COLOR_JUGADOR = { 1: "var(--color-sangre)", 2: "var(--color-cardenillo)" } as const;
+export const COLOR_JUGADOR: Record<number, string> = {
+  1: "var(--color-sangre)",
+  2: "var(--color-cardenillo)",
+  3: "#c9953a",
+  4: "#8f6fc2",
+  5: "#5f9a6a",
+  6: "#c46f8f",
+};

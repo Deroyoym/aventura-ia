@@ -3,9 +3,11 @@
 
 import type { Avatar } from "./avatar";
 
-export type Asiento = 1 | 2;
-export const ASIENTOS: readonly Asiento[] = [1, 2];
-export const otroAsiento = (a: Asiento): Asiento => (a === 1 ? 2 : 1);
+export type Asiento = 1 | 2 | 3 | 4 | 5 | 6;
+/** Todos los asientos posibles; cuántos se usan depende de la campaña. */
+export const ASIENTOS: readonly Asiento[] = [1, 2, 3, 4, 5, 6];
+
+export type CampanaId = "trece" | "coche";
 
 export type Atributo = "fuerza" | "destreza" | "ingenio" | "voluntad" | "carisma";
 export const ATRIBUTOS: readonly Atributo[] = [
@@ -27,10 +29,10 @@ export const NIVELES_TERROR: readonly NivelTerror[] = ["suave", "media", "fuerte
 
 export type Resultado = "critico" | "exito" | "costo" | "fallo" | "pifia";
 
-export type Lugar = "posada" | "cuarto" | "plaza" | "campanario" | "refugio" | "linde" | "bruma" | "espejo" | "cripta" | "umbral" | "trece";
+export type Lugar = "posada" | "cuarto" | "plaza" | "campanario" | "refugio" | "linde" | "bruma" | "espejo" | "cripta" | "umbral" | "trece" | "posta" | "coche" | "venta" | "puente" | "paramo";
 
 export type CompaneroId = "cuervo" | "perro" | "gata";
-export type VotoId = "companero" | "dilema" | "mejora" | "ancla" | "regreso" | "cripta" | "septima" | "lectura" | "pacto";
+export type VotoId = "companero" | "dilema" | "mejora" | "ancla" | "regreso" | "cripta" | "septima" | "lectura" | "pacto" | "viajera" | "peaje" | "rumbo";
 
 export interface Objeto {
   id: string;
@@ -121,7 +123,18 @@ export type Pendiente =
       avanza: boolean;
       tirada: Tirada | null;
     }
-  | { tipo: "voto"; votoId: VotoId; opcionId: string };
+  | { tipo: "voto"; votoId: VotoId; opcionId: string }
+  /** Ya actuaron todos en la ronda: falta la narración que la resuelve. */
+  | { tipo: "ronda" };
+
+/** Una acción ya resuelta que espera, junto con las demás de la ronda, a ser narrada. */
+export interface AccionRonda {
+  asiento: Asiento;
+  texto: string;
+  enfoque: Enfoque;
+  resultado: Resultado | null;
+  avanza: boolean;
+}
 
 export interface OpcionVoto {
   id: string;
@@ -168,6 +181,12 @@ export interface ResumenEscena {
 export type Fase = "preparacion" | "jugando" | "fin_capitulo";
 
 export interface EstadoJuego {
+  /** Qué historia se juega. Falta en partidas anteriores a que hubiera más de una. */
+  campana?: CampanaId;
+  /** Acciones de la ronda en curso, en campañas que se juegan por rondas. */
+  ronda?: AccionRonda[];
+  /** Encargo secreto de cada jugador, en campañas que los reparten. */
+  encargos?: Partial<Record<Asiento, string>>;
   fase: Fase;
   terror: NivelTerror;
   capitulo: number;
@@ -237,6 +256,8 @@ export interface Plan {
   /** Qué sigue al cierre de la escena. */
   siguiente: "escena" | "voto" | "fin" | null;
   amenazaForzada: number;
+  /** En una ronda, cómo le fue a cada uno. */
+  ronda?: AccionRonda[];
   /** Índice de la escena que esta narración debe abrir, si abre alguna. */
   abre: number | null;
   eventos: string[];
