@@ -25,8 +25,8 @@ export function salidaDeRespaldo(e: EstadoJuego, plan: Plan): SalidaDM {
   let escenaDeOpciones: number | null = e.escena.indice;
 
   if (plan.tipo === "apertura") {
-    parrafos.push(escenaDef(0).aperturaBase);
-    escenaDeOpciones = 0;
+    escenaDeOpciones = plan.abre ?? e.escena.indice;
+    parrafos.push(escenaDef(escenaDeOpciones).aperturaBase);
   } else if (plan.tipo === "tras_voto" && p?.tipo === "voto") {
     const opcion = VOTOS[p.votoId].opciones.find((o) => o.id === p.opcionId);
     if (opcion) parrafos.push(opcion.aviso);

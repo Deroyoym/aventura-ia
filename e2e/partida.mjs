@@ -13,7 +13,7 @@ import { mkdirSync } from 'node:fs';
 const BASE = process.env.BASE ?? 'http://localhost:3000';
 const SALIDA = process.env.CAPTURAS ?? './e2e/capturas';
 const ESCALA = Number(process.env.ESCALA ?? 1);
-const MAX_TURNOS = Number(process.env.MAX_TURNOS ?? 60);
+const MAX_TURNOS = Number(process.env.MAX_TURNOS ?? 90);
 mkdirSync(SALIDA, { recursive: true });
 
 const navegador = await chromium.launch();
@@ -82,13 +82,28 @@ await foto(A, '05-escena1-A');
 await foto(B, '06-escena1-B');
 
 console.log('4. Turnos');
-let turnos = 0, votos = 0, fotoTirada = false, fotoVoto = false, fotoDado = false, libre = false;
+let turnos = 0, votos = 0, capitulos = 1, fotoTirada = false, fotoVoto = false, fotoDado = false, libre = false;
 const quieto = async (p) => { await p.getByText('El máster está narrando').waitFor({ state: 'hidden', timeout: 60000 }).catch(() => {}); };
 for (;;) {
   if (turnos > MAX_TURNOS) throw new Error('demasiados turnos');
   await quieto(A); await quieto(B);
   await A.waitForTimeout(350);
-  if (await A.getByText('Continuará…').isVisible().catch(() => false)) break;
+  if (await A.getByText('Continuará…').isVisible().catch(() => false)) {
+    // Fin de un capítulo: si hay otro, lo abre el segundo celular.
+    const otro = B.getByRole('button', { name: /Empezar el capítulo/ });
+    if (!(await otro.waitFor({ timeout: 8000 }).then(() => true, () => false))) break;
+    ok(votos === 3, 'capítulo 1: se votó compañero, dilema y mejora');
+    await foto(A, '11-fin-capitulo-1');
+    await otro.click();
+    await A.getByText('Continuará…').waitFor({ state: 'hidden', timeout: 30000 });
+    await A.getByText('La mesa servida').first().waitFor({ timeout: 30000 });
+    ok(true, 'los dos pasan al capítulo 2');
+    await quieto(A); await quieto(B);
+    await A.waitForTimeout(600);
+    await foto(A, '11b-capitulo-2');
+    capitulos++;
+    continue;
+  }
 
   if (await A.getByText('decisión de los dos').isVisible().catch(() => false)) {
     // En modo sondeo un celular puede tardar unos segundos en enterarse de que el voto ya cerró.
@@ -142,7 +157,7 @@ for (;;) {
   if (turnos === 4) { await P.waitForTimeout(3600); await foto(P, '10-historia'); }
 }
 console.log(`  ${Math.floor(turnos)} turnos, ${votos} votos`);
-ok(votos === 3, 'se votó compañero, dilema y mejora');
+ok(capitulos === 2 && votos === 6, 'capítulo 2: se votó quién sostiene el hilo, el regreso y otra mejora');
 await A.waitForTimeout(500);
 await foto(A, '11-fin');
 await B.getByText('Continuará…').waitFor({ timeout: 15000 });

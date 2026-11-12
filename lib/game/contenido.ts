@@ -175,6 +175,20 @@ export const CLASES: Clase[] = [
 
 /** Catálogo de objetos con efecto. El máster puede entregar cualquiera por su id. */
 export const OBJETOS: Record<string, Objeto> = {
+  nudo: {
+    id: "nudo",
+    nombre: "Nudo de la tejedora",
+    descripcion: "Un nudo rojo en la muñeca, «por si se te olvida cómo te llamás».",
+    usos: 1,
+    bono: { atributo: "voluntad", valor: 2 },
+  },
+  nana: {
+    id: "nana",
+    nombre: "La nana de Lía",
+    descripcion: "Cuatro versos que una chica te enseñó dentro de la bruma.",
+    usos: 1,
+    bono: { atributo: "voluntad", valor: 2 },
+  },
   espada: {
     id: "espada",
     nombre: "Espada del juramento",
@@ -345,6 +359,12 @@ export const MEJORAS: Mejora[] = [
     titulo: "Reforzar puertas y postigos",
     detalle: "Trancas, clavos y sal en los umbrales. Que la bruma se quede afuera.",
     efecto: "La Bruma baja 2 puntos al empezar el próximo capítulo.",
+  },
+  {
+    id: "botica",
+    titulo: "Rearmar la botica del guarda",
+    detalle: "Frascos, vendas y un cuaderno de recetas con letra prolija.",
+    efecto: "Cada uno empieza el próximo capítulo con vendas limpias.",
   },
 ];
 

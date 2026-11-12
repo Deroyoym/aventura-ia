@@ -6,6 +6,7 @@ import type { Lugar } from "@/lib/game/tipos";
 
 const TINTA = "#0c0d1b";
 const VELA = "#f0b24a";
+const HILO = "#c8402f";
 
 function Luna({ x, y, r = 16 }: { x: number; y: number; r?: number }) {
   return (
@@ -210,12 +211,98 @@ function Refugio() {
   );
 }
 
+function Linde() {
+  return (
+    <>
+      <Luna x={84} y={56} r={22} />
+      <g fill={TINTA}>
+        <path d="M0 190v-38c50-10 110-12 170-8l150 6v40z" />
+        {/* la última casa, torcida */}
+        <path d="M52 150l4-46 46-2 6 48z" />
+        <path d="M44 106l34-26 38 22-4 6-34-19-30 22z" />
+        <path d="M92 90l1-18h8l1 24z" />
+        {/* espino con cabos */}
+        <path d="M168 152c1-18-1-32-4-46l4-1c2 7 3 13 4 18l9-18 3 2-10 22c1 8 1 16 0 23z" />
+        <path d="M166 112l-14-12 2-3 13 10zM174 118l14-8 2 3-14 9zM162 124l-13-2 1-3 13 2z" />
+      </g>
+      <rect x={66} y={118} width={11} height={13} rx={1} fill={VELA} />
+      <Luz x={71} y={124} r={20} />
+      {/* el hilo rojo: del umbral al espino y hacia la bruma */}
+      <path d="M88 146c26 8 50-4 66-30M154 116c40 20 90 26 166 22" fill="none" stroke={HILO} strokeWidth={1.6} strokeLinecap="round" />
+      <g stroke={HILO} strokeWidth={1.4} strokeLinecap="round">
+        <path d="M152 100v8M188 110v9M150 122v7" />
+      </g>
+      <circle cx={88} cy={146} r={5} fill={HILO} />
+      {/* la bruma como pared */}
+      <rect x={214} y={0} width={110} height={190} fill="#d9d2e6" opacity={0.2} filter="url(#difuso)" />
+      <Niebla y={150} opacidad={0.5} />
+    </>
+  );
+}
+
+function Bruma() {
+  return (
+    <>
+      <rect width={320} height={190} fill="#b9b3cf" opacity={0.2} />
+      {/* figuras sin rostro */}
+      <g fill={TINTA} opacity={0.5} filter="url(#difuso-suave)">
+        <path d="M60 176v-44c0-10 4-14 4-22a9 9 0 0118 0c0 8 4 12 4 22v44z" />
+        <path d="M224 170v-36c0-8 3-12 3-18a7 7 0 0114 0c0 6 3 10 3 18v36z" />
+        <path d="M268 164v-26c0-6 2-9 2-13a5 5 0 0110 0c0 4 2 7 2 13v26z" opacity={0.7} />
+      </g>
+      <g fill={TINTA} opacity={0.85}>
+        <path d="M132 184v-52c0-12 5-17 5-27a11 11 0 0122 0c0 10 5 15 5 27v52z" />
+        {/* la escoba */}
+        <path d="M168 128l22 52-3 2-22-52z" />
+        <path d="M184 176l12 10-14 2z" />
+      </g>
+      {/* el hilo, lo único con color */}
+      <path d="M-4 150c50-16 92 10 140-6s110-34 190-14" fill="none" stroke={HILO} strokeWidth={1.8} strokeLinecap="round" />
+      <Niebla y={108} opacidad={0.4} />
+      <Niebla y={168} opacidad={0.55} />
+    </>
+  );
+}
+
+function Espejo() {
+  const ventanas = [
+    [22, 132], [44, 132], [70, 118], [96, 126], [118, 140], [196, 138], [218, 122], [244, 130], [268, 116], [292, 134],
+  ];
+  return (
+    <>
+      <g fill={TINTA}>
+        <path d="M0 190v-66l16-12 16 12v-6l20-16 20 16v-22l22-16 22 16v40l14-8v62z" />
+        <path d="M184 190v-58l16-10 16 10v-24l22-16 22 16v10l20-14 20 14v-18l20-12v102z" />
+        {/* la posada del reflejo */}
+        <path d="M130 190v-74l30-22 30 22v74z" />
+        <path d="M124 118l36-28 36 28-4 5-32-24-32 24z" />
+      </g>
+      {ventanas.map(([x, y]) => (
+        <g key={`${x}-${y}`}>
+          <rect x={x} y={y} width={9} height={11} rx={1} fill={VELA} />
+          <Luz x={x + 4} y={y + 5} r={13} />
+        </g>
+      ))}
+      <rect x={140} y={124} width={11} height={13} rx={1} fill={VELA} />
+      <rect x={169} y={124} width={11} height={13} rx={1} fill={VELA} />
+      <path d="M152 190v-30a8 8 0 0116 0v30z" fill={VELA} opacity={0.85} />
+      <Luz x={160} y={150} r={40} />
+      {/* una chica en la puerta, de espaldas a la luz */}
+      <path d="M156 190v-18c0-3 1-4 1-7a3.5 3.5 0 017 0c0 3 1 4 1 7v18z" fill={TINTA} />
+      <Niebla y={174} opacidad={0.5} />
+    </>
+  );
+}
+
 const ESCENAS: Record<Lugar, () => ReactNode> = {
   posada: Posada,
   cuarto: Cuarto,
   plaza: Plaza,
   campanario: Campanario,
   refugio: Refugio,
+  linde: Linde,
+  bruma: Bruma,
+  espejo: Espejo,
 };
 
 export function Vineta({ lugar, className = "" }: { lugar: Lugar; className?: string }) {

@@ -1,11 +1,15 @@
 import {
-  ESCENAS,
   EVENTOS_AMENAZA,
   NPCS,
   VOTOS,
+  capituloDef,
+  esUltimaDelCapitulo,
   escenaDef,
+  escenasDe,
+  hayCapitulo,
   npcDef,
   pistaDef,
+  pistasDe,
   type EfectosVoto,
 } from "./campana";
 import {
@@ -15,6 +19,7 @@ import {
   COMPANEROS,
   ETIQUETAS_RELACION,
   INVENTARIO_MAX,
+  MEJORAS,
   NIVELES_ORDEN,
   NOMBRE_TERROR,
   OBJETOS,
@@ -354,7 +359,7 @@ export function planificar(e: EstadoJuego): Plan {
     eventos: [...e.eventos],
   } satisfies Partial<Plan>;
 
-  if (p.tipo === "inicio") return { ...base, tipo: "apertura", abre: 0 };
+  if (p.tipo === "inicio") return { ...base, tipo: "apertura", abre: escenasDe(e.capitulo)[0] };
   if (p.tipo === "voto") return { ...base, tipo: "tras_voto", abre: e.escena.indice + 1 };
 
   if (p.pedida && !p.tirada) throw new ErrorJuego("falta_tirada", "Falta tirar el dado.", 409);
@@ -406,10 +411,15 @@ function ajustarAmenaza(e: EstadoJuego, delta: number): void {
   }
 }
 
+/** Quien fue entregado a la Bruma ya no está en el pueblo para tratar con nadie. */
+const fueBorrado = (e: EstadoJuego, npcId: string): boolean =>
+  npcId === "tobias" && e.decisiones.dilema === "dejar";
+
 function ajustarRelacion(e: EstadoJuego, npcId: string, delta: number): boolean {
   const def = npcDef(npcId);
-  const npc = e.npcs[npcId];
-  if (!def || !npc) return false;
+  if (!def || fueBorrado(e, npcId)) return false;
+  // Los personajes de capítulos nuevos se suman a las partidas ya empezadas.
+  const npc = (e.npcs[npcId] ??= { relacion: 0, conocido: false });
   const antes = npc.relacion;
   npc.relacion = acotar(antes + acotar(Math.round(delta), -2, 2), -3, 3);
   npc.conocido = true;
@@ -420,6 +430,24 @@ function ajustarRelacion(e: EstadoJuego, npcId: string, delta: number): boolean 
     npc.relacion > antes ? "bien" : "mal",
   );
   return npc.relacion < antes;
+}
+
+function descubrir(e: EstadoJuego, id: string): void {
+  const pista = pistaDef(id);
+  if (!pista || e.pistas.includes(id)) return;
+  e.pistas.push(id);
+  aviso(e, `Pista: ${pista.titulo}.`, "bien");
+}
+
+/** Entrega a un personaje un objeto del catálogo; si ya lo tiene, le recarga los usos. */
+function entregar(e: EstadoJuego, p: Personaje, id: string): void {
+  const catalogo = OBJETOS[id];
+  if (!catalogo) return;
+  const existente = p.inventario.find((o) => o.id === id);
+  if (existente) existente.usos = (existente.usos ?? 0) + (catalogo.usos ?? 0);
+  else if (p.inventario.length < INVENTARIO_MAX) p.inventario.push({ ...catalogo });
+  else return;
+  aviso(e, `${p.nombre} consigue: ${catalogo.nombre}.`, "bien");
 }
 
 function ajustarVida(e: EstadoJuego, asiento: Asiento, delta: number): void {
@@ -497,12 +525,11 @@ function aplicarCambios(e: EstadoJuego, plan: Plan, salida: SalidaDM, actor: Asi
   }
   ajustarAmenaza(e, amenaza);
 
-  // Pistas: solo las del capítulo que ya pueden haber aparecido.
+  // Pistas: solo las del capítulo en curso que ya pueden haber aparecido.
   for (const id of c.pistas) {
     const pista = pistaDef(id);
-    if (!pista || pista.escena > e.escena.indice || e.pistas.includes(id)) continue;
-    e.pistas.push(id);
-    aviso(e, `Pista: ${pista.titulo}.`, "bien");
+    if (!pista || pista.escena > e.escena.indice || escenaDef(pista.escena).capitulo !== e.capitulo) continue;
+    descubrir(e, id);
   }
 
   if (plan.tipo !== "apertura") {
@@ -560,13 +587,19 @@ export function opcionesValidas(opciones: Opcion[], indiceEscena: number, libres
   return limpias;
 }
 
-function crearVoto(id: VotoId): Voto {
+/** Opciones de un voto que siguen teniendo sentido: no se repite una mejora ya hecha. */
+function opcionesDeVoto(e: EstadoJuego, id: VotoId) {
+  const opciones = VOTOS[id].opciones;
+  return id === "mejora" ? opciones.filter((o) => !e.refugio.mejoras.includes(o.id)) : opciones;
+}
+
+function crearVoto(e: EstadoJuego, id: VotoId): Voto {
   const def = VOTOS[id];
   return {
     id,
     pregunta: def.pregunta,
     contexto: def.contexto,
-    opciones: def.opciones.map(({ id, titulo, detalle }) => ({ id, titulo, detalle })),
+    opciones: opcionesDeVoto(e, id).map(({ id, titulo, detalle }) => ({ id, titulo, detalle })),
     elecciones: {},
     ronda: 1,
     anteriores: null,
@@ -577,7 +610,11 @@ function abrirEscena(e: EstadoJuego, indice: number): void {
   const def = escenaDef(indice);
   e.escena = { indice, avance: 0, turnos: 0, libres: 0 };
   agregar(e, { tipo: "escena", escena: indice });
-  for (const id of def.npcs) if (e.npcs[id]) e.npcs[id].conocido = true;
+  for (const id of def.npcs) {
+    // Quien fue borrado del pueblo no vuelve a aparecer en sus escenas.
+    if (fueBorrado(e, id)) continue;
+    (e.npcs[id] ??= { relacion: 0, conocido: false }).conocido = true;
+  }
 }
 
 function cerrarEscena(e: EstadoJuego, plan: Plan, salida: SalidaDM): void {
@@ -608,8 +645,8 @@ function cerrarEscena(e: EstadoJuego, plan: Plan, salida: SalidaDM): void {
   if (e.companero) e.companero.usado = false;
 
   if (plan.siguiente === "voto" && def.votoAlCerrar) {
-    e.voto = crearVoto(def.votoAlCerrar);
-    if (e.escena.indice === ESCENAS.length - 1) e.fase = "fin_capitulo";
+    e.voto = crearVoto(e, def.votoAlCerrar);
+    if (esUltimaDelCapitulo(e.escena.indice)) e.fase = "fin_capitulo";
   } else if (plan.abre !== null) {
     abrirEscena(e, plan.abre);
   }
@@ -650,7 +687,7 @@ export function aplicarNarracion(
 
   if (plan.tipo === "apertura") {
     e.fase = "jugando";
-    abrirEscena(e, 0);
+    abrirEscena(e, plan.abre ?? escenasDe(e.capitulo)[0]);
   }
   agregar(e, { tipo: "narracion", texto: limpiarNarracion(salida.narracion) });
 
@@ -696,6 +733,14 @@ export function limpiarNarracion(texto: string): string {
 
 function aplicarEfectos(e: EstadoJuego, efectos: EfectosVoto): void {
   if (efectos.companero) e.companero = { id: efectos.companero, usado: false };
+  if (efectos.pierdeCompanero) e.companero = null;
+  if (efectos.pista) descubrir(e, efectos.pista);
+  if (efectos.objeto) {
+    for (const asiento of ASIENTOS) {
+      const p = e.personajes[asiento];
+      if (p) entregar(e, p, efectos.objeto);
+    }
+  }
   if (efectos.mejora) e.refugio.mejoras.push(efectos.mejora);
   if (efectos.vidaMax) {
     for (const asiento of ASIENTOS) {
@@ -723,7 +768,7 @@ export function votar(
   const e = structuredClone(estado);
   const voto = e.voto!;
   const def = VOTOS[voto.id];
-  if (!def.opciones.some((o) => o.id === opcionId)) throw new ErrorJuego("opcion", "Esa opción no existe.");
+  if (!opcionesDeVoto(e, voto.id).some((o) => o.id === opcionId)) throw new ErrorJuego("opcion", "Esa opción no existe.");
 
   voto.elecciones[asiento] = opcionId;
   e.actualizado = ahora;
@@ -752,6 +797,62 @@ export function votar(
   e.voto = null;
   if (def.narrar) e.pendiente = { tipo: "voto", votoId: voto.id, opcionId: ganadora };
   return { estado: e, resuelto: true, narrar: def.narrar };
+}
+
+// ───────────────────────── Capítulos ─────────────────────────
+
+/** Lo que deja la mejora del refugio elegida al cerrar el capítulo anterior. */
+function aplicarMejora(e: EstadoJuego, id: string | undefined): void {
+  const mejora = MEJORAS.find((m) => m.id === id);
+  if (!mejora) return;
+  aviso(e, `${mejora.titulo}: ${mejora.efecto.toLowerCase()}`, "bien");
+  if (mejora.id === "hogar") {
+    for (const asiento of ASIENTOS) {
+      const p = e.personajes[asiento];
+      if (p) p.vidaMax += 2;
+    }
+  } else if (mejora.id === "biblioteca") {
+    const primera = pistasDe(e.capitulo)[0]?.id;
+    if (primera) descubrir(e, primera);
+  } else if (mejora.id === "cerrojos") {
+    ajustarAmenaza(e, -2);
+  } else if (mejora.id === "botica") {
+    for (const asiento of ASIENTOS) {
+      const p = e.personajes[asiento];
+      if (p) entregar(e, p, "vendas");
+    }
+  }
+}
+
+export const hayOtroCapitulo = (e: EstadoJuego): boolean =>
+  e.fase === "fin_capitulo" && !e.voto && !e.pendiente && hayCapitulo(e.capitulo + 1);
+
+/** Pasa al capítulo siguiente: un día de descanso en el refugio y la mejora elegida rinde. */
+export function empezarCapitulo(estado: EstadoJuego, ahora: number): EstadoJuego {
+  if (estado.fase !== "fin_capitulo" || estado.voto) {
+    throw new ErrorJuego("fase", "El capítulo todavía no terminó.", 409);
+  }
+  if (estado.pendiente) throw new ErrorJuego("hay_pendiente", "El capítulo ya está empezando.", 409);
+  if (!hayCapitulo(estado.capitulo + 1)) {
+    throw new ErrorJuego("sin_capitulo", "El capítulo siguiente todavía no está escrito.", 409);
+  }
+  const e = structuredClone(estado);
+  e.capitulo += 1;
+  aviso(e, `Capítulo ${e.capitulo}: ${capituloDef(e.capitulo).titulo}. Un día de descanso en la Casa del Guarda.`);
+  // La mejora se aplica antes de curar, para que la vida máxima nueva cuente.
+  aplicarMejora(e, e.refugio.mejoras[e.refugio.mejoras.length - 1]);
+  for (const asiento of ASIENTOS) {
+    const p = e.personajes[asiento];
+    if (!p) continue;
+    p.vida = p.vidaMax;
+    p.quebrado = false;
+    p.rasgoUsado = false;
+  }
+  if (e.companero) e.companero.usado = false;
+  e.opciones = [];
+  e.pendiente = { tipo: "inicio" };
+  e.actualizado = ahora;
+  return e;
 }
 
 // ───────────────────────── Acciones menores ─────────────────────────

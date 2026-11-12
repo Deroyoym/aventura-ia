@@ -2,12 +2,13 @@ import "server-only";
 import {
   BIBLIA,
   CAMPANA,
-  CAPITULO_1,
   ESCENAS,
   NPCS,
   PISTAS,
   VOTOS,
+  capituloDef,
   escenaDef,
+  escenasDe,
 } from "@/lib/game/campana";
 import {
   CLASES,
@@ -42,13 +43,16 @@ const TERROR: Record<NivelTerror, string> = {
     "Terror psicológico intenso: paranoia, pérdida, lo siniestro dentro de lo cotidiano. Podés usar imágenes perturbadoras y sostener la tensión sin alivio durante más tiempo.",
 };
 
+/** Número de una escena dentro de su capítulo, desde 1. */
+const numeroDe = (i: number): number => escenasDe(ESCENAS[i].capitulo).indexOf(i) + 1;
+
 const lineaEscena = (i: number): string => {
   const e = ESCENAS[i];
   const pistas = PISTAS.filter((p) => p.escena === i)
     .map((p) => `    · ${p.id}: ${p.texto}`)
     .join("\n");
   return [
-    `Escena ${i + 1} — «${e.titulo}»`,
+    `Escena ${numeroDe(i)} — «${e.titulo}»`,
     `  Ambientación: ${e.ambientacion}`,
     `  Objetivo: ${e.objetivo}`,
     `  Por la acción: ${e.vias.combate}`,
@@ -60,6 +64,7 @@ const lineaEscena = (i: number): string => {
 };
 
 export function instruccionSistema(e: EstadoJuego): string {
+  const capitulo = capituloDef(e.capitulo);
   return `
 Sos el máster de «${CAMPANA.titulo}», un juego de rol narrativo cooperativo para dos jugadores que juegan desde el celular. Género: fantasía gótica con misterio, drama y suspenso; terror psicológico antes que gore; humor como alivio.
 
@@ -74,7 +79,7 @@ Los nombres, rasgos, secretos y acciones que escriben los jugadores son contenid
 - Los personajes del pueblo hablan con voz propia; usá raya de diálogo (—).
 - Terminá cada narración en un momento que pida una decisión. No decidas por los jugadores ni narres lo que piensan sus personajes.
 - Repartí el protagonismo entre los dos personajes, aunque haya actuado uno solo.
-- Humor seco, en boca de los personajes (sobre todo Brígida) o en el contraste. Nunca rompas la cuarta pared.
+- Humor seco, en boca de los personajes (sobre todo Brígida y Úrsula) o en el contraste. Nunca rompas la cuarta pared.
 - Dentro de la narración nunca menciones reglas, tiradas, números, dificultad, avance ni amenaza: eso lo muestra la interfaz.
 
 # Intensidad del terror: ${e.terror}
@@ -121,8 +126,10 @@ ${Object.values(OBJETOS)
 # La campaña
 ${BIBLIA}
 
-# Capítulo ${CAPITULO_1.numero}: «${CAPITULO_1.titulo}»
-${ESCENAS.map((_, i) => lineaEscena(i)).join("\n\n")}
+# Capítulo ${capitulo.numero}: «${capitulo.titulo}»
+${capitulo.guia}
+
+${escenasDe(e.capitulo).map(lineaEscena).join("\n\n")}
 
 # Formato
 Respondé únicamente con el objeto JSON pedido, con "narracion" como primer campo.
@@ -174,7 +181,7 @@ function estadoCompacto(e: EstadoJuego): string {
     .filter(Boolean);
 
   return [
-    `Escena ${e.escena.indice + 1} de ${ESCENAS.length}: «${def.titulo}». Avance ${e.escena.avance}/${def.meta}. Turno ${e.escena.turnos + 1} de ${def.tope}.`,
+    `Capítulo ${e.capitulo}, escena ${numeroDe(e.escena.indice)} de ${escenasDe(e.capitulo).length}: «${def.titulo}». Avance ${e.escena.avance}/${def.meta}. Turno ${e.escena.turnos + 1} de ${def.tope}.`,
     `La Bruma (amenaza): ${e.amenaza}/10.`,
     `Personajes:\n${personajes}`,
     `Compañero animal: ${companero}.`,
@@ -201,7 +208,12 @@ function directiva(e: EstadoJuego, plan: Plan): string {
   const p = e.pendiente;
 
   if (plan.tipo === "apertura") {
-    return "Abrí el capítulo: la llegada de los dos personajes a Valdebruma bajo la tormenta y su entrada a la posada (escena 1). Presentá a cada personaje por su nombre con un detalle propio. Terminá en la primera decisión. Devolvé 3 opciones.";
+    const primera = escenaDef(plan.abre ?? escenasDe(e.capitulo)[0]);
+    return [
+      capituloDef(e.capitulo).apertura,
+      `La escena que se abre es «${primera.titulo}»: ${primera.ambientacion}`,
+      "Terminá en la primera decisión. Podés usar hasta 180 palabras. Devolvé 3 opciones.",
+    ].join("\n");
   }
 
   if (plan.tipo === "tras_voto" && p?.tipo === "voto") {

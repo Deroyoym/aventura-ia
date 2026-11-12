@@ -119,7 +119,10 @@ export function Historia({
                 <header key={item.id} className="aparecer mb-4 mt-2 text-center first:mt-0">
                   {item.escena > 0 && <Ornamento className="mb-5 text-sepia" />}
                   <Vineta lugar={escena.lugar} className="mx-auto max-w-[17rem]" />
-                  <p className="versalitas mt-3 text-sepia">escena {ROMANOS[item.escena]}</p>
+                  <p className="versalitas mt-3 text-sepia">
+                    {escena.numero === 1 && escena.capitulo > 1 ? `capítulo ${ROMANOS[escena.capitulo - 1]} · ` : ""}
+                    escena {ROMANOS[escena.numero - 1]}
+                  </p>
                   <h2 className="titulo text-[1.65rem]">{escena.titulo}</h2>
                 </header>
               );
