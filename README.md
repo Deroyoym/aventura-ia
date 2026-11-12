@@ -33,7 +33,7 @@ components/              la interfaz
 
 **Sincronía.** La fuente de verdad es el snapshot de la sala, filtrado para cada jugador (el secreto ajeno y los susurros privados del máster no salen del servidor). Supabase Realtime reparte la narración en vivo y avisa cuando cambia el estado; si el canal se cae, el navegador consulta el snapshot cada pocos segundos.
 
-**Errores 429.** Las llamadas a Gemini se reintentan hasta cuatro veces con espera exponencial, respetando el `retryDelay` que indica la API. Como la tirada se guarda antes de narrar, un reintento nunca vuelve a tirar el dado. Si se agotó la cuota diaria, se corta con un mensaje claro.
+**Errores 429.** Las llamadas a Gemini se reintentan hasta cuatro veces con espera exponencial, respetando el `retryDelay` que indica la API. Como la tirada se guarda antes de narrar, un reintento nunca vuelve a tirar el dado. Si se agotó la cuota diaria, se corta con un mensaje claro; con `GEMINI_MODEL_RESPALDO` cargado, se sigue con ese modelo. Un turno nunca espera más de 100 s, y la causa de cada fallo queda en el log del servidor.
 
 ## Puesta en marcha
 
@@ -52,6 +52,7 @@ Para usar los servicios reales, copiá `.env.example` a `.env.local` y completal
 |---|---|---|
 | `GEMINI_API_KEY` | servidor | Clave de Google AI Studio |
 | `GEMINI_MODEL` | servidor | Nombre del modelo Flash |
+| `GEMINI_MODEL_RESPALDO` | servidor | Opcional: modelo al que se pasa si el principal se queda sin cuota o está saturado |
 | `SUPABASE_SECRET_KEY` | servidor | Clave secreta del proyecto de Supabase |
 | `NEXT_PUBLIC_SUPABASE_URL` | navegador y servidor | URL del proyecto |
 | `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | navegador | Clave pública, solo para Realtime |

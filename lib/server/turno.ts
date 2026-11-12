@@ -4,7 +4,7 @@ import { narradorGemini } from "@/lib/dm/gemini";
 import { extraerNarracion } from "@/lib/dm/narracion-parcial";
 import type { Narrador } from "@/lib/dm/narrador";
 import { INSTRUCCION_ARBITRO, instruccionSistema, mensajeArbitro, mensajeTurno } from "@/lib/dm/prompt";
-import { ErrorNarrador, clasificarError, conReintentos } from "@/lib/dm/reintentos";
+import { ErrorNarrador, clasificarError, conReintentos, falloDe, type Fallo } from "@/lib/dm/reintentos";
 import { salidaDeRespaldo } from "@/lib/dm/respaldo";
 import { narradorSimulado } from "@/lib/dm/simulado";
 import {
@@ -32,6 +32,13 @@ type Emisor = (evento: EventoTurno) => void;
 
 const narrador = (): Narrador => (estadoServidor().narrador === "gemini" ? narradorGemini : narradorSimulado);
 
+/** Tope de un turno completo. Queda por debajo del `maxDuration` de la route para poder avisar y liberar la sala. */
+const LIMITE_TURNO_MS = 100_000;
+
+/** Deja en el log del servidor la causa de cada fallo de la API, se reintente o no. */
+const anotarFallo = (etapa: string) => (fallo: Fallo, intento: number) =>
+  console.warn(`Gemini (${etapa}, intento ${intento}): ${fallo.codigo} · ${fallo.detalle}`);
+
 const ARBITRAJE_POR_DEFECTO: Adjudicacion = {
   enfoque: "ingenio",
   tirada: { atributo: "ingenio", dificultad: "media" },
@@ -45,7 +52,13 @@ async function guardarOConflicto(sala: Sala, estado: EstadoJuego): Promise<Sala>
 }
 
 /** Clasifica una acción escrita a mano. Si el árbitro falla, se usa una tirada media. */
-async function arbitrar(estado: EstadoJuego, asiento: Asiento, texto: string, emitir: Emisor): Promise<Adjudicacion> {
+async function arbitrar(
+  estado: EstadoJuego,
+  asiento: Asiento,
+  texto: string,
+  emitir: Emisor,
+  signal: AbortSignal,
+): Promise<Adjudicacion> {
   try {
     const crudo = await conReintentos(
       () =>
@@ -55,19 +68,22 @@ async function arbitrar(estado: EstadoJuego, asiento: Asiento, texto: string, em
           estado,
           asiento,
           texto,
+          signal,
         }),
-      { intentos: 3, alEsperar: (ms, intento) => emitir({ t: "espera", segundos: Math.ceil(ms / 1000), intento }) },
+      { intentos: 3, presupuestoMs: 30_000, alFallar: anotarFallo("árbitro"), alEsperar: (ms, intento) => emitir({ t: "espera", segundos: Math.ceil(ms / 1000), intento }) },
     );
     return interpretarAdjudicacion(crudo) ?? ARBITRAJE_POR_DEFECTO;
   } catch (e) {
     // Sin cuota no tiene sentido seguir: la narración fallaría igual.
-    if (e instanceof ErrorNarrador && (e.fallo.codigo === "cuota" || e.fallo.codigo === "config")) throw e;
+    if (signal.aborted) throw e;
+    const codigo = e instanceof ErrorNarrador ? e.fallo.codigo : "otro";
+    if (codigo === "cuota" || codigo === "sin_cuota" || codigo === "config") throw e;
     return ARBITRAJE_POR_DEFECTO;
   }
 }
 
 /** Pide la narración en streaming. Devuelve siempre una salida utilizable o lanza ErrorNarrador. */
-async function narrar(estado: EstadoJuego, plan: Plan, emitir: Emisor): Promise<SalidaDM> {
+async function narrar(estado: EstadoJuego, plan: Plan, emitir: Emisor, signal: AbortSignal): Promise<SalidaDM> {
   const sistema = instruccionSistema(estado);
   const mensaje = mensajeTurno(estado, plan);
   let enviado = "";
@@ -85,7 +101,7 @@ async function narrar(estado: EstadoJuego, plan: Plan, emitir: Emisor): Promise<
         async () => {
           crudo = "";
           reiniciar();
-          for await (const trozo of narrador().narrar({ sistema, mensaje, estado, plan })) {
+          for await (const trozo of narrador().narrar({ sistema, mensaje, estado, plan, signal })) {
             crudo += trozo;
             const texto = extraerNarracion(crudo);
             if (texto.length > enviado.length) {
@@ -94,9 +110,13 @@ async function narrar(estado: EstadoJuego, plan: Plan, emitir: Emisor): Promise<
             }
           }
         },
-        { alEsperar: (ms, intento) => emitir({ t: "espera", segundos: Math.ceil(ms / 1000), intento }) },
+        {
+          alFallar: anotarFallo("narración"),
+          alEsperar: (ms, intento) => emitir({ t: "espera", segundos: Math.ceil(ms / 1000), intento }),
+        },
       );
     } catch (e) {
+      if (signal.aborted) throw e;
       const fallo = clasificarError(e);
       // Un corte del filtro de contenido se trata como respuesta ilegible.
       if (fallo.codigo !== "otro") throw e;
@@ -166,9 +186,28 @@ export function prepararTurno(acceso: Acceso, peticion: PeticionTurno): (emitir:
     let sala = acceso.sala;
     const difusor = crearDifusor(sala.id);
     // El que actúa lo recibe por HTTP; su compañero, por Broadcast.
-    const emitir: Emisor = (evento) => {
+    // Pasado el tope se corta el pedido a Gemini y se deja de emitir lo que llegue tarde.
+    const corte = new AbortController();
+    let vencido = false;
+    let reloj: ReturnType<typeof setTimeout> | undefined;
+    const vencimiento = new Promise<never>((_, rechazar) => {
+      reloj = setTimeout(() => {
+        vencido = true;
+        rechazar(new ErrorNarrador(falloDe("lento", `sin respuesta en ${LIMITE_TURNO_MS / 1000} s`)));
+        corte.abort();
+      }, LIMITE_TURNO_MS);
+    });
+    vencimiento.catch(() => {});
+    const conLimite = <T>(trabajo: Promise<T>): Promise<T> => {
+      trabajo.catch(() => {});
+      return Promise.race([trabajo, vencimiento]);
+    };
+    const emitirSiempre: Emisor = (evento) => {
       emitirAlCliente(evento);
       if (evento.t === "delta" || evento.t === "reinicio" || evento.t === "espera") difusor.enviar(evento);
+    };
+    const emitir: Emisor = (evento) => {
+      if (!vencido) emitirSiempre(evento);
     };
     const avisarEstado = () => difusor.enviar({ t: "estado", version: sala.version });
     const ahora = () => Date.now();
@@ -185,7 +224,7 @@ export function prepararTurno(acceso: Acceso, peticion: PeticionTurno): (emitir:
         sala = await guardarOConflicto(sala, { ...estado, narrando: ahora() });
         avisarEstado();
         emitir({ t: "pensando" });
-        const veredicto = await arbitrar(estado, asiento, peticion.texto, emitir);
+        const veredicto = await conLimite(arbitrar(estado, asiento, peticion.texto, emitir, corte.signal));
         estado = prepararAccion(estado, asiento, { tipo: "libre", texto: peticion.texto, ...veredicto }, ahora());
       } else if (peticion.tipo === "tirar") {
         estado = tirar(
@@ -214,7 +253,7 @@ export function prepararTurno(acceso: Acceso, peticion: PeticionTurno): (emitir:
 
       const previo = sala.estado;
       const plan = planificar(previo);
-      const salida = await narrar(previo, plan, emitir);
+      const salida = await conLimite(narrar(previo, plan, emitir, corte.signal));
       sala = await cerrarTurno(sala, plan, salida);
       await registrar(sala, previo, plan, salida);
       avisarEstado();
@@ -229,13 +268,15 @@ export function prepararTurno(acceso: Acceso, peticion: PeticionTurno): (emitir:
         if (liberada) sala = liberada;
       }
       avisarEstado();
-      if (e instanceof ErrorJuego) emitir({ t: "error", codigo: e.codigo, mensaje: e.message });
+      if (e instanceof ErrorJuego) emitirSiempre({ t: "error", codigo: e.codigo, mensaje: e.message });
       else {
         const fallo = clasificarError(e);
         if (fallo.codigo === "otro") console.error("Turno fallido:", e);
-        emitir({ t: "error", codigo: fallo.codigo, mensaje: fallo.mensaje });
+        else console.warn(`Turno fallido: ${fallo.codigo} · ${fallo.detalle}`);
+        emitirSiempre({ t: "error", codigo: fallo.codigo, mensaje: fallo.mensaje });
       }
     } finally {
+      clearTimeout(reloj);
       await difusor.cerrar();
     }
   };
