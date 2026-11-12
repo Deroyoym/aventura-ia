@@ -10,9 +10,10 @@ import type { Personaje } from "@/lib/game/tipos";
 // las viñetas del juego parezcan del mismo libro.
 
 const LADO_PX = 384;
+const MARGEN_RECORTE = 0.06;
 
 const ESTILO =
-  "Ilustración de libro de cuentos gótico, pintada a tinta y acuarela con trazo visible. Retrato de busto, de frente o en tres cuartos, centrado, con la cabeza completa dentro del cuadro. Paleta nocturna de azules y ciruelas con una sola luz cálida de vela que ilumina la cara. Fondo liso azul noche con algo de bruma. Sin texto, sin marco, sin firma, sin manos en primer plano.";
+  "Ilustración de libro de cuentos gótico, pintada a tinta y acuarela con trazo visible. Retrato de busto, de frente o en tres cuartos, centrado, con la cabeza completa dentro del cuadro y algo de aire por encima. Paleta nocturna de azules y ciruelas; una luz cálida de vela, que queda fuera del cuadro, le ilumina la cara. Imagen cuadrada a sangre: el fondo azul noche con bruma llega pintado hasta los cuatro bordes y las cuatro esquinas. Sin borde blanco, sin papel a la vista, sin recorte circular ni viñeta. Sin texto, sin marco, sin firma, sin velas ni manos a la vista.";
 
 const RAZA: Record<string, string> = {
   humano: "una persona humana, curtida por el camino",
@@ -107,8 +108,11 @@ export async function pintarRetrato(descripcion: string, signal?: AbortSignal): 
     const motivo = respuesta.promptFeedback?.blockReason ?? respuesta.candidates?.[0]?.finishReason ?? "sin imagen";
     throw new Error(`El modelo de imágenes no devolvió ninguna (${String(motivo)})`);
   }
+  // A veces el modelo deja un filete de papel blanco: se recorta un margen parejo antes de achicar.
+  const margen = Math.round(LADO_PX * MARGEN_RECORTE);
   const bytes = await sharp(Buffer.from(imagen, "base64"))
-    .resize(LADO_PX, LADO_PX, { fit: "cover" })
+    .resize(LADO_PX + margen * 2, LADO_PX + margen * 2, { fit: "cover" })
+    .extract({ left: margen, top: margen, width: LADO_PX, height: LADO_PX })
     .webp({ quality: 82 })
     .toBuffer();
   return { bytes, tipo: "image/webp" };
