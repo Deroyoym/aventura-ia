@@ -262,3 +262,12 @@ describe("narrador simulado", () => {
     expect(s?.cambios.pistas).toEqual(["plato_de_mas"]);
   });
 });
+
+describe("saldo agotado", () => {
+  it("un 402 corta el turno con un mensaje claro en vez de seguir con relleno", () => {
+    const fallo = clasificarError(Object.assign(new Error("Your prepayment credits are depleted."), { status: 402 }));
+    expect(fallo.codigo).toBe("sin_cuota");
+    expect(fallo.reintentable).toBe(false);
+    expect(fallo.mensaje).toContain("crédito");
+  });
+});

@@ -632,7 +632,10 @@ function aplicarCambios(e: EstadoJuego, plan: Plan, salida: SalidaDM, actor: Asi
   if (amenaza > 0) huboCosto = true;
 
   // Un fallo sin consecuencias no es un fallo: si el modelo no cobró nada, cobra el código.
-  if (plan.tipo === "accion" && !huboCosto) {
+  if (plan.ronda) {
+    // En una ronda casi siempre falla alguien: la Bruma solo cobra si a la mayoría le fue mal.
+    if (!huboCosto && plan.avance === 0) amenaza = Math.max(amenaza, 0) + 1;
+  } else if (plan.tipo === "accion" && !huboCosto) {
     if (plan.resultado === "fallo") amenaza = Math.max(amenaza, 0) + 1;
     if (plan.resultado === "costo" && actor) ajustarVida(e, actor, -1);
   }
