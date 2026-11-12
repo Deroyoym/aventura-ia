@@ -14,7 +14,7 @@ export function Compartir({ codigo, className = "" }: { codigo: string; classNam
 
   async function compartir() {
     const url = `${window.location.origin}/sala/${codigo}`;
-    const datos = { title: "La Hora Trece", text: `Sumate a mi sala de La Hora Trece. Código: ${codigo}`, url };
+    const datos = { title: "Una partida de rol", text: `Sumate a mi sala. Código: ${codigo}`, url };
     try {
       if (navigator.share) {
         await navigator.share(datos);

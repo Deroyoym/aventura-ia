@@ -32,7 +32,7 @@ export class ErrorNarrador extends Error {
 const MENSAJES: Record<CodigoFallo, string> = {
   limite: "El máster está saturado de pedidos. Probá de nuevo en un momento.",
   cuota: "Se agotó la cuota diaria de la API de Gemini para este modelo. Vuelvan mañana o cambien GEMINI_MODEL.",
-  sin_cuota: "La clave de Gemini no tiene cuota para este modelo. Cambiá GEMINI_MODEL o activá la facturación de la clave.",
+  sin_cuota: "La clave de Gemini se quedó sin crédito o sin cuota para este modelo. Recargá el saldo en AI Studio, o cambiá GEMINI_MODEL.",
   lento: "El máster tardó demasiado en responder. Probá de nuevo.",
   servidor: "El servicio de Gemini está con problemas. Probá de nuevo en un momento.",
   red: "No se pudo conectar con Gemini. Probá de nuevo.",
@@ -86,6 +86,8 @@ export function clasificarError(e: unknown): Fallo {
   });
 
   if (e instanceof Error && e.name === "AbortError") return fallo("cancelado", false);
+  // Saldo prepago agotado: no tiene sentido reintentar ni seguir con texto de relleno.
+  if (status === 402) return fallo("sin_cuota", false);
   if (status === 429) {
     // Un tope de cero no se recupera nunca; la cuota diaria, no en unos segundos.
     if (/limit:\s*0\b/i.test(msg)) return fallo("sin_cuota", false);

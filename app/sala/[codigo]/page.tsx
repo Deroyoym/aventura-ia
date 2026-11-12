@@ -3,7 +3,7 @@ import { Suspense } from "react";
 import { Cargando, Sala } from "@/components/Sala";
 import { normalizarCodigo } from "@/lib/protocolo";
 
-export const metadata: Metadata = { title: "Sala · La Hora Trece" };
+export const metadata: Metadata = { title: "Sala" };
 
 export default function Page({ params }: { params: Promise<{ codigo: string }> }) {
   return (
