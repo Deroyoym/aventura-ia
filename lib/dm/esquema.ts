@@ -50,7 +50,7 @@ export const ESQUEMA_NARRACION = {
           type: "array",
           items: {
             type: "object",
-            properties: { jugador: { type: "integer", enum: [1, 2] }, delta: { type: "integer" } },
+            properties: { jugador: { type: "integer", enum: [1, 2, 3, 4, 5, 6] }, delta: { type: "integer" } },
             required: ["jugador", "delta"],
           },
         },
@@ -72,7 +72,7 @@ export const ESQUEMA_NARRACION = {
           items: {
             type: "object",
             properties: {
-              jugador: { type: "integer", enum: [1, 2] },
+              jugador: { type: "integer", enum: [1, 2, 3, 4, 5, 6] },
               accion: { type: "string", enum: ["agregar", "quitar"] },
               objeto: { type: "string", description: "Id del catálogo o nombre corto." },
               descripcion: { type: "string" },
@@ -80,7 +80,7 @@ export const ESQUEMA_NARRACION = {
             required: ["jugador", "accion", "objeto"],
           },
         },
-        secretoRevelado: { type: "array", items: { type: "integer", enum: [1, 2] } },
+        secretoRevelado: { type: "array", items: { type: "integer", enum: [1, 2, 3, 4, 5, 6] } },
         memoria: { type: "array", items: { type: "string" }, maxItems: 2 },
       },
     },
@@ -88,7 +88,7 @@ export const ESQUEMA_NARRACION = {
       type: "array",
       items: {
         type: "object",
-        properties: { jugador: { type: "integer", enum: [1, 2] }, texto: { type: "string" } },
+        properties: { jugador: { type: "integer", enum: [1, 2, 3, 4, 5, 6] }, texto: { type: "string" } },
         required: ["jugador", "texto"],
       },
     },
@@ -123,7 +123,7 @@ const lista = <T extends z.ZodType>(item: T) =>
 
 const zAsiento = z.preprocess(
   (v) => (typeof v === "string" ? Number(v) : v),
-  z.union([z.literal(1), z.literal(2)]),
+  z.union([z.literal(1), z.literal(2), z.literal(3), z.literal(4), z.literal(5), z.literal(6)]),
 );
 const zEntero = z.preprocess((v) => (typeof v === "string" ? Number(v) : v), z.number().finite());
 

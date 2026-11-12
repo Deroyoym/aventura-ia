@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import type { SalaEnVivo } from "@/lib/client/useSala";
-import { ASIENTOS, otroAsiento } from "@/lib/game/tipos";
+import { ASIENTOS, type Asiento } from "@/lib/game/tipos";
 import type { Vista } from "@/lib/game/vista";
 import { Acciones } from "./Acciones";
 import { Avatar } from "./Avatar";
@@ -22,7 +22,8 @@ const PAUSA_LARGA_MS = 10 * 60 * 1000;
 function BarraSuperior({ sala, alAbrir }: { sala: SalaEnVivo; alAbrir: (p: Pestana) => void }) {
   const { vista, asientos } = sala.snap!;
   const turnosRestantes = Math.max(0, vista.escena.tope - vista.escena.turnos);
-  const enLinea = (a: 1 | 2) => a === vista.yo || (sala.vivo ? sala.presentes.includes(a) : asientos[a].activo);
+  const enLinea = (a: Asiento) => a === vista.yo || (sala.vivo ? sala.presentes.includes(a) : !!asientos[a]?.activo);
+  const mesaGrande = vista.campana.max > 2;
 
   return (
     <header className="barra-superior shrink-0 px-3 pb-2 pt-[max(0.5rem,env(safe-area-inset-top))]">
@@ -62,10 +63,10 @@ function BarraSuperior({ sala, alAbrir }: { sala: SalaEnVivo; alAbrir: (p: Pesta
         </div>
       </div>
 
-      <div className="mt-2 grid grid-cols-2 gap-2">
+      <div className={`mt-2 grid ${mesaGrande ? "grid-cols-3 gap-1.5" : "grid-cols-2 gap-2"}`}>
         {ASIENTOS.map((a) => {
           const p = vista.personajes[a];
-          if (!p) return <div key={a} />;
+          if (!p) return mesaGrande ? null : <div key={a} />;
           const conFarol = vista.farol === a && vista.fase === "jugando";
           return (
             <button
@@ -74,7 +75,7 @@ function BarraSuperior({ sala, alAbrir }: { sala: SalaEnVivo; alAbrir: (p: Pesta
               onClick={() => alAbrir("hoja")}
               className={`flex items-center gap-1.5 rounded-md border px-2 py-1 text-left text-[0.92rem] ${
                 conFarol ? "border-ambar/70 bg-ambar/10" : "border-bruma/25"
-              } ${p.quebrado ? "opacity-55" : ""}`}
+              } ${p.quebrado || vista.yaActuaron.includes(a) ? "opacity-55" : ""}`}
             >
               <span
                 className={`shrink-0 rounded-full ${enLinea(a) ? "" : "opacity-45 grayscale"}`}
@@ -85,7 +86,11 @@ function BarraSuperior({ sala, alAbrir }: { sala: SalaEnVivo; alAbrir: (p: Pesta
               </span>
               <span className={`min-w-0 flex-1 truncate ${a === vista.yo ? "text-ambar-claro" : ""}`}>{p.nombre}</span>
               {conFarol && <IconoFarol tam={15} className="resplandor shrink-0 text-ambar" />}
-              <Vida vida={p.vida} max={p.vidaMax} compacta />
+              {mesaGrande ? (
+                <span className="shrink-0 text-[0.8rem] tabular-nums text-bruma">{p.vida}</span>
+              ) : (
+                <Vida vida={p.vida} max={p.vidaMax} compacta />
+              )}
             </button>
           );
         })}
@@ -123,6 +128,15 @@ function FinDeCapitulo({ vista }: { vista: Vista }) {
           <span className="italic text-sepia">{m.efecto}</span>
         </p>
       ))}
+      {vista.encargo && (
+        <p className="mt-5 text-[1.05rem] leading-snug">
+          <span className="versalitas block text-sepia">tu encargo (solo vos lo ves)</span>
+          <span className="cuento italic">{vista.encargo.texto}</span>
+          <span className={`titulo block text-lg ${vista.encargo.cumplido ? "text-musgo" : "text-sangre"}`}>
+            {vista.encargo.cumplido ? "Cumplido" : "No se cumplió"}
+          </span>
+        </p>
+      )}
       {vista.capitulo.final && vista.desenlace && (
         <p className="mt-5 text-[1.05rem] leading-snug">
           <span className="versalitas block text-sepia">eligieron</span>
@@ -191,7 +205,7 @@ export function Juego({ sala }: { sala: SalaEnVivo }) {
 
   const terminado = vista.fase === "fin_capitulo" && !vista.voto && !vista.pendiente && !vista.narrando;
   const quien = sala.dado ? (vista.personajes[sala.dado.asiento]?.nombre ?? "Alguien") : "";
-  const otro = vista.personajes[otroAsiento(vista.yo)];
+  const portador = vista.personajes[vista.farol];
 
   return (
     <div className="mx-auto flex h-dvh w-full max-w-md flex-col">
@@ -232,7 +246,7 @@ export function Juego({ sala }: { sala: SalaEnVivo }) {
       {resumen && <Anteriormente vista={vista} alCerrar={() => setResumen(false)} />}
       {sala.dado && <DadoEnVivo key={sala.dado.entrada} tirada={sala.dado.tirada} quien={quien} alCerrar={sala.cerrarDado} />}
       <span className="sr-only" aria-live="polite">
-        {otro && vista.farol !== vista.yo ? `Turno de ${otro.nombre}` : "Tu turno"}
+        {portador && vista.farol !== vista.yo ? `Turno de ${portador.nombre}` : "Tu turno"}
       </span>
     </div>
   );

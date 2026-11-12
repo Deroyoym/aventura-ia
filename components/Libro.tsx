@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useState } from "react";
 import type { SalaEnVivo } from "@/lib/client/useSala";
 import { NIVELES_ORDEN, NOMBRE_ATRIBUTO } from "@/lib/game/contenido";
-import { NIVELES_TERROR, otroAsiento } from "@/lib/game/tipos";
+import { ASIENTOS, NIVELES_TERROR } from "@/lib/game/tipos";
 import { Avatar, OpcionesAvatar } from "./Avatar";
 import { Atributos, FichaCorta, efectoDe, nombreClase, nombreRaza, usosDe } from "./Hoja";
 import { SelectorTerror } from "./Portada";
@@ -34,7 +34,7 @@ function Seccion({ titulo, children }: { titulo: string; children: React.ReactNo
 function PestanaHoja({ sala }: { sala: SalaEnVivo }) {
   const vista = sala.snap!.vista;
   const yo = vista.personajes[vista.yo];
-  const otro = vista.personajes[otroAsiento(vista.yo)];
+  const otros = ASIENTOS.filter((a) => a !== vista.yo).flatMap((a) => vista.personajes[a] ?? []);
   const [retocando, setRetocando] = useState(false);
   if (!yo) return null;
 
@@ -109,7 +109,19 @@ function PestanaHoja({ sala }: { sala: SalaEnVivo }) {
         </p>
       </Seccion>
 
-      <Seccion titulo={yo.secretoRevelado ? "secreto (tu compañero ya lo sabe)" : "secreto (solo vos lo ves)"}>
+      {vista.encargo && (
+        <Seccion titulo="encargo (solo vos lo ves)">
+          <p className="cuento text-[1.05rem] italic leading-snug">{vista.encargo.texto}</p>
+          <p className="text-[0.92rem] italic text-sepia">
+            {vista.encargo.cumplido === null
+              ? "Depende de lo que la mesa termine votando. Nadie más lo sabe."
+              : vista.encargo.cumplido
+                ? "Cumplido."
+                : "No se cumplió."}
+          </p>
+        </Seccion>
+      )}
+      <Seccion titulo={yo.secretoRevelado ? "secreto (ya lo saben)" : "secreto (solo vos lo ves)"}>
         <p className="cuento text-[1.05rem] italic leading-snug">{yo.secreto}</p>
       </Seccion>
 
@@ -169,8 +181,8 @@ function PestanaHoja({ sala }: { sala: SalaEnVivo }) {
         </Seccion>
       )}
 
-      {otro && (
-        <Seccion titulo="tu compañero de viaje">
+      {otros.map((otro) => (
+        <Seccion key={otro.asiento} titulo={otros.length > 1 ? "compañero de viaje" : "tu compañero de viaje"}>
           <FichaCorta personaje={otro} etiqueta={otro.rasgo} />
           {otro.secreto && (
             <p className="cuento text-[1rem] italic leading-snug">
@@ -179,7 +191,7 @@ function PestanaHoja({ sala }: { sala: SalaEnVivo }) {
             </p>
           )}
         </Seccion>
-      )}
+      ))}
     </div>
   );
 }
@@ -254,8 +266,10 @@ function PestanaDiario({ sala }: { sala: SalaEnVivo }) {
 
 function PestanaSala({ sala }: { sala: SalaEnVivo }) {
   const { vista, codigo, asientos, modo } = sala.snap!;
-  const otro = otroAsiento(vista.yo);
-  const companeroActivo = sala.vivo ? sala.presentes.includes(otro) : asientos[otro].activo;
+  const otros = ASIENTOS.filter((a) => a !== vista.yo && vista.personajes[a]);
+  const ausentes = otros
+    .filter((a) => !(sala.vivo ? sala.presentes.includes(a) : asientos[a]?.activo))
+    .map((a) => vista.personajes[a]!.nombre);
   // Con la partida empezada la intensidad solo se puede bajar.
   const permitidos =
     vista.fase === "preparacion"
@@ -273,7 +287,11 @@ function PestanaSala({ sala }: { sala: SalaEnVivo }) {
       <Seccion titulo="conexión">
         <p className="text-[1.02rem]">
           {sala.vivo ? "En vivo." : "Actualizando cada pocos segundos."}{" "}
-          {vista.personajes[otro]?.nombre ?? "Tu compañero"} {companeroActivo ? "está en la sala." : "no está conectado."}
+          {ausentes.length === 0
+            ? otros.length > 1
+              ? "Están todos en la sala."
+              : `${vista.personajes[otros[0]]?.nombre ?? "Tu compañero"} está en la sala.`
+            : `Sin conexión: ${ausentes.join(", ")}.`}
         </p>
         {modo.narrador === "simulado" && (
           <p className="text-[0.95rem] italic text-sepia">Modo local: el máster es un narrador simulado.</p>

@@ -41,6 +41,16 @@ const LUGARES = {
     "Una sala subterránea redonda de piedra lisa. En el centro, un marco de puerta de piedra sin pared alrededor, lleno de niebla clara que se mueve como una cortina. Alrededor, seis asientos de piedra vacíos. Una vela en el piso.",
   trece:
     "Interior de un campanario de noche: una gran campana de bronce colgada de una viga, con una soga que baja hasta el piso, parte de ella empalmada con hilo rojo. Por los arcos abiertos entra niebla y se ve la luna. La niebla rodea, sin tocarlo, un espacio vacío junto a una silla de madera.",
+  posta:
+    "Atardecer en una casa de postas al borde de una llanura blanca de sal que llega al horizonte. En el patio, una diligencia antigua de madera oscura enganchada a cuatro caballos, con baúles en el techo y un farol encendido. Un corral, un aljibe, cielo violeta.",
+  coche:
+    "Una diligencia antigua de cuatro caballos cruzando de noche una llanura blanca de sal, vista de costado, con sus faroles encendidos y las ventanillas con luz cálida. Luna velada, bruma baja que avanza de costado, nada más en el horizonte.",
+  venta:
+    "Una venta solitaria de piedra en medio de una llanura blanca de sal, de noche: patio con aljibe, establo con la puerta entreabierta, una sola ventana con luz cálida y postigos cerrados. Bruma alrededor.",
+  puente:
+    "Un puente de piedra largo y angosto, sin baranda, sobre una salina blanca, de noche. La niebla tapa el puente por la mitad, y en ella se recortan cuatro jinetes inmóviles con sombrero, apenas siluetas. En primer plano, de espaldas, los faroles de una diligencia detenida.",
+  paramo:
+    "Noche en una llanura blanca de sal. Una diligencia detenida y algo inclinada, con una rueda rota apoyada al lado y un farol en el suelo. Muy lejos, a un costado, las luces cálidas de una casa grande. Cielo enorme con nubes y bruma en el horizonte.",
 };
 
 const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });

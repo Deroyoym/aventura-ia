@@ -9,6 +9,7 @@ import { salidaDeRespaldo } from "@/lib/dm/respaldo";
 import { narradorSimulado } from "@/lib/dm/simulado";
 import {
   aplicarNarracion,
+  avanzarRonda,
   empezarCapitulo,
   iniciar,
   limpiar,
@@ -242,6 +243,15 @@ export function prepararTurno(acceso: Acceso, peticion: PeticionTurno): (emitir:
       }
 
       // Una acción con tirada queda guardada a la espera del dado.
+      // Por rondas: la acción resuelta espera a las de los demás, sin narración todavía.
+      estado = avanzarRonda(estado, ahora());
+      if (!estado.pendiente && (peticion.tipo === "opcion" || peticion.tipo === "libre" || peticion.tipo === "tirar")) {
+        sala = await guardarOConflicto(sala, { ...estado, narrando: null });
+        avisarEstado();
+        emitir({ t: "fin", version: sala.version });
+        return;
+      }
+
       const p = estado.pendiente;
       if (p?.tipo === "accion" && p.pedida && !p.tirada) {
         sala = await guardarOConflicto(sala, { ...estado, narrando: null });

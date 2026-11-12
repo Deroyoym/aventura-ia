@@ -65,6 +65,13 @@ export const narradorSimulado: Narrador = {
       if (plan.resultado === "fallo") salida.cambios.amenaza = 1;
       if (plan.resultado === "pifia") salida.cambios.vida = [{ jugador: p.asiento, delta: -2 }];
     }
+    if (plan.ronda && plan.avance > 0) {
+      const pista = PISTAS.find((x) => x.escena === estado.escena.indice && !estado.pistas.includes(x.id));
+      if (pista) {
+        salida.cambios.pistas = [pista.id];
+        salida.narracion += `\n\n${pista.texto}`;
+      }
+    }
     if (plan.abre === 1) {
       salida.susurros = [{ jugador: 1, texto: "Por un instante escuchás tu nombre, dicho muy bajo, del otro lado de la pared." }];
     }

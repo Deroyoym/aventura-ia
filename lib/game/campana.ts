@@ -1,6 +1,6 @@
 import "server-only";
 import { COMPANEROS, MEJORAS, NOMBRE_ATRIBUTO } from "./contenido";
-import type { CompaneroId, Lugar, Opcion, OpcionVoto, VotoId } from "./tipos";
+import type { CampanaId, CompaneroId, Lugar, Opcion, OpcionVoto, VotoId } from "./tipos";
 
 // La campaña «La Hora Trece». Todo lo que está acá es contenido escrito a mano:
 // el modelo improvisa la prosa, pero la estructura, las pistas y las
@@ -12,7 +12,10 @@ export const CAMPANA = {
 };
 
 export interface CapituloDef {
+  /** Identificador único entre todas las campañas (no es el número que se muestra). */
   numero: number;
+  /** A qué campaña pertenece; si falta, a «La Hora Trece». */
+  campana?: CampanaId;
   titulo: string;
   /** Qué puede y qué no puede revelar el máster en este capítulo. */
   guia: string;
@@ -83,6 +86,22 @@ CAPITULOS.push({
     "Abrí el capítulo 4: cae la última noche sobre la Casa del Guarda. Mostrá en una frase la mejora que hicieron en la casa. El Guarda puso la mesa para mucha más gente de la que cabe. Golpean la puerta: es el padre Anselmo, sin aliento, con el Libro de los Ausentes abrazado contra el pecho.",
 });
 
+CAPITULOS.push({
+  numero: 101,
+  campana: "coche",
+  titulo: "La lista del cochero",
+  guia: [
+    "Es el primer capítulo: una noche de viaje en diligencia. Los personajes no se conocen entre sí y cada uno cree que viaja por un asunto propio.",
+    "Pueden descubrir: que en el coche hay una persona más que en la lista; que todas las cartas tienen la misma letra y el mismo sello; que quien firma, Casilda Orbe, murió hace tres semanas; que bajo el pescante viaja un cofre lacrado; que en el páramo se cobra peaje.",
+    "NO reveles todavía: qué hay dentro del cofre, quién es el escribano Quintana ni quién mandó los encargos. La pasajera de más solo dice quién es si los jugadores votan verle la cara, y aun así dice poco: su nombre, Irene, y que va a enterrar a su madre.",
+    "Es una mesa de varios jugadores con desconfianza: cada uno lleva un encargo secreto (ver «Encargos»). Nunca reveles el encargo de un personaje a los demás. Sí podés tentarlo por susurro cuando la escena le da una ocasión de cumplirlo.",
+    "En cada ronda actúan todos: narrá cómo se cruzan y se estorban o se ayudan esas acciones en un mismo momento, no una después de otra. Nombrá a cada personaje que actuó.",
+    "Mateo, el cochero, es el alivio cómico: supersticioso, charlatán, le habla a los caballos más que a la gente.",
+  ].join("\n"),
+  apertura:
+    "Abrí el capítulo: atardece en la Posta del Cruce, la última antes del Páramo de la Sal. La diligencia «La Rezagada» está enganchada y el cochero cuenta pasajeros con una lista en la mano. Presentá a cada personaje por su nombre en una sola frase, llegando por separado, con un detalle propio. Ninguno conoce a los otros.",
+});
+
 export const capituloDef = (numero: number): CapituloDef => {
   const c = CAPITULOS.find((x) => x.numero === numero);
   if (!c) throw new Error(`Capítulo inexistente: ${numero}`);
@@ -117,7 +136,115 @@ ARCO DE LA CAMPAÑA:
 LOS SECRETOS DE LOS PERSONAJES: cada jugador escribió un secreto. Atalo al misterio sin forzarlo: alguien de su pasado puede ser un Ausente; la Dama puede conocer ese secreto y susurrarlo; un objeto del pueblo puede reconocerlos. Insinuá primero, por susurros privados. No lo reveles al otro jugador a menos que la escena lo pida de verdad o el propio jugador lo cuente.
 `.trim();
 
+const BIBLIA_COCHE = `
+LA VERDAD (solo para vos; los jugadores la descubren de a poco):
+- El mundo: el Páramo de la Sal es una llanura blanca al norte de los valles. De noche lo cruza la bruma, y en la bruma cabalgan los Recaudadores: jinetes sin rostro que cobran peaje a quien cruza a oscuras. No aceptan monedas. Piden «algo que pese»: un secreto dicho en voz alta, un objeto querido, un nombre. Lo que cobran, se olvida.
+- La diligencia «La Rezagada», de la Compañía de Postas Orbe, hace el último viaje del año antes de que la nieve cierre el Paso. La conduce Mateo Varga.
+- Casilda Orbe, dueña de la Compañía, murió hace tres semanas. Antes de morir le escribió una carta a cada personaje citándolo a este coche «por un asunto que le conviene». Cada uno cree que la carta es solo para él.
+- Por qué los citó: cada personaje le debe algo a Casilda, o ella a él. Atá a eso el secreto que escribió cada jugador. Casilda creía que uno de ellos la había arruinado. Se equivocaba: la arruinó su socio, el escribano Lázaro Quintana, que espera al final del camino para leer un testamento falso.
+- El cofre lacrado que viaja bajo el pescante lleva el Libro de Deudas de Casilda, con una página por pasajero, y su testamento verdadero. Mateo no sabe qué carga.
+- La pasajera de más es Irene Orbe, hija de Casilda: de luto, con velo, callada. Viaja sin dar su nombre para ver quiénes son los citados antes de que se lea el testamento. Tiene boleto, pero no figura en la lista porque la lista la escribió su madre. No es un espectro, aunque lo parezca.
+- La lista del cochero está escrita de puño de Casilda. Al dorso, con otra tinta, alguien agregó: «uno de ustedes no llega». Lo escribió Quintana.
+- Los encargos: además de la carta, cada personaje recibió un encargo sin firma y con paga. Los mandó Quintana, y chocan entre sí a propósito, para que los pasajeros se estorben y ninguno llegue a entenderse con los demás.
+
+ARCO DE LA CAMPAÑA:
+1. La lista del cochero: el viaje de noche, la pasajera de más, el peaje del puente.
+2. Casa Orbe: el testamento, el Libro de Deudas y el escribano.
+
+LOS SECRETOS DE LOS PERSONAJES: cada jugador escribió un secreto. Atalo a Casilda Orbe o a su Compañía sin forzarlo: una deuda, un favor, una carta que no se contestó. Insinuá primero, por susurros privados. No lo reveles a los demás a menos que la escena lo pida de verdad o el propio jugador lo cuente.
+`.trim();
+
+/** Un objetivo secreto. Se cumple o no según lo que el grupo termine votando. */
+export interface EncargoDef {
+  id: string;
+  texto: string;
+  /** true o false cuando ya se sabe; null mientras falte la votación que lo decide. */
+  cumple: (decisiones: Partial<Record<VotoId, string>>) => boolean | null;
+}
+
+const segun = (voto: VotoId, prueba: (opcion: string) => boolean) => (d: Partial<Record<VotoId, string>>) =>
+  d[voto] === undefined ? null : prueba(d[voto]);
+
+export interface CampanaDef {
+  id: CampanaId;
+  titulo: string;
+  /** Una línea para presentarle la mesa al máster. */
+  mesa: string;
+  biblia: string;
+  jugadores: { min: number; max: number };
+  /** Si en cada ronda actúan todos antes de que el máster narre. */
+  rondas: boolean;
+  eventosAmenaza: Record<number, string>;
+  encargos: EncargoDef[];
+}
+
+export const CAMPANAS: Record<CampanaId, CampanaDef> = {
+  trece: {
+    id: "trece",
+    titulo: "La Hora Trece",
+    mesa: "un juego de rol narrativo cooperativo para dos jugadores",
+    biblia: BIBLIA,
+    jugadores: { min: 2, max: 2 },
+    rondas: false,
+    eventosAmenaza: {
+      4: "La amenaza cruzó 4: la Bruma se cuela. Mostrá una señal inquietante y concreta en la escena (algo fuera de lugar, un sonido que no corresponde).",
+      7: "La amenaza cruzó 7: la Bruma aprieta. Hacé aparecer brevemente a un Ausente (figura sin rostro) o una manifestación directa; el pueblo se vuelve hostil al forastero.",
+      10: "La amenaza llegó a 10: la Bruma está adentro. La Dama del Umbral repara en los personajes; uno de ellos escucha su propio nombre dicho con la voz de alguien que perdió.",
+    },
+    encargos: [],
+  },
+  coche: {
+    id: "coche",
+    titulo: "El Último Coche",
+    mesa: "un juego de rol narrativo para un grupo de cuatro a seis jugadores que viajan juntos sin confiar del todo unos en otros",
+    biblia: BIBLIA_COCHE,
+    jugadores: { min: 4, max: 6 },
+    rondas: true,
+    eventosAmenaza: {
+      4: "La amenaza cruzó 4: la bruma alcanza el camino. Mostrá una señal concreta: jinetes que cabalgan parejo con el coche, muy lejos, sin hacer ruido.",
+      7: "La amenaza cruzó 7: un Recaudador cabalga un momento junto a la ventanilla. El cochero no lo ve. Los caballos sí.",
+      10: "La amenaza llegó a 10: los caballos se detienen solos. Desde la bruma, una voz dice el nombre de uno de los personajes y pregunta cuánto pesa lo que calla.",
+    },
+    encargos: [
+      {
+        id: "velo",
+        texto: "Que la pasajera de más llegue a destino sin que nadie le vea la cara.",
+        cumple: segun("viajera", (o) => o === "dejarla"),
+      },
+      {
+        id: "rostro",
+        texto: "Saber quién es la pasajera de más antes de que termine la noche.",
+        cumple: segun("viajera", (o) => o === "rostro"),
+      },
+      {
+        id: "cofre_llega",
+        texto: "Que el cofre lacrado siga en el coche, cerrado, cuando crucen el puente.",
+        cumple: segun("peaje", (o) => o !== "cofre"),
+      },
+      {
+        id: "cofre_pierde",
+        texto: "Que el cofre lacrado no cruce el puente: que se quede en el páramo.",
+        cumple: segun("peaje", (o) => o === "cofre"),
+      },
+      {
+        id: "paso",
+        texto: "Que el coche siga hacia el Paso, pase lo que pase.",
+        cumple: segun("rumbo", (o) => o === "seguir"),
+      },
+      {
+        id: "no_paso",
+        texto: "Que el coche no llegue al Paso esta noche. Allá te esperan, y no para bien.",
+        cumple: segun("rumbo", (o) => o !== "seguir"),
+      },
+    ],
+  },
+};
+
+export const campanaDe = (e: { campana?: CampanaId }): CampanaDef => CAMPANAS[e.campana ?? "trece"];
+
 export interface Npc {
+  /** A qué campaña pertenece; si falta, a «La Hora Trece». */
+  campana?: CampanaId;
   id: string;
   nombre: string;
   rol: string;
@@ -169,6 +296,30 @@ export const NPCS: Npc[] = [
     guia: "Doce años. Conserva medio rostro porque su hermano todavía la recuerda. Dentro de la bruma cuida a los Ausentes más chicos y les canta una nana. Es práctica y valiente, y habla como quien ya lloró todo lo que tenía. No recuerda su nombre hasta que alguien se lo dice. No quiere irse si eso deja solos a los chicos.",
   },
 ];
+
+NPCS.push(
+  {
+    campana: "coche",
+    id: "mateo",
+    nombre: "Mateo Varga",
+    rol: "Cochero de La Rezagada",
+    guia: "Cincuentón, flaco, charlatán y supersticioso. Les habla a los caballos por el nombre y a los pasajeros de «don» y «doña». Lleva la lista en el pecho y la consulta para todo. Es el alivio cómico: se queja del reuma, de la Compañía y de los pozos. No sabe qué hay en el cofre ni quiere saberlo. Hay un viaje del año pasado del que no se acuerda, y cambia de tema.",
+  },
+  {
+    campana: "coche",
+    id: "viajera",
+    nombre: "La pasajera del velo",
+    rol: "Viajera de luto",
+    guia: "Una mujer joven de luto cerrado, con velo y guantes. No habla: contesta con la cabeza o mostrando el boleto. Observa a cada pasajero con atención. Solo dice su nombre —Irene— si le ven la cara, y entonces habla poco, cortés y dura. No es un espectro, pero no hagas nada por desmentirlo.",
+  },
+  {
+    campana: "coche",
+    id: "elias",
+    nombre: "Don Elías",
+    rol: "Ventero ciego",
+    guia: "Viejo, ciego, de oído finísimo: reconoce a la gente por el paso y a los coches por el eje. Hospitalario hasta que oye a La Rezagada: entonces tranca la puerta y atiende por la ventana. Dice las cosas una sola vez. Les tiene más miedo a los que cobran en el puente que al invierno.",
+  },
+);
 
 export interface Pista {
   id: string;
@@ -378,6 +529,69 @@ export const PISTAS: Pista[] = [
     escena: 18,
   },
 ];
+
+PISTAS.push(
+  {
+    id: "uno_de_mas",
+    titulo: "Uno de más",
+    texto: "La lista del cochero tiene tantos nombres como ustedes. Dentro del coche hay una persona más.",
+    escena: 20,
+  },
+  {
+    id: "misma_letra",
+    titulo: "La misma letra",
+    texto: "Todas las cartas que los citaron están escritas con la misma letra y lacradas con el mismo sello: una rueda de coche.",
+    escena: 20,
+  },
+  {
+    id: "casilda",
+    titulo: "Firmado: Casilda Orbe",
+    texto: "Las cartas las firma Casilda Orbe, dueña de la Compañía. El cochero jura que la enterraron hace tres semanas.",
+    escena: 21,
+  },
+  {
+    id: "cofre",
+    titulo: "El cofre lacrado",
+    texto: "Bajo el pescante viaja un cofre con el sello de los Orbe, consignado «a quien firme al llegar». Algo se desliza adentro en cada pozo.",
+    escena: 21,
+  },
+  {
+    id: "coche_vacio",
+    titulo: "El coche del año pasado",
+    texto: "El último coche del año pasado salió con seis pasajeros y llegó con el cochero solo. Mateo lo conducía y no lo recuerda.",
+    escena: 22,
+  },
+  {
+    id: "recaudadores",
+    titulo: "Algo que pese",
+    texto: "En el páramo, de noche, se cobra peaje. Los que cobran no aceptan monedas: piden «algo que pese».",
+    escena: 22,
+  },
+  {
+    id: "olvido",
+    titulo: "Lo que se paga, se olvida",
+    texto: "Lo que se les entrega a los Recaudadores desaparece también de la memoria: nadie vuelve a saberlo, ni quien lo dio.",
+    escena: 23,
+  },
+  {
+    id: "lacre",
+    titulo: "El lacre pegado",
+    texto: "El lacre del cofre fue roto y vuelto a pegar con cera más nueva. Alguien lo abrió antes de salir de la posta.",
+    escena: 23,
+  },
+  {
+    id: "lista",
+    titulo: "El dorso de la lista",
+    texto: "La lista del cochero está escrita por la misma mano que las cartas. Al dorso, con otra tinta: «uno de ustedes no llega».",
+    escena: 24,
+  },
+  {
+    id: "encargos",
+    titulo: "Papeles sin firma",
+    texto: "Las cartas no son los únicos papeles del coche: más de un pasajero recibió, además, un encargo sin firma y con paga.",
+    escena: 24,
+  },
+);
 
 export interface EscenaDef {
   id: string;
@@ -1341,7 +1555,13 @@ export const ESCENAS: EscenaDef[] = [
   },
 ];
 
+ESCENAS_COCHE();
+
 export interface EfectosVoto {
+  /** El secreto de quien lleva el farol queda dicho ante todos. */
+  revelaFarol?: boolean;
+  /** Vida que pierde cada personaje. */
+  danio?: number;
   amenaza?: number;
   relaciones?: Record<string, number>;
   vidaMax?: number;
@@ -1748,6 +1968,141 @@ export const VOTOS: Record<VotoId, VotoDef> = {
       },
     ],
   },
+  viajera: {
+    id: "viajera",
+    pregunta: "¿Qué hacen con la pasajera de más?",
+    contexto:
+      "Tiene boleto, no tiene carta y no figura en la lista. No dijo una palabra. Falta poco para la venta, donde alguien podría bajar.",
+    planteo:
+      "Cerrá la escena con todas las miradas en la mujer del velo, que sostiene el boleto y no contesta. Mateo grita desde arriba que falta poco para la venta. No decidas por los jugadores qué hacen con ella.",
+    narrar: true,
+    opciones: [
+      {
+        id: "dejarla",
+        titulo: "Dejarla viajar en paz",
+        detalle: "Pagó su boleto. Nadie le toca el velo. Queda de su lado, y la Bruma cede un punto.",
+        efectos: {
+          amenaza: -1,
+          relaciones: { viajera: 2 },
+          memoria: "Dejaron viajar a la pasajera del velo sin preguntarle nada.",
+        },
+        consecuencia:
+          "Eligieron dejarla en paz. La mujer inclina apenas la cabeza, guarda el boleto en el guante y vuelve a mirar por la ventanilla. Por un momento el coche parece un coche cualquiera.",
+        aviso: "La pasajera del velo sigue viaje, sin nombre.",
+      },
+      {
+        id: "rostro",
+        titulo: "Pedirle que se levante el velo",
+        detalle: "Van a saber quién es. Ella no lo va a olvidar.",
+        efectos: {
+          relaciones: { viajera: -1 },
+          memoria: "Le hicieron levantar el velo a la pasajera: es Irene, y viaja a enterrar a su madre.",
+        },
+        consecuencia:
+          "Eligieron verle la cara. Se levanta el velo ella misma, despacio: es joven, no durmió, y los mira de a uno. Dice solo esto: que se llama Irene y que va a enterrar a su madre. No dice el apellido. Se baja el velo de nuevo. Mateo, que espiaba por la ventanilla, se persigna.",
+        aviso: "Se levantó el velo. Dice llamarse Irene.",
+      },
+      {
+        id: "bajarla",
+        titulo: "Hacerla bajar en la venta",
+        detalle: "No está en la lista: que espere otro coche. Hay más lugar, y la Bruma sube un punto.",
+        efectos: {
+          amenaza: 1,
+          relaciones: { viajera: -3, mateo: -1 },
+          memoria: "Decidieron bajar a la pasajera del velo en la Venta del Ciego. No hay otro coche hasta la primavera.",
+        },
+        consecuencia:
+          "Eligieron bajarla en la venta. Ella no discute. Mateo sí: dice que no hay otro coche hasta la primavera y que él no deja a una mujer de luto en el páramo, pero la lista es la lista. La mujer junta su bolso y espera, muy derecha, a que el coche pare.",
+        aviso: "La pasajera del velo baja en la venta.",
+      },
+    ],
+  },
+  peaje: {
+    id: "peaje",
+    pregunta: "Los Recaudadores esperan. ¿Con qué pagan?",
+    contexto:
+      "Piden algo que pese. Lo que se les entrega, se olvida. Y nadie recuerda a un coche que haya pasado sin pagar.",
+    planteo:
+      "Cerrá la escena con los cuatro jinetes inmóviles y el precio dicho: el cofre cerrado, una verdad en voz alta de quien lleva el farol, o nada, si se animan a pasar entre ellos. No resuelvas el pago: lo votan los jugadores.",
+    narrar: true,
+    opciones: [
+      {
+        id: "cofre",
+        titulo: "Entregar el cofre",
+        detalle: "Se lo llevan cerrado y nadie sabrá qué tenía. La Bruma cede 2.",
+        efectos: {
+          amenaza: -2,
+          relaciones: { mateo: -1 },
+          memoria: "Pagaron el peaje del puente con el cofre lacrado. Los Recaudadores se lo llevaron sin abrirlo.",
+        },
+        consecuencia:
+          "Eligieron entregar el cofre. Lo bajan entre dos. Un jinete lo levanta con una mano, como si no pesara, y eso lo decepciona. Se abren. Cuando el coche pasa, Mateo pregunta qué era eso que llevaba bajo el asiento, y nadie está del todo seguro. Si la pasajera del velo sigue a bordo, aprieta el boleto hasta arrugarlo.",
+        aviso: "Entregaron el cofre. Ya cuesta recordar cómo era.",
+      },
+      {
+        id: "verdad",
+        titulo: "Pagar con una verdad",
+        detalle: "Quien lleva el farol dice en voz alta lo que calla: su secreto queda a la vista de todos. El cofre sigue viaje.",
+        efectos: {
+          revelaFarol: true,
+          amenaza: -1,
+          memoria: "Pagaron el peaje del puente con una verdad: quien llevaba el farol dijo su secreto ante todos.",
+        },
+        consecuencia:
+          "Eligieron pagar con una verdad. Quien lleva el farol baja del coche y dice su secreto en voz alta, delante de todos (contalo con sus palabras, tal como está escrito en su ficha). Los jinetes inclinan la cabeza: pesa. Se abren. Los demás pasajeros lo oyeron todo, y eso no se lo llevó nadie.",
+        aviso: "Pagaron con una verdad. Ahora la saben todos.",
+      },
+      {
+        id: "cruzar",
+        titulo: "No pagar y cruzar",
+        detalle: "Conservan todo. Cada uno pierde 2 de vida y la Bruma sube 3: van a venir a cobrar.",
+        efectos: {
+          amenaza: 3,
+          danio: 2,
+          relaciones: { mateo: 1 },
+          memoria: "Cruzaron el puente sin pagar el peaje. Los Recaudadores los dejaron pasar y los siguen.",
+        },
+        consecuencia:
+          "Eligieron no pagar. Mateo suelta las riendas y el coche se mete entre los jinetes. No los frenan: los dejan pasar, y pasar entre ellos es como atravesar agua helada. A cada uno le queda el frío en el pecho. Atrás, sin apuro, los cuatro dan vuelta los caballos.",
+        aviso: "Cruzaron sin pagar. Los siguen.",
+      },
+    ],
+  },
+  rumbo: {
+    id: "rumbo",
+    pregunta: "¿Hacia dónde sigue el coche?",
+    contexto:
+      "La rueda aguanta, por ahora. Adelante, el Paso. Atrás, la venta. A un costado, las luces de Casa Orbe. La bruma ya está sobre el puente.",
+    planteo:
+      "Es el cierre del capítulo: terminá con la lista a la vista de todos, la rueda puesta y Mateo con las riendas en la mano, preguntando para dónde. No elijas por ellos.",
+    narrar: false,
+    opciones: [
+      {
+        id: "seguir",
+        titulo: "Al Paso, como estaba previsto",
+        detalle: "Llegar antes del amanecer y que firme quien tenga que firmar.",
+        efectos: { memoria: "Decidieron seguir hacia el Paso." },
+        consecuencia: "",
+        aviso: "El coche sigue hacia el Paso.",
+      },
+      {
+        id: "volver",
+        titulo: "De vuelta a la venta",
+        detalle: "Con el puente a la espalda y los Recaudadores en el medio. La Bruma sube 1.",
+        efectos: { amenaza: 1, memoria: "Decidieron dar la vuelta hacia la Venta del Ciego." },
+        consecuencia: "",
+        aviso: "El coche da la vuelta.",
+      },
+      {
+        id: "desvio",
+        titulo: "A las luces de Casa Orbe",
+        detalle: "Nadie los citó ahí. Por eso mismo.",
+        efectos: { relaciones: { viajera: 1 }, memoria: "Decidieron desviarse hacia Casa Orbe." },
+        consecuencia: "",
+        aviso: "El coche deja el camino y va hacia las luces.",
+      },
+    ],
+  },
   mejora: {
     id: "mejora",
     pregunta: "¿Qué arreglan primero en la Casa del Guarda?",
@@ -1766,12 +2121,24 @@ export const VOTOS: Record<VotoId, VotoDef> = {
   },
 };
 
-/** Qué debe mostrar el máster cuando la amenaza cruza cada umbral. */
-export const EVENTOS_AMENAZA: Record<number, string> = {
-  4: "La amenaza cruzó 4: la Bruma se cuela. Mostrá una señal inquietante y concreta en la escena (algo fuera de lugar, un sonido que no corresponde).",
-  7: "La amenaza cruzó 7: la Bruma aprieta. Hacé aparecer brevemente a un Ausente (figura sin rostro) o una manifestación directa; el pueblo se vuelve hostil al forastero.",
-  10: "La amenaza llegó a 10: la Bruma está adentro. La Dama del Umbral repara en los personajes; uno de ellos escucha su propio nombre dicho con la voz de alguien que perdió.",
+/** Capítulos de una campaña, en orden. */
+export const capitulosDe = (campana: CampanaId): CapituloDef[] =>
+  CAPITULOS.filter((c) => (c.campana ?? "trece") === campana);
+
+/** Número que se muestra: la posición del capítulo dentro de su campaña, desde 1. */
+export const ordenDe = (numero: number): number => {
+  const c = capituloDef(numero);
+  return capitulosDe(c.campana ?? "trece").indexOf(c) + 1;
 };
+
+/** El capítulo que sigue dentro de la misma campaña, si ya está escrito. */
+export const siguienteCapitulo = (numero: number): number | null => {
+  const c = capituloDef(numero);
+  const todos = capitulosDe(c.campana ?? "trece");
+  return todos[todos.indexOf(c) + 1]?.numero ?? null;
+};
+
+export const npcsDe = (campana: CampanaId): Npc[] => NPCS.filter((n) => (n.campana ?? "trece") === campana);
 
 /** Índices de las escenas de un capítulo dentro de la lista completa. */
 export const escenasDe = (capitulo: number): number[] =>
@@ -1783,8 +2150,6 @@ export const esUltimaDelCapitulo = (indice: number): boolean =>
 export const pistasDe = (capitulo: number): Pista[] =>
   PISTAS.filter((p) => ESCENAS[p.escena]?.capitulo === capitulo);
 
-export const hayCapitulo = (numero: number): boolean => CAPITULOS.some((c) => c.numero === numero);
-
 export const escenaDef = (indice: number): EscenaDef => {
   const e = ESCENAS[indice];
   if (!e) throw new Error(`Escena inexistente: ${indice}`);
@@ -1793,3 +2158,241 @@ export const escenaDef = (indice: number): EscenaDef => {
 
 export const npcDef = (id: string): Npc | undefined => NPCS.find((n) => n.id === id);
 export const pistaDef = (id: string): Pista | undefined => PISTAS.find((p) => p.id === id);
+
+function ESCENAS_COCHE(): void {
+  ESCENAS.push(
+    {
+      id: "posta",
+      capitulo: 101,
+      titulo: "La última posta",
+      lugar: "posta",
+      ambientacion:
+        "Atardecer en la Posta del Cruce, la última antes del Páramo de la Sal. La diligencia «La Rezagada» está enganchada a cuatro caballos nerviosos. Mateo Varga, el cochero, cuenta pasajeros con una lista en la mano y la cuenta no le da. Dentro del coche ya hay una mujer de luto, con velo, sentada junto a la ventanilla con el boleto en la falda. El maestro de posta quiere cerrar antes de que baje la bruma. Cada personaje llega por su lado, con una carta en el bolsillo.",
+      objetivo: "Subir al coche antes de que cierre la posta y notar que ninguno viaja por casualidad.",
+      vias: {
+        combate: "Cargar baúles y el cofre al pescante, sujetar un caballo que se encabrita, abrirse lugar en un coche donde no caben todos.",
+        ingenio: "Espiar la lista del cochero, comparar con disimulo el sello de las cartas, contar pasajeros.",
+        dialogo: "Sonsacar a Mateo, presentarse (o mentir) ante los otros pasajeros, saludar a la mujer del velo.",
+      },
+      npcs: ["mateo", "viajera"],
+      meta: 2,
+      tope: 3,
+      cierre:
+        "El maestro de posta apaga el farol del patio y el coche arranca con la última luz. Adentro van apretados, y son uno más de lo que dice la lista.",
+      opcionesBase: [
+        {
+          id: "a",
+          texto: "Ayudar a subir el cofre lacrado al pescante",
+          enfoque: "combate",
+          tirada: { atributo: "fuerza", dificultad: "facil" },
+          avanza: true,
+        },
+        {
+          id: "b",
+          texto: "Mirar de reojo la lista que lleva el cochero",
+          enfoque: "ingenio",
+          tirada: { atributo: "ingenio", dificultad: "media" },
+          avanza: true,
+        },
+        {
+          id: "c",
+          texto: "Preguntarle a Mateo por qué cuenta dos veces",
+          enfoque: "dialogo",
+          tirada: { atributo: "carisma", dificultad: "media" },
+          avanza: true,
+        },
+      ],
+      aperturaBase:
+        "Atardece en la Posta del Cruce. Más allá del último corral no hay camino: hay sal, blanca y lisa, hasta donde da la vista.\n\nLa diligencia espera enganchada. El cochero, un flaco de bufanda, pasa el dedo por una lista, levanta la vista, cuenta cabezas, y vuelve a empezar.\n\n—Me sobra uno —dice, a nadie—. O me falta un renglón.\n\nDentro del coche, junto a la ventanilla, ya hay alguien sentado: una mujer de luto, con velo.",
+      resumenBase:
+        "Subieron a La Rezagada en la última posta. El cochero contó dos veces: en el coche viaja una persona más de las que dice su lista.",
+    },
+    {
+      id: "coche",
+      capitulo: 101,
+      titulo: "Siete donde caben seis",
+      lugar: "coche",
+      ambientacion:
+        "El interior de la diligencia, de noche, en marcha por el páramo. Van rodilla con rodilla bajo un farol que se balancea. La pasajera del velo no habla: mira. Bajo el asiento del cochero viaja un cofre lacrado con una rueda en el sello, y en cada pozo algo se desliza adentro. Afuera, la sal brilla como nieve y la bruma viene de costado. Tarde o temprano alguien saca su carta.",
+      objetivo: "Averiguar qué trajo a cada uno a este coche y qué hace acá la pasajera de más.",
+      vias: {
+        combate: "Sostener el farol y a los pasajeros en un tramo malo, trepar al pescante con el coche andando, revisar el cofre a la fuerza.",
+        ingenio: "Comparar las cartas, leer el sello del cofre, observar a la pasajera: los guantes, el boleto, lo que mira.",
+        dialogo: "Hacer hablar a los otros de su carta sin mostrar la propia, hablarle a la pasajera, tirarle de la lengua a Mateo por la ventanilla.",
+      },
+      npcs: ["viajera", "mateo"],
+      meta: 2,
+      tope: 3,
+      cierre:
+        "Las cartas están sobre las rodillas de todos: la misma letra, la misma firma, la de una muerta. La pasajera del velo no sacó ninguna. Mateo avisa a los gritos que en un rato paran a cambiar caballos.",
+      votoAlCerrar: "viajera",
+      opcionesBase: [
+        {
+          id: "a",
+          texto: "Trepar al pescante para ver el cofre de cerca",
+          enfoque: "combate",
+          tirada: { atributo: "destreza", dificultad: "media" },
+          avanza: true,
+        },
+        {
+          id: "b",
+          texto: "Comparar la letra de las cartas que asoman",
+          enfoque: "ingenio",
+          tirada: { atributo: "ingenio", dificultad: "media" },
+          avanza: true,
+        },
+        {
+          id: "c",
+          texto: "Hablarle a la mujer del velo",
+          enfoque: "dialogo",
+          tirada: { atributo: "carisma", dificultad: "dificil" },
+          avanza: true,
+        },
+      ],
+      aperturaBase:
+        "El coche toma el páramo y la posta se queda atrás, chica, hasta que es una sola luz.\n\nAdentro no entra un alfiler. El farol se balancea y pasa la cara de cada uno de la luz a la sombra. La mujer del velo no se mueve con los pozos.\n\nDebajo del pescante, algo pesado se corre un palmo y vuelve.\n\n—¡Es el cofre! —grita Mateo desde arriba—. ¡No es nada! ¡No lo toquen!",
+      resumenBase:
+        "Dentro del coche compararon las cartas: todas las firma Casilda Orbe, muerta hace tres semanas. La pasajera del velo no mostró ninguna.",
+    },
+    {
+      id: "venta",
+      capitulo: 101,
+      titulo: "La Venta del Ciego",
+      lugar: "venta",
+      ambientacion:
+        "Una venta sola en medio de la sal, donde La Rezagada cambia caballos. El ventero, don Elías, es ciego y reconoce a los coches por el ruido del eje: cuando oye a este, tranca la puerta y atiende por la ventana. En el establo no están los caballos de refresco de la Compañía. Hay cuatro, ya ensillados, con arreos negros, que nadie trajo.",
+      objetivo: "Conseguir caballos para seguir y saber por qué el ventero le tiene miedo a este coche.",
+      vias: {
+        combate: "Desenganchar y enganchar a oscuras, forzar el establo, calmar a los caballos de arreos negros o sacarlos del medio.",
+        ingenio: "Revisar los arreos negros, el libro de pasajeros de la venta, las huellas en el patio.",
+        dialogo: "Convencer a don Elías de abrir, hacer que cuente lo del año pasado, negociar el precio de sus propios caballos.",
+      },
+      npcs: ["elias", "mateo"],
+      meta: 2,
+      tope: 3,
+      cierre:
+        "Salen de la venta con caballos de refresco, los que sean. Don Elías les grita desde la ventana que en el puente no discutan el precio. Los cuatro caballos de arreos negros ya no están en el establo.",
+      opcionesBase: [
+        {
+          id: "a",
+          texto: "Desenganchar los caballos cansados a oscuras",
+          enfoque: "combate",
+          tirada: { atributo: "fuerza", dificultad: "media" },
+          avanza: true,
+        },
+        {
+          id: "b",
+          texto: "Revisar los arreos negros de los caballos del establo",
+          enfoque: "ingenio",
+          tirada: { atributo: "ingenio", dificultad: "media" },
+          avanza: true,
+        },
+        {
+          id: "c",
+          texto: "Golpear la ventana y pedirle al ventero que abra",
+          enfoque: "dialogo",
+          tirada: { atributo: "carisma", dificultad: "media" },
+          avanza: true,
+        },
+      ],
+      aperturaBase:
+        "La venta aparece de golpe: un patio, un aljibe, un farol. El coche entra y, antes de que frene, adentro alguien corre una tranca.\n\n—¡Elías! —grita Mateo—. ¡Soy yo, hombre! ¡Caballos!\n\nUna ventana se abre un dedo.\n\n—Ese eje ya lo oí —dice una voz vieja—. No abro. Los caballos están donde siempre. Sírvanse y sigan.\n\nEn el establo hay cuatro caballos. Están ensillados. Los arreos son negros.",
+      resumenBase:
+        "En la Venta del Ciego cambiaron caballos. El ventero no quiso abrir: dice que el último coche del año pasado llegó a destino con el cochero solo.",
+    },
+    {
+      id: "puente",
+      capitulo: 101,
+      titulo: "El peaje",
+      lugar: "puente",
+      ambientacion:
+        "Un puente de piedra, largo y sin baranda, sobre la salina. La bruma lo tapa por la mitad. Cruzados en el medio hay cuatro jinetes de arreos negros, sin rostro: los Recaudadores. Los caballos del coche se niegan a avanzar. Una voz que parece salir de los cuatro pide el peaje: algo que pese. Miran el cofre. Miran a cada pasajero como quien calcula un peso.",
+      objetivo: "Aguantar frente a los Recaudadores hasta entender qué aceptan como pago.",
+      vias: {
+        combate: "Sujetar a los caballos, plantarse entre los jinetes y el coche, proteger el cofre o a otro pasajero.",
+        ingenio: "Fijarse en qué miran los jinetes y qué no, revisar el lacre del cofre, recordar lo que dijo el ventero.",
+        dialogo: "Preguntar el precio, regatear, ofrecer algo propio, hablar por otro pasajero.",
+      },
+      npcs: ["mateo", "viajera"],
+      meta: 2,
+      tope: 3,
+      cierre:
+        "Los Recaudadores dicen el precio sin apuro. Aceptan el cofre, cerrado como está. Aceptan una verdad dicha en voz alta por quien lleva el farol. O pueden no cobrar nada, si el coche se anima a pasar entre ellos.",
+      votoAlCerrar: "peaje",
+      opcionesBase: [
+        {
+          id: "a",
+          texto: "Sujetar a los caballos antes de que reculen al vacío",
+          enfoque: "combate",
+          tirada: { atributo: "fuerza", dificultad: "dificil" },
+          avanza: true,
+        },
+        {
+          id: "b",
+          texto: "Fijarse qué miran los jinetes y qué esquivan",
+          enfoque: "ingenio",
+          tirada: { atributo: "ingenio", dificultad: "media" },
+          avanza: true,
+        },
+        {
+          id: "c",
+          texto: "Preguntarles cuánto es el peaje",
+          enfoque: "dialogo",
+          tirada: { atributo: "voluntad", dificultad: "dificil" },
+          avanza: true,
+        },
+      ],
+      aperturaBase:
+        "El camino sube a un puente. Es de piedra, angosto, sin baranda, y a los veinte pasos lo tapa la bruma.\n\nLos caballos se plantan. Mateo no les grita: se quedó callado, que en él es peor.\n\nEn el medio del puente hay cuatro jinetes cruzados. Arreos negros. Debajo de los sombreros no hay nada que mirar.\n\n—Peaje —dicen, los cuatro o ninguno—. Algo que pese.",
+      resumenBase:
+        "En el puente los pararon cuatro jinetes sin rostro. No quisieron monedas: pidieron el cofre, una verdad, o que se animaran a pasar.",
+    },
+    {
+      id: "paramo",
+      capitulo: 101,
+      titulo: "Lo que dice la lista",
+      lugar: "paramo",
+      ambientacion:
+        "Del otro lado del puente, en pleno páramo, una rueda dice basta y el coche se detiene. Mientras se arregla, Mateo saca por fin la lista y la deja ver entera. Está escrita con la letra de las cartas. Desde acá se abren tres caminos: adelante, el Paso, al que hay que llegar antes de que amanezca; atrás, la venta; y a un costado, lejos, las luces de una casa grande que Mateo llama Casa Orbe.",
+      objetivo: "Arreglar la rueda, leer la lista entera y decidir entre todos hacia dónde sigue el coche.",
+      vias: {
+        combate: "Levantar el coche a pulso, cambiar la rueda, vigilar el puente con algo en la mano.",
+        ingenio: "Leer la lista por los dos lados, comparar las tintas, orientarse por las luces.",
+        dialogo: "Poner las cartas (o los encargos) sobre la mesa, acusar, pactar, convencer a Mateo de cambiar el rumbo.",
+      },
+      npcs: ["mateo", "viajera"],
+      meta: 2,
+      tope: 3,
+      cierre:
+        "Fin del capítulo. La rueda aguanta. La lista quedó a la vista de todos: sus nombres, con la letra de una muerta, y al dorso una línea con otra tinta. Hay que decidir el rumbo antes de que la bruma cruce el puente detrás de ellos.",
+      votoAlCerrar: "rumbo",
+      opcionesBase: [
+        {
+          id: "a",
+          texto: "Levantar el eje a pulso para cambiar la rueda",
+          enfoque: "combate",
+          tirada: { atributo: "fuerza", dificultad: "media" },
+          avanza: true,
+        },
+        {
+          id: "b",
+          texto: "Dar vuelta la lista y leer el dorso al farol",
+          enfoque: "ingenio",
+          tirada: { atributo: "ingenio", dificultad: "media" },
+          avanza: true,
+        },
+        {
+          id: "c",
+          texto: "Proponer que cada uno muestre lo que trae en el bolsillo",
+          enfoque: "dialogo",
+          tirada: { atributo: "carisma", dificultad: "dificil" },
+          avanza: true,
+        },
+      ],
+      aperturaBase:
+        "Del otro lado del puente el coche anda cien pasos y se inclina, con un quejido de madera. Una rueda.\n\nMateo baja, la mira, y por una vez no dice nada sobre la Compañía. Se saca la lista del pecho y la alisa contra la rodilla, al farol.\n\n—Ya que estamos parados —dice—. Miren esto, que yo de letras no entiendo, y díganme si no es la misma mano.\n\nLejos, a un costado, hay luces. Una casa grande.",
+      resumenBase:
+        "Pasado el puente se rompió una rueda. La lista del cochero está escrita por Casilda Orbe; al dorso, con otra tinta, dice: «uno de ustedes no llega».",
+    },
+  );
+}

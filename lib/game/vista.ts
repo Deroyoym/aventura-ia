@@ -1,11 +1,11 @@
-import { ESCENAS, NPCS, PISTAS, VOTOS, capituloDef, escenaDef, escenasDe } from "./campana";
+import { ESCENAS, PISTAS, VOTOS, campanaDe, capituloDef, capitulosDe, escenaDef, escenasDe, npcsDe, ordenDe } from "./campana";
 import { COMPANEROS, ETIQUETAS_RELACION, MEJORAS, type Companero } from "./contenido";
 import type { Avatar } from "./avatar";
-import { RETRATOS_MAX, avatarDe, ayudasDisponibles, estaPintando, hayOtroCapitulo } from "./motor";
+import { RETRATOS_MAX, activos, avatarDe, ayudasDisponibles, estaPintando, hayOtroCapitulo, puedeEmpezar } from "./motor";
 import {
   ASIENTOS,
-  otroAsiento,
   type Asiento,
+  type CampanaId,
   type Entrada,
   type EstadoJuego,
   type Fase,
@@ -39,6 +39,8 @@ export interface VotoVista {
   ronda: number;
   miEleccion: string | null;
   otroVoto: boolean;
+  /** Quiénes todavía no votaron en esta ronda. */
+  faltan: Asiento[];
   /** Elecciones de la ronda anterior, ya reveladas porque no coincidieron. */
   anteriores: Partial<Record<Asiento, string>> | null;
 }
@@ -47,6 +49,11 @@ export interface Vista {
   yo: Asiento;
   fase: Fase;
   terror: NivelTerror;
+  campana: { id: CampanaId; titulo: string; min: number; max: number; rondas: boolean };
+  /** Quiénes ya actuaron en la ronda en curso. */
+  yaActuaron: Asiento[];
+  /** Mi encargo secreto y si ya se cumplió (null: todavía no se sabe). */
+  encargo: { texto: string; cumplido: boolean | null } | null;
   capitulo: { numero: number; titulo: string; final: boolean };
   /** Cómo terminó la campaña, cuando ya terminó. */
   desenlace: string | null;
@@ -111,8 +118,10 @@ export function vistaPara(
   extra: { ahora?: number; retratos?: boolean } = {},
 ): Vista {
   const def = escenaDef(e.escena.indice);
-  const otro = otroAsiento(yo);
   const capitulo = capituloDef(e.capitulo);
+  const campana = campanaDe(e);
+  const encargo = campana.encargos.find((x) => x.id === e.encargos?.[yo]);
+  const losDemas = activos(e).filter((a) => a !== yo);
   const delCapitulo = escenasDe(e.capitulo);
   const numeroDe = (indice: number) => escenasDe(ESCENAS[indice].capitulo).indexOf(indice) + 1;
 
@@ -126,7 +135,16 @@ export function vistaPara(
     yo,
     fase: e.fase,
     terror: e.terror,
-    capitulo: { numero: capitulo.numero, titulo: capitulo.titulo, final: !!capitulo.final },
+    campana: {
+      id: campana.id,
+      titulo: campana.titulo,
+      min: campana.jugadores.min,
+      max: campana.jugadores.max,
+      rondas: campana.rondas,
+    },
+    yaActuaron: (e.ronda ?? []).map((x) => x.asiento),
+    encargo: encargo ? { texto: encargo.texto, cumplido: encargo.cumple(e.decisiones) } : null,
+    capitulo: { numero: ordenDe(capitulo.numero), titulo: capitulo.titulo, final: !!capitulo.final },
     desenlace:
       (capitulo.final && e.fase === "fin_capitulo" && VOTOS.pacto.opciones.find((o) => o.id === e.decisiones.pacto)?.titulo) || null,
     hayOtroCapitulo: hayOtroCapitulo(e),
@@ -147,7 +165,7 @@ export function vistaPara(
     amenaza: e.amenaza,
     personajes,
     companero: e.companero ? { ...COMPANEROS[e.companero.id], usado: e.companero.usado } : null,
-    npcs: NPCS.filter((n) => e.npcs[n.id]?.conocido).map((n) => ({
+    npcs: npcsDe(campana.id).filter((n) => e.npcs[n.id]?.conocido).map((n) => ({
       id: n.id,
       nombre: n.nombre,
       rol: n.rol,
@@ -159,7 +177,11 @@ export function vistaPara(
       titulo,
       texto,
     })),
-    pistasTotales: PISTAS.filter((p) => ESCENAS[p.escena].capitulo <= e.capitulo).length,
+    pistasTotales: PISTAS.filter((p) =>
+      capitulosDe(campana.id)
+        .slice(0, ordenDe(capitulo.numero))
+        .some((c) => c.numero === ESCENAS[p.escena].capitulo),
+    ).length,
     opciones: e.opciones,
     pendiente: e.pendiente,
     ayudas: ayudasDisponibles(e, yo),
@@ -170,7 +192,8 @@ export function vistaPara(
       opciones: e.voto.opciones,
       ronda: e.voto.ronda,
       miEleccion: e.voto.elecciones[yo] ?? null,
-      otroVoto: !!e.voto.elecciones[otro],
+      otroVoto: losDemas.length > 0 && losDemas.every((a) => !!e.voto!.elecciones[a]),
+      faltan: losDemas.filter((a) => !e.voto!.elecciones[a]),
       anteriores: e.voto.anteriores,
     },
     entradas: e.entradas,
@@ -182,7 +205,7 @@ export function vistaPara(
       efecto,
     })),
     narrando,
-    puedeEmpezar: e.fase === "preparacion" && ASIENTOS.every((a) => e.personajes[a]),
+    puedeEmpezar: puedeEmpezar(e),
     turno: e.turno,
     actualizado: e.actualizado,
   };

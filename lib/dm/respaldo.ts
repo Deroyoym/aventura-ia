@@ -34,9 +34,14 @@ export function salidaDeRespaldo(e: EstadoJuego, plan: Plan): SalidaDM {
       parrafos.push(escenaDef(plan.abre).aperturaBase);
       escenaDeOpciones = plan.abre;
     }
-  } else if (p?.tipo === "accion") {
-    const nombre = e.personajes[p.asiento]?.nombre ?? "Alguien";
-    parrafos.push(POR_RESULTADO[plan.resultado ?? "ninguno"](nombre));
+  } else if (p?.tipo === "accion" || plan.ronda) {
+    if (plan.ronda) {
+      for (const x of plan.ronda) {
+        parrafos.push(POR_RESULTADO[x.resultado ?? "ninguno"](e.personajes[x.asiento]?.nombre ?? "Alguien"));
+      }
+    } else if (p?.tipo === "accion") {
+      parrafos.push(POR_RESULTADO[plan.resultado ?? "ninguno"](e.personajes[p.asiento]?.nombre ?? "Alguien"));
+    }
     if (plan.cierra) {
       if (plan.siguiente === "voto" && def.votoAlCerrar) {
         parrafos.push(VOTOS[def.votoAlCerrar].contexto);

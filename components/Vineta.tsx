@@ -387,6 +387,17 @@ function Trece() {
   );
 }
 
+/** Respaldo sin dibujo propio: noche y bruma, mientras carga la ilustración. */
+function Noche() {
+  return (
+    <>
+      <Luna x={230} y={62} r={22} />
+      <path d="M0 190v-38c50-10 110-12 160-8s110 10 160 2v44z" fill={TINTA} />
+      <Niebla y={160} opacidad={0.5} />
+    </>
+  );
+}
+
 const ESCENAS: Record<Lugar, () => ReactNode> = {
   posada: Posada,
   cuarto: Cuarto,
@@ -399,6 +410,11 @@ const ESCENAS: Record<Lugar, () => ReactNode> = {
   cripta: Cripta,
   umbral: Umbral,
   trece: Trece,
+  posta: Noche,
+  coche: Noche,
+  venta: Noche,
+  puente: Noche,
+  paramo: Noche,
 };
 
 export function Vineta({ lugar, className = "" }: { lugar: Lugar; className?: string }) {

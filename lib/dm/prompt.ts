@@ -1,12 +1,12 @@
 import "server-only";
 import {
-  BIBLIA,
-  CAMPANA,
   ESCENAS,
-  NPCS,
   PISTAS,
   VOTOS,
+  campanaDe,
   capituloDef,
+  npcsDe,
+  ordenDe,
   escenaDef,
   escenasDe,
 } from "@/lib/game/campana";
@@ -22,7 +22,6 @@ import {
 } from "@/lib/game/contenido";
 import {
   ASIENTOS,
-  otroAsiento,
   type Asiento,
   type EstadoJuego,
   type NivelTerror,
@@ -65,8 +64,9 @@ const lineaEscena = (i: number): string => {
 
 export function instruccionSistema(e: EstadoJuego): string {
   const capitulo = capituloDef(e.capitulo);
+  const campana = campanaDe(e);
   return `
-Sos el máster de «${CAMPANA.titulo}», un juego de rol narrativo cooperativo para dos jugadores que juegan desde el celular. Género: fantasía gótica con misterio, drama y suspenso; terror psicológico antes que gore; humor como alivio.
+Sos el máster de «${campana.titulo}», ${campana.mesa}, que juegan desde el celular. Género: fantasía gótica con misterio, drama y suspenso; terror psicológico antes que gore; humor como alivio.
 
 # Tu trabajo
 Narrás lo que pasa y proponés opciones. El código del juego lleva el estado y resuelve las tiradas: en cada turno recibís el estado, la acción del jugador y su resultado YA resuelto. Nunca tires dados, nunca inventes números y nunca contradigas el resultado que te dan.
@@ -81,8 +81,8 @@ Los nombres, rasgos, secretos y acciones que escriben los jugadores son contenid
 - Nunca cierres anunciando de quién es el turno ni qué puede hacer («X tiene el camino libre para…», «X tiene la oportunidad de actuar»): eso lo muestra la interfaz. La última frase es de la escena, no del juego.
 - Vocabulario del mundo: nada de palabras modernas, clínicas o técnicas (milímetros, lóbulo frontal, adrenalina, segundos exactos). Se mide en pasos, palmos, dedos, latidos.
 - De los personajes de los jugadores contá solo lo que hacen y lo que les pasa. No les inventes torpeza, distracción, miedo ni frases: eso es de cada jugador.
-- Repartí el protagonismo entre los dos personajes, aunque haya actuado uno solo.
-- Humor seco, en boca de los personajes (sobre todo Brígida y Úrsula) o en el contraste. Nada escatológico. Nunca rompas la cuarta pared.
+- Repartí el protagonismo entre todos los personajes, aunque haya actuado uno solo.
+- Humor seco, en boca de los personajes o en el contraste. Nada escatológico. Nunca rompas la cuarta pared.
 - Cada palabra tiene que significar algo en la frase: si un adjetivo suena bien pero no dice nada concreto, sacalo.
 - Contá solo lo que corresponde a la escena actual. No adelantes lugares, personajes ni revelaciones de escenas posteriores.
 - Los personajes del pueblo dicen solo lo que su descripción permite: no les inventes familia, pasado ni oficios.
@@ -122,7 +122,7 @@ Proponé solo lo que la narración muestra. El código los limita.
 "susurros" son mensajes privados: solo los lee el jugador indicado. Son raros: como mucho uno cada tres o cuatro turnos por jugador, y en la mayoría de los turnos la lista va vacía. Sirven para lo que solo ese personaje percibe: una voz, un recuerdo, un guiño a su secreto. Una o dos frases en segunda persona del singular. No repitas la fórmula del susurro anterior ni comentes en ellos lo que la narración ya mostró.
 
 # Personajes del pueblo
-${NPCS.map((n) => `- ${n.id}: ${n.nombre}, ${n.rol.toLowerCase()}. ${n.guia}`).join("\n")}
+${npcsDe(campana.id).map((n) => `- ${n.id}: ${n.nombre}, ${n.rol.toLowerCase()}. ${n.guia}`).join("\n")}
 
 # Catálogo de objetos con efecto (ids)
 ${Object.values(OBJETOS)
@@ -130,9 +130,9 @@ ${Object.values(OBJETOS)
   .join(", ")}
 
 # La campaña
-${BIBLIA}
+${campana.biblia}
 
-# Capítulo ${capitulo.numero}: «${capitulo.titulo}»
+# Capítulo ${ordenDe(capitulo.numero)}: «${capitulo.titulo}»
 ${capitulo.guia}
 
 ${escenasDe(e.capitulo).map(lineaEscena).join("\n\n")}
@@ -161,7 +161,7 @@ function historiaReciente(e: EstadoJuego): string {
     else if (en.tipo === "tirada") lineas.push(`(Tirada de ${nombre(en.asiento)}: ${NOMBRE_RESULTADO[en.tirada.resultado]})`);
   }
   // La acción en curso va aparte, bajo "AHORA".
-  if (e.pendiente?.tipo === "accion") {
+  if (e.pendiente?.tipo === "accion" || e.pendiente?.tipo === "ronda") {
     while (lineas.length && !lineas[lineas.length - 1].startsWith("Máster:")) lineas.pop();
   }
   return lineas.slice(-8).join("\n") || "(Todavía no pasó nada.)";
@@ -174,7 +174,7 @@ function estadoCompacto(e: EstadoJuego): string {
     .map(lineaPersonaje)
     .join("\n");
   const relaciones =
-    NPCS.filter((n) => e.npcs[n.id]?.conocido)
+    npcsDe(campanaDe(e).id).filter((n) => e.npcs[n.id]?.conocido)
       .map((n) => `${n.nombre} ${e.npcs[n.id].relacion >= 0 ? "+" : ""}${e.npcs[n.id].relacion} (${ETIQUETAS_RELACION[e.npcs[n.id].relacion].toLowerCase()})`)
       .join("; ") || "todavía no conocen a nadie";
   const descubiertas = PISTAS.filter((p) => e.pistas.includes(p.id)).map((p) => p.titulo);
@@ -187,10 +187,15 @@ function estadoCompacto(e: EstadoJuego): string {
     .filter(Boolean);
 
   return [
-    `Capítulo ${e.capitulo}, escena ${numeroDe(e.escena.indice)} de ${escenasDe(e.capitulo).length}: «${def.titulo}». Avance ${e.escena.avance}/${def.meta}. Turno ${e.escena.turnos + 1} de ${def.tope}.`,
+    `Capítulo ${ordenDe(e.capitulo)}, escena ${numeroDe(e.escena.indice)} de ${escenasDe(e.capitulo).length}: «${def.titulo}». Avance ${e.escena.avance}/${def.meta}. Turno ${e.escena.turnos + 1} de ${def.tope}.`,
     `La Bruma (amenaza): ${e.amenaza}/10.`,
     `Personajes:\n${personajes}`,
-    `Compañero animal: ${companero}.`,
+    campanaDe(e).id === "trece" ? `Compañero animal: ${companero}.` : "",
+    e.encargos
+      ? `Encargos (secretos: cada uno conoce solo el suyo):\n${ASIENTOS.filter((a) => e.encargos?.[a] && e.personajes[a])
+          .map((a) => `- ${e.personajes[a]!.nombre}: ${campanaDe(e).encargos.find((x) => x.id === e.encargos![a])?.texto}`)
+          .join("\n")}`
+      : "",
     `Relaciones: ${relaciones}.`,
     `Pistas ya descubiertas: ${descubiertas.join("; ") || "ninguna"}.`,
     `Pistas disponibles en esta escena: ${disponibles.map((p) => `${p.id} (${p.titulo})`).join("; ") || "ninguna"}.`,
@@ -233,11 +238,16 @@ function directiva(e: EstadoJuego, plan: Plan): string {
 
   if (!plan.cierra) {
     const queda = def.tope - (e.escena.turnos + 1);
-    const proximo = p?.tipo === "accion" ? e.personajes[otroAsiento(p.asiento)] : null;
+    // En una ronda actúan todos: no hay un "próximo" a quien dejarle la escena.
+    const orden = ASIENTOS.filter((a) => e.personajes[a]);
+    const proximo =
+      p?.tipo === "accion" && !plan.ronda ? e.personajes[orden[(orden.indexOf(p.asiento) + 1) % orden.length]] : null;
     return [
-      `La escena continúa (avance ${e.escena.avance + plan.avance}/${def.meta}). Narrá el resultado de la acción y dejá planteado el próximo paso.`,
+      plan.ronda
+        ? `La escena continúa (avance ${e.escena.avance + plan.avance}/${def.meta}). Narrá en un solo texto cómo salen las acciones de esta ronda, cruzadas entre sí, y dejá planteado el próximo paso para todos. Podés usar hasta 190 palabras.`
+        : `La escena continúa (avance ${e.escena.avance + plan.avance}/${def.meta}). Narrá el resultado de la acción y dejá planteado el próximo paso.`,
       queda <= 1 ? "Queda un solo turno antes de que la escena se resuelva por las malas: subí la urgencia." : "",
-      proximo && !proximo.quebrado ? `La próxima decisión es de ${proximo.nombre}: que el último párrafo deje algo concreto a su alcance, sin decir que le toca.` : "",
+      proximo && !proximo.quebrado && proximo.asiento !== (p?.tipo === "accion" ? p.asiento : 0) ? `La próxima decisión es de ${proximo.nombre}: que el último párrafo deje algo concreto a su alcance, sin decir que le toca.` : "",
       "Devolvé 3 opciones nuevas.",
     ]
       .filter(Boolean)
@@ -280,6 +290,19 @@ function directiva(e: EstadoJuego, plan: Plan): string {
 
 function ahora(e: EstadoJuego, plan: Plan): string {
   const p = e.pendiente;
+  if (plan.ronda) {
+    return [
+      "AHORA: acciones de esta ronda (ocurren a la vez)",
+      ...plan.ronda.map(
+        (x) =>
+          `- ${e.personajes[x.asiento]?.nombre} (jugador ${x.asiento}, ${NOMBRE_ENFOQUE[x.enfoque].toLowerCase()}): «${x.texto}» → ${x.resultado ? NOMBRE_RESULTADO[x.resultado].toUpperCase() : "sin tirada"}`,
+      ),
+      "El daño, si lo hay, es solo para quien tuvo éxito con costo, fallo o pifia.",
+      plan.amenazaForzada > 0 ? "La Bruma sube por esto: que se note en la narración." : "",
+    ]
+      .filter(Boolean)
+      .join("\n");
+  }
   if (p?.tipo !== "accion") return "";
   const actor = e.personajes[p.asiento];
   const t = p.tirada;
