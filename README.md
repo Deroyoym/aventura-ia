@@ -54,6 +54,7 @@ Para usar los servicios reales, copiá `.env.example` a `.env.local` y completal
 | `GEMINI_API_KEY` | servidor | Clave de Google AI Studio |
 | `GEMINI_MODEL` | servidor | Nombre del modelo Flash |
 | `GEMINI_MODEL_RESPALDO` | servidor | Opcional: modelo al que se pasa si el principal se queda sin cuota o está saturado |
+| `GEMINI_IMAGE_MODEL` | servidor | Opcional: modelo de imágenes que pinta el retrato de cada personaje. Requiere facturación |
 | `SUPABASE_SECRET_KEY` | servidor | Clave secreta del proyecto de Supabase |
 | `NEXT_PUBLIC_SUPABASE_URL` | navegador y servidor | URL del proyecto |
 | `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | navegador | Clave pública, solo para Realtime |

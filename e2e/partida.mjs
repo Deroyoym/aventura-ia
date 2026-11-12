@@ -177,6 +177,14 @@ await A.getByRole('button', { name: 'Sombrero', exact: true, pressed: true }).wa
 ok(true, 'A cambia su retrato con la partida empezada');
 await foto(A, '12-hoja');
 await A.getByRole('button', { name: 'Listo', exact: true }).click();
+const pintar = A.getByRole('button', { name: /Pintar (mi|otro) retrato/ });
+if (await pintar.isVisible().catch(() => false)) {
+  await pintar.click();
+  await A.getByRole('img', { name: 'Retrato de Aldric' }).and(A.locator('img')).waitFor({ timeout: 20000 });
+  await B.locator('header img').first().waitFor({ timeout: 20000 });
+  ok(true, 'el retrato pintado llega a los dos celulares');
+  await foto(A, '12b-retrato-pintado');
+}
 await A.getByRole('tab', { name: 'Diario' }).click();
 await foto(A, '13-diario');
 await A.getByRole('tab', { name: 'Sala' }).click();

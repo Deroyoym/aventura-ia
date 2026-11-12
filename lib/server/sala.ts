@@ -4,7 +4,7 @@ import { estadoInicial } from "@/lib/game/motor";
 import { ASIENTOS, ErrorJuego, type Asiento, type EstadoJuego, type NivelTerror } from "@/lib/game/tipos";
 import { vistaPara } from "@/lib/game/vista";
 import { LARGO_CODIGO, normalizarCodigo, type Credencial, type InfoPublica, type Instantanea } from "@/lib/protocolo";
-import { estadoServidor } from "./config";
+import { entorno, estadoServidor } from "./config";
 import { obtenerStore, type FilaAsiento, type Sala } from "./store";
 
 // Salas y asientos: códigos, tokens, acceso y el snapshot que ve cada jugador.
@@ -126,7 +126,7 @@ export function instantanea({ sala, asiento, filas }: Acceso): Instantanea {
     codigo: sala.codigo,
     salaId: sala.id,
     version: sala.version,
-    vista: vistaPara(sala.estado, asiento, estaNarrando(sala.estado, ahora)),
+    vista: vistaPara(sala.estado, asiento, estaNarrando(sala.estado, ahora), { ahora, retratos: !!entorno().geminiImagenes }),
     asientos,
     modo: { narrador, almacen },
   };

@@ -95,6 +95,7 @@ export function Avatar({
   avatar,
   raza,
   clase,
+  retrato,
   tam = 48,
   emblema = true,
   className = "",
@@ -103,12 +104,27 @@ export function Avatar({
   avatar: DatosAvatar;
   raza: string;
   clase: string;
+  /** Retrato pintado. Si está, reemplaza al dibujo por piezas. */
+  retrato?: string | null;
   tam?: number;
   emblema?: boolean;
   className?: string;
   /** Texto alternativo. Sin él, el retrato es decorativo. */
   titulo?: string;
 }) {
+  if (retrato) {
+    return (
+      // eslint-disable-next-line @next/next/no-img-element -- imagen generada, ya achicada, que puede venir como data URL
+      <img
+        src={retrato}
+        alt={titulo ?? ""}
+        width={tam}
+        height={tam}
+        className={`shrink-0 rounded-full object-cover ${className}`}
+        style={{ width: tam, height: tam, boxShadow: `0 0 0 ${Math.max(1.5, tam / 40)}px ${ORO}` }}
+      />
+    );
+  }
   const c = CABEZA[raza] ?? CABEZA.humano;
   const piel = colorDe("piel", avatar.piel);
   const pelo = colorDe("pelo", avatar.pelo);

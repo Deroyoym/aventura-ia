@@ -1,7 +1,7 @@
 import { ESCENAS, NPCS, PISTAS, capituloDef, escenaDef, escenasDe } from "./campana";
 import { COMPANEROS, ETIQUETAS_RELACION, MEJORAS, type Companero } from "./contenido";
 import type { Avatar } from "./avatar";
-import { avatarDe, ayudasDisponibles, hayOtroCapitulo } from "./motor";
+import { RETRATOS_MAX, avatarDe, ayudasDisponibles, estaPintando, hayOtroCapitulo } from "./motor";
 import {
   ASIENTOS,
   otroAsiento,
@@ -23,8 +23,10 @@ import {
 // La Vista es lo único del estado que sale del servidor. Se arma por jugador:
 // el secreto ajeno, los susurros ajenos y el voto del otro no viajan nunca.
 
-export type PersonajeVista = Omit<Personaje, "secreto" | "avatar"> & {
+export type PersonajeVista = Omit<Personaje, "secreto" | "avatar" | "retrato"> & {
   avatar: Avatar;
+  /** Retrato pintado: su dirección si existe, si se está pintando y cuántos intentos quedan. */
+  retrato: { url: string | null; pintando: boolean; restantes: number };
   /** null cuando es el secreto del otro y todavía no fue revelado. */
   secreto: string | null;
 };
@@ -46,6 +48,8 @@ export interface Vista {
   fase: Fase;
   terror: NivelTerror;
   capitulo: { numero: number; titulo: string };
+  /** Si el servidor puede pintar retratos con el modelo de imágenes. */
+  retratos: boolean;
   /** Si al terminar este capítulo hay otro para seguir. */
   hayOtroCapitulo: boolean;
   escena: {
@@ -84,12 +88,26 @@ export interface Vista {
   actualizado: number;
 }
 
-function personajeVista(p: Personaje, yo: Asiento): PersonajeVista {
+function personajeVista(p: Personaje, yo: Asiento, ahora: number): PersonajeVista {
   const visible = p.asiento === yo || p.secretoRevelado;
-  return { ...p, avatar: avatarDe(p), secreto: visible ? p.secreto : null };
+  return {
+    ...p,
+    avatar: avatarDe(p),
+    retrato: {
+      url: p.retrato?.url ?? null,
+      pintando: estaPintando(p, ahora),
+      restantes: Math.max(0, RETRATOS_MAX - (p.retrato?.hechos ?? 0)),
+    },
+    secreto: visible ? p.secreto : null,
+  };
 }
 
-export function vistaPara(e: EstadoJuego, yo: Asiento, narrando: boolean): Vista {
+export function vistaPara(
+  e: EstadoJuego,
+  yo: Asiento,
+  narrando: boolean,
+  extra: { ahora?: number; retratos?: boolean } = {},
+): Vista {
   const def = escenaDef(e.escena.indice);
   const otro = otroAsiento(yo);
   const capitulo = capituloDef(e.capitulo);
@@ -99,7 +117,7 @@ export function vistaPara(e: EstadoJuego, yo: Asiento, narrando: boolean): Vista
   const personajes: Vista["personajes"] = {};
   for (const a of ASIENTOS) {
     const p = e.personajes[a];
-    if (p) personajes[a] = personajeVista(p, yo);
+    if (p) personajes[a] = personajeVista(p, yo, extra.ahora ?? e.actualizado);
   }
 
   return {
@@ -108,6 +126,7 @@ export function vistaPara(e: EstadoJuego, yo: Asiento, narrando: boolean): Vista
     terror: e.terror,
     capitulo: { numero: capitulo.numero, titulo: capitulo.titulo },
     hayOtroCapitulo: hayOtroCapitulo(e),
+    retratos: !!extra.retratos,
     escena: {
       indice: e.escena.indice,
       numero: numeroDe(e.escena.indice),

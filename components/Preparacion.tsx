@@ -56,6 +56,7 @@ export function Preparacion({ sala }: { sala: SalaEnVivo }) {
 
       {!mio || editando ? (
         <CrearPersonaje
+          retratos={vista.retratos}
           inicial={
             mio && {
               nombre: mio.nombre,
@@ -64,6 +65,7 @@ export function Preparacion({ sala }: { sala: SalaEnVivo }) {
               rasgo: mio.rasgo,
               secreto: mio.secreto ?? "",
               avatar: mio.avatar,
+              apariencia: mio.apariencia,
             }
           }
           alCancelar={mio ? () => setEditando(false) : undefined}

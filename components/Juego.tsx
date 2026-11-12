@@ -81,7 +81,7 @@ function BarraSuperior({ sala, alAbrir }: { sala: SalaEnVivo; alAbrir: (p: Pesta
                 style={{ boxShadow: `0 0 0 1.5px ${COLOR_JUGADOR[a]}` }}
                 title={enLinea(a) ? "En la sala" : "Desconectado"}
               >
-                <Avatar avatar={p.avatar} raza={p.raza} clase={p.clase} tam={26} emblema={false} className="block" />
+                <Avatar avatar={p.avatar} raza={p.raza} clase={p.clase} retrato={p.retrato.url} tam={26} emblema={false} className="block" />
               </span>
               <span className={`min-w-0 flex-1 truncate ${a === vista.yo ? "text-ambar-claro" : ""}`}>{p.nombre}</span>
               {conFarol && <IconoFarol tam={15} className="resplandor shrink-0 text-ambar" />}

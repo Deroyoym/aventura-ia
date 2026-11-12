@@ -130,6 +130,7 @@ export interface DatosPersonaje {
   rasgo: string;
   secreto: string;
   avatar?: Partial<Avatar>;
+  apariencia?: string;
 }
 
 const semillaDeAvatar = (p: { nombre: string; raza: string; clase: string }) => `${p.nombre}|${p.raza}|${p.clase}`;
@@ -155,6 +156,7 @@ export function armarPersonaje(asiento: Asiento, datos: DatosPersonaje): Persona
     asiento,
     nombre,
     avatar: normalizarAvatar(datos.avatar, semillaDeAvatar({ nombre, raza: raza.id, clase: clase.id })),
+    apariencia: limpiar(datos.apariencia, 120),
     raza: raza.id,
     clase: clase.id,
     rasgo,
@@ -179,7 +181,10 @@ export function definirPersonaje(
     throw new ErrorJuego("ya_empezo", "La partida ya empezó: el personaje no se puede cambiar.", 409);
   }
   const e = structuredClone(estado);
+  const previo = e.personajes[asiento];
   e.personajes[asiento] = armarPersonaje(asiento, datos);
+  // El retrato pintado y su cuenta siguen: rehacer el personaje no regala intentos.
+  if (previo?.retrato) e.personajes[asiento]!.retrato = previo.retrato;
   e.actualizado = ahora;
   return e;
 }
@@ -911,6 +916,64 @@ export function cambiarAvatar(estado: EstadoJuego, asiento: Asiento, avatar: unk
   const e = structuredClone(estado);
   const p = personajeDe(e, asiento);
   p.avatar = normalizarAvatar(avatar, semillaDeAvatar(p));
+  e.actualizado = ahora;
+  return e;
+}
+
+// ───────────────────────── Retrato pintado ─────────────────────────
+
+export const RETRATOS_MAX = 6;
+const PINTANDO_VENCE_MS = 120_000;
+
+export const estaPintando = (p: Personaje, ahora: number): boolean =>
+  !!p.retrato?.pintando && ahora - p.retrato.pintando < PINTANDO_VENCE_MS;
+
+/**
+ * Reserva un intento de retrato. Devuelve null si no hay nada que pintar: ya
+ * hay uno con esa misma descripción, hay otro en curso o se acabaron los intentos.
+ */
+export function empezarRetrato(
+  estado: EstadoJuego,
+  asiento: Asiento,
+  firma: string,
+  ahora: number,
+  pedido: boolean,
+): EstadoJuego | null {
+  const actual = personajeDe(estado, asiento);
+  const r = actual.retrato;
+  if (estaPintando(actual, ahora)) {
+    if (pedido) throw new ErrorJuego("pintando", "Tu retrato todavía se está pintando.", 409);
+    return null;
+  }
+  if ((r?.hechos ?? 0) >= RETRATOS_MAX) {
+    if (pedido) throw new ErrorJuego("sin_retratos", "Ya no quedan retratos para este personaje.", 409);
+    return null;
+  }
+  if (!pedido && r?.url && r.firma === firma) return null;
+  const e = structuredClone(estado);
+  e.personajes[asiento]!.retrato = { url: r?.url ?? null, firma: r?.firma ?? "", hechos: (r?.hechos ?? 0) + 1, pintando: ahora };
+  e.actualizado = ahora;
+  return e;
+}
+
+/** Cierra el intento: con `url` guarda el retrato nuevo; sin ella deja el anterior y devuelve el intento. */
+export function terminarRetrato(
+  estado: EstadoJuego,
+  asiento: Asiento,
+  firma: string,
+  url: string | null,
+  ahora: number,
+): EstadoJuego {
+  const e = structuredClone(estado);
+  const p = e.personajes[asiento];
+  if (!p?.retrato) return estado;
+  p.retrato.pintando = null;
+  if (url) {
+    p.retrato.url = url;
+    p.retrato.firma = firma;
+  } else {
+    p.retrato.hechos = Math.max(0, p.retrato.hechos - 1);
+  }
   e.actualizado = ahora;
   return e;
 }

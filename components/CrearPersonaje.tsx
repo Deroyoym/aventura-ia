@@ -25,10 +25,13 @@ const VACIO: PeticionPersonaje = { nombre: "", raza: "", clase: "", rasgo: "", s
 
 export function CrearPersonaje({
   inicial,
+  retratos = false,
   alGuardar,
   alCancelar,
 }: {
   inicial?: PeticionPersonaje;
+  /** Si el servidor pinta retratos: habilita la descripción libre del aspecto. */
+  retratos?: boolean;
   alGuardar: (datos: PeticionPersonaje) => Promise<void>;
   alCancelar?: () => void;
 }) {
@@ -160,6 +163,25 @@ export function CrearPersonaje({
             </button>
           </div>
           <OpcionesAvatar avatar={avatar} alCambiar={retocar} />
+          {retratos && (
+            <div>
+              <label htmlFor="apariencia" className="versalitas mb-1 block text-sepia">
+                algo más (opcional)
+              </label>
+              <input
+                id="apariencia"
+                className="campo"
+                value={d.apariencia ?? ""}
+                onChange={(e) => cambiar({ apariencia: e.target.value })}
+                maxLength={120}
+                placeholder="Ojos verdes, un aro de plata, mirada cansada…"
+                autoComplete="off"
+              />
+              <p className="mt-1 text-[0.9rem] italic leading-snug text-sepia">
+                Al guardar, un retratista lo pinta con todo esto. Mientras tanto se ve este boceto.
+              </p>
+            </div>
+          )}
         </div>
       )}
 

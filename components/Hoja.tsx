@@ -53,7 +53,7 @@ export function FichaCorta({
 }) {
   return (
     <div className="tarjeta flex items-center gap-3 px-3 py-2.5">
-      <Avatar avatar={personaje.avatar} raza={personaje.raza} clase={personaje.clase} tam={56} />
+      <Avatar avatar={personaje.avatar} raza={personaje.raza} clase={personaje.clase} retrato={personaje.retrato.url} tam={56} />
       <div className="min-w-0 flex-1">
         <p className="versalitas text-sepia">{etiqueta}</p>
         <p className="titulo truncate text-xl">{personaje.nombre}</p>
