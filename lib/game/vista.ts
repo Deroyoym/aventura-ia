@@ -1,6 +1,7 @@
 import { ESCENAS, NPCS, PISTAS, capituloDef, escenaDef, escenasDe } from "./campana";
 import { COMPANEROS, ETIQUETAS_RELACION, MEJORAS, type Companero } from "./contenido";
-import { ayudasDisponibles, hayOtroCapitulo } from "./motor";
+import type { Avatar } from "./avatar";
+import { avatarDe, ayudasDisponibles, hayOtroCapitulo } from "./motor";
 import {
   ASIENTOS,
   otroAsiento,
@@ -22,7 +23,8 @@ import {
 // La Vista es lo único del estado que sale del servidor. Se arma por jugador:
 // el secreto ajeno, los susurros ajenos y el voto del otro no viajan nunca.
 
-export type PersonajeVista = Omit<Personaje, "secreto"> & {
+export type PersonajeVista = Omit<Personaje, "secreto" | "avatar"> & {
+  avatar: Avatar;
   /** null cuando es el secreto del otro y todavía no fue revelado. */
   secreto: string | null;
 };
@@ -84,7 +86,7 @@ export interface Vista {
 
 function personajeVista(p: Personaje, yo: Asiento): PersonajeVista {
   const visible = p.asiento === yo || p.secretoRevelado;
-  return { ...p, secreto: visible ? p.secreto : null };
+  return { ...p, avatar: avatarDe(p), secreto: visible ? p.secreto : null };
 }
 
 export function vistaPara(e: EstadoJuego, yo: Asiento, narrando: boolean): Vista {

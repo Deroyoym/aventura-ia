@@ -27,6 +27,7 @@ import {
   UMBRALES_AMENAZA,
   atributosDe,
 } from "./contenido";
+import { avatarPorDefecto, normalizarAvatar, type Avatar } from "./avatar";
 import { AVANCE_POR_RESULTADO, resolverTirada, type Rng } from "./dados";
 import {
   ASIENTOS,
@@ -125,7 +126,13 @@ export interface DatosPersonaje {
   clase: string;
   rasgo: string;
   secreto: string;
+  avatar?: Partial<Avatar>;
 }
+
+const semillaDeAvatar = (p: { nombre: string; raza: string; clase: string }) => `${p.nombre}|${p.raza}|${p.clase}`;
+
+/** El retrato de un personaje, o uno estable si se creó antes de que existieran. */
+export const avatarDe = (p: Personaje): Avatar => p.avatar ?? avatarPorDefecto(semillaDeAvatar(p));
 
 export function armarPersonaje(asiento: Asiento, datos: DatosPersonaje): Personaje {
   const nombre = limpiar(datos.nombre, 24);
@@ -144,6 +151,7 @@ export function armarPersonaje(asiento: Asiento, datos: DatosPersonaje): Persona
   return {
     asiento,
     nombre,
+    avatar: normalizarAvatar(datos.avatar, semillaDeAvatar({ nombre, raza: raza.id, clase: clase.id })),
     raza: raza.id,
     clase: clase.id,
     rasgo,
@@ -885,6 +893,15 @@ export function cambiarTerror(
   const e = structuredClone(estado);
   e.terror = nivel;
   if (e.fase !== "preparacion") aviso(e, `Intensidad del terror: ${NOMBRE_TERROR[nivel].toLowerCase()}.`);
+  e.actualizado = ahora;
+  return e;
+}
+
+/** El retrato se puede cambiar en cualquier momento: no toca las reglas. */
+export function cambiarAvatar(estado: EstadoJuego, asiento: Asiento, avatar: unknown, ahora: number): EstadoJuego {
+  const e = structuredClone(estado);
+  const p = personajeDe(e, asiento);
+  p.avatar = normalizarAvatar(avatar, semillaDeAvatar(p));
   e.actualizado = ahora;
   return e;
 }

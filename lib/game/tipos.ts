@@ -1,6 +1,8 @@
 // Tipos del dominio. Todo el estado de una partida es un único documento JSON
 // (EstadoJuego) que vive en el servidor; el cliente solo recibe una Vista filtrada.
 
+import type { Avatar } from "./avatar";
+
 export type Asiento = 1 | 2;
 export const ASIENTOS: readonly Asiento[] = [1, 2];
 export const otroAsiento = (a: Asiento): Asiento => (a === 1 ? 2 : 1);
@@ -45,6 +47,8 @@ export interface Objeto {
 export interface Personaje {
   asiento: Asiento;
   nombre: string;
+  /** Retrato elegido. Falta en personajes creados antes de que existieran. */
+  avatar?: Avatar;
   raza: string;
   clase: string;
   rasgo: string;

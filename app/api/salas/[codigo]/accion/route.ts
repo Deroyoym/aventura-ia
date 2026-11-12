@@ -1,4 +1,4 @@
-import { cambiarTerror, pasarFarol, usarObjeto, votar } from "@/lib/game/motor";
+import { cambiarAvatar, cambiarTerror, pasarFarol, usarObjeto, votar } from "@/lib/game/motor";
 import { ErrorJuego, NIVELES_TERROR } from "@/lib/game/tipos";
 import type { PeticionAccion, RespuestaAccion } from "@/lib/protocolo";
 import { cuerpo, json, manejar, tokenDe, type Contexto } from "@/lib/server/http";
@@ -32,6 +32,8 @@ export async function POST(req: Request, ctx: Contexto) {
           return cambiarTerror(estado, p.nivel, ahora);
         case "usar":
           return usarObjeto(estado, asiento, String(p.objeto), ahora);
+        case "avatar":
+          return cambiarAvatar(estado, asiento, p.avatar, ahora);
         default:
           throw new ErrorJuego("accion", "Acción desconocida.");
       }

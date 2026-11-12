@@ -1,6 +1,7 @@
 import { CLASES, DESCRIPCION_ATRIBUTO, NOMBRE_ATRIBUTO, RAZAS } from "@/lib/game/contenido";
 import { ATRIBUTOS, type Atributo, type Objeto } from "@/lib/game/tipos";
 import type { PersonajeVista } from "@/lib/game/vista";
+import { Avatar } from "./Avatar";
 import { Vida } from "./ui";
 
 // Piezas para mostrar un personaje: sus atributos, su ficha corta y sus objetos.
@@ -51,8 +52,9 @@ export function FichaCorta({
   accion?: React.ReactNode;
 }) {
   return (
-    <div className="tarjeta flex items-center justify-between gap-3 px-3 py-2.5">
-      <div className="min-w-0">
+    <div className="tarjeta flex items-center gap-3 px-3 py-2.5">
+      <Avatar avatar={personaje.avatar} raza={personaje.raza} clase={personaje.clase} tam={56} />
+      <div className="min-w-0 flex-1">
         <p className="versalitas text-sepia">{etiqueta}</p>
         <p className="titulo truncate text-xl">{personaje.nombre}</p>
         <p className="truncate text-[0.95rem] italic text-sepia">

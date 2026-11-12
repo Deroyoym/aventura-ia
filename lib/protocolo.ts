@@ -1,3 +1,4 @@
+import type { Avatar } from "@/lib/game/avatar";
 import type { DatosPersonaje } from "@/lib/game/motor";
 import type { Asiento, Fase, NivelTerror, Tirada } from "@/lib/game/tipos";
 import type { Vista } from "@/lib/game/vista";
@@ -72,7 +73,8 @@ export type PeticionAccion =
   | { tipo: "votar"; opcion: string }
   | { tipo: "pasar" }
   | { tipo: "terror"; nivel: NivelTerror }
-  | { tipo: "usar"; objeto: string };
+  | { tipo: "usar"; objeto: string }
+  | { tipo: "avatar"; avatar: Avatar };
 
 export interface RespuestaAccion {
   ok: true;

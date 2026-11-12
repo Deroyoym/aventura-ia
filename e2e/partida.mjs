@@ -32,13 +32,18 @@ process.on('uncaughtException', async (e) => { console.log(String(e).slice(0,400
 process.on('unhandledRejection', (e) => { throw e; });
 const ok = (cond, msg) => { if (!cond) throw new Error(`FALLÓ: ${msg}`); console.log(`  ✓ ${msg}`); };
 
-async function crearPersonaje(p, { nombre, raza, clase, rasgo, secreto }, prefijo) {
+async function crearPersonaje(p, { nombre, raza, clase, rasgo, secreto, seña = 'Cicatriz', peinado = 'Trenza' }, prefijo) {
   await p.getByLabel('nombre', { exact: true }).fill(nombre);
   await p.getByRole('button', { name: new RegExp(raza) }).click();
   if (prefijo) await foto(p, `${prefijo}-paso1`);
   await p.getByRole('button', { name: 'Seguir' }).click();
   await p.getByRole('button', { name: new RegExp(clase) }).click();
   if (prefijo) await foto(p, `${prefijo}-paso2`);
+  await p.getByRole('button', { name: 'Seguir' }).click();
+  await p.getByRole('heading', { name: 'Su rostro' }).waitFor();
+  await p.getByRole('button', { name: seña, exact: true }).click();
+  await p.getByRole('button', { name: peinado, exact: true }).click();
+  if (prefijo) await foto(p, `${prefijo}-paso2b-rostro`);
   await p.getByRole('button', { name: 'Seguir' }).click();
   await p.getByRole('button', { name: rasgo, exact: true }).click();
   await p.getByLabel('Secreto').fill(secreto);
@@ -166,7 +171,12 @@ ok(true, 'B también ve el final');
 console.log('5. Libro y resumen');
 await A.getByRole('button', { name: /Abrir el libro: hoja/ }).click();
 await A.waitForTimeout(400);
+await A.getByRole('button', { name: 'Cambiar retrato' }).click();
+await A.getByRole('button', { name: 'Sombrero', exact: true }).click();
+await A.getByRole('button', { name: 'Sombrero', exact: true, pressed: true }).waitFor({ timeout: 10000 });
+ok(true, 'A cambia su retrato con la partida empezada');
 await foto(A, '12-hoja');
+await A.getByRole('button', { name: 'Listo', exact: true }).click();
 await A.getByRole('tab', { name: 'Diario' }).click();
 await foto(A, '13-diario');
 await A.getByRole('tab', { name: 'Sala' }).click();

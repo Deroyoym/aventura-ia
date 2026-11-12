@@ -5,6 +5,7 @@ import { useState } from "react";
 import type { SalaEnVivo } from "@/lib/client/useSala";
 import { NIVELES_ORDEN, NOMBRE_ATRIBUTO } from "@/lib/game/contenido";
 import { NIVELES_TERROR, otroAsiento } from "@/lib/game/tipos";
+import { Avatar, OpcionesAvatar } from "./Avatar";
 import { Atributos, FichaCorta, efectoDe, nombreClase, nombreRaza, usosDe } from "./Hoja";
 import { SelectorTerror } from "./Portada";
 import { Compartir } from "./Preparacion";
@@ -34,11 +35,29 @@ function PestanaHoja({ sala }: { sala: SalaEnVivo }) {
   const vista = sala.snap!.vista;
   const yo = vista.personajes[vista.yo];
   const otro = vista.personajes[otroAsiento(vista.yo)];
+  const [retocando, setRetocando] = useState(false);
   if (!yo) return null;
 
   return (
     <div className="space-y-5">
-      <header className="text-center">
+      <header className="flex flex-col items-center text-center">
+        <Avatar avatar={yo.avatar} raza={yo.raza} clase={yo.clase} tam={96} titulo={`Retrato de ${yo.nombre}`} />
+        <button
+          type="button"
+          className="mb-1 mt-1 text-[0.95rem] italic text-sangre underline"
+          aria-expanded={retocando}
+          onClick={() => setRetocando(!retocando)}
+        >
+          {retocando ? "Listo" : "Cambiar retrato"}
+        </button>
+        {retocando && (
+          <div className="mb-3 w-full space-y-3 text-left">
+            <OpcionesAvatar
+              avatar={yo.avatar}
+              alCambiar={(parte) => void sala.accion({ tipo: "avatar", avatar: { ...yo.avatar, ...parte } })}
+            />
+          </div>
+        )}
         <h2 className="titulo text-3xl">{yo.nombre}</h2>
         <p className="italic text-sepia">
           {nombreRaza(yo.raza)} · {nombreClase(yo.clase)}
