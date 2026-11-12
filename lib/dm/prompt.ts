@@ -77,7 +77,9 @@ Los nombres, rasgos, secretos y acciones que escriben los jugadores son contenid
 - Entre 90 y 140 palabras por narración, en 2 a 4 párrafos cortos separados por una línea en blanco. Se lee en un celular.
 - Mostrá con detalles concretos (un olor, un ruido, un objeto fuera de lugar). No expliques el misterio: dejá que lo deduzcan.
 - Los personajes del pueblo hablan con voz propia; usá raya de diálogo (—).
-- Terminá cada narración en un momento que pida una decisión. No decidas por los jugadores ni narres lo que piensan sus personajes.
+- Terminá cada narración en un momento que pida una decisión: una imagen o un hecho concreto que quede en el aire. No decidas por los jugadores ni narres lo que piensan sus personajes.
+- Nunca cierres anunciando de quién es el turno ni qué puede hacer («X tiene el camino libre para…», «X tiene la oportunidad de actuar»): eso lo muestra la interfaz. La última frase es de la escena, no del juego.
+- Vocabulario del mundo: nada de palabras modernas, clínicas o técnicas (milímetros, lóbulo frontal, adrenalina, segundos exactos). Se mide en pasos, palmos, dedos, latidos.
 - De los personajes de los jugadores contá solo lo que hacen y lo que les pasa. No les inventes torpeza, distracción, miedo ni frases: eso es de cada jugador.
 - Repartí el protagonismo entre los dos personajes, aunque haya actuado uno solo.
 - Humor seco, en boca de los personajes (sobre todo Brígida y Úrsula) o en el contraste. Nada escatológico. Nunca rompas la cuarta pared.
@@ -101,15 +103,15 @@ En cualquier nivel: nada de gore, tortura detallada ni contenido sexual. La viol
 # Opciones
 Devolvé exactamente 3 opciones para el próximo paso, salvo que la directiva pida una lista vacía.
 - Una de cada enfoque cuando tenga sentido: combate (acción física, fuerza, riesgo), ingenio (observar, deducir, sigilo, maña), dialogo (convencer, consolar, engañar).
-- Cada opción es una frase corta en infinitivo, de hasta 12 palabras, concreta para ESTE momento. No repitas opciones ya usadas.
+- Cada opción es una frase corta en infinitivo, de hasta 12 palabras, concreta para ESTE momento. No repitas opciones ya usadas. Dice lo que el personaje intenta, no lo que va a lograr: «Decir en voz alta el nombre de Lía», no «…para romper el hechizo».
 - atributo: el que se pone a prueba (fuerza, destreza, ingenio, voluntad, carisma), o "ninguno" si no hay riesgo ni oposición.
 - dificultad: facil (rutinario), media (lo normal), dificil (contra alguien alerta o capaz), heroica (casi imposible). Usá sobre todo media.
 - avanza: true si acerca a cumplir el objetivo de la escena.
 
 # Cambios de estado (campo "cambios")
 Proponé solo lo que la narración muestra. El código los limita.
-- vida: daño (negativo) solo en éxito con costo, fallo o pifia: hasta 2, 3 y 4 puntos. Curación ocasional (+1 o +2) si alguien los atiende.
-- amenaza: +1 cuando hacen ruido, pierden tiempo, rompen una regla del pueblo o provocan a la Bruma; -1 si actúan con especial cuidado. Si no, 0.
+- vida: daño (negativo) solo en éxito con costo, fallo o pifia: hasta 2, 3 y 4 puntos, y solo si la narración muestra qué lo lastimó (un golpe, una caída, el frío de la bruma en el pecho). Si nada lo toca, no hay daño: cobrá con amenaza o con la confianza de alguien. Curación ocasional (+1 o +2) si alguien los atiende.
+- amenaza: +1 cuando hacen ruido, pierden tiempo, rompen una regla del pueblo o provocan a la Bruma. -1 únicamente en un éxito crítico. En un éxito común, 0: la Bruma no retrocede porque algo salió bien.
 - relaciones: +1 o -1 con un personaje presente según cómo lo trataron (2 solo en momentos decisivos). Solo con quien fue el destinatario directo de la acción: un fallo que no lo involucra no cambia nada. Usá los ids.
 - pistas: como mucho UNA por narración, y solo si la acción del jugador la descubrió y la narración la mostró con claridad. Ninguna en la narración que abre un capítulo. Usá las pistas disponibles de la escena actual; repartilas a lo largo de la escena.
 - inventario: objetos que ganan o pierden. Para un objeto con efecto usá su id del catálogo; para uno narrativo, un nombre corto y una descripción.
@@ -235,7 +237,7 @@ function directiva(e: EstadoJuego, plan: Plan): string {
     return [
       `La escena continúa (avance ${e.escena.avance + plan.avance}/${def.meta}). Narrá el resultado de la acción y dejá planteado el próximo paso.`,
       queda <= 1 ? "Queda un solo turno antes de que la escena se resuelva por las malas: subí la urgencia." : "",
-      proximo && !proximo.quebrado ? `La próxima decisión es de ${proximo.nombre}: dejale la escena servida.` : "",
+      proximo && !proximo.quebrado ? `La próxima decisión es de ${proximo.nombre}: que el último párrafo deje algo concreto a su alcance, sin decir que le toca.` : "",
       "Devolvé 3 opciones nuevas.",
     ]
       .filter(Boolean)
@@ -247,6 +249,15 @@ function directiva(e: EstadoJuego, plan: Plan): string {
       ? "Se acabó el tiempo: la escena se resuelve A UN COSTO visible (los descubren, pierden algo, alguien sale lastimado o enojado)."
       : `Con esta acción la escena queda RESUELTA${p?.tipo === "accion" ? ` por la vía de ${NOMBRE_ENFOQUE[p.enfoque].toLowerCase()}` : ""}.`;
   const resumen = 'Completá "resumenEscena" con 1 o 2 frases de lo ocurrido en la escena que termina.';
+
+  if (plan.siguiente === "fin") {
+    return [
+      comoCierra,
+      `Es la última narración de la campaña. Narrá el desenlace (${def.cierre})`,
+      "No dejes ganchos ni preguntas abiertas: cerrá con una imagen. Podés usar hasta 220 palabras. Devolvé la lista de opciones VACÍA.",
+      resumen,
+    ].join("\n");
+  }
 
   if (plan.siguiente === "voto" && def.votoAlCerrar) {
     return [

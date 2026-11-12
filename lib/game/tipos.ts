@@ -27,10 +27,10 @@ export const NIVELES_TERROR: readonly NivelTerror[] = ["suave", "media", "fuerte
 
 export type Resultado = "critico" | "exito" | "costo" | "fallo" | "pifia";
 
-export type Lugar = "posada" | "cuarto" | "plaza" | "campanario" | "refugio" | "linde" | "bruma" | "espejo" | "cripta" | "umbral";
+export type Lugar = "posada" | "cuarto" | "plaza" | "campanario" | "refugio" | "linde" | "bruma" | "espejo" | "cripta" | "umbral" | "trece";
 
 export type CompaneroId = "cuervo" | "perro" | "gata";
-export type VotoId = "companero" | "dilema" | "mejora" | "ancla" | "regreso" | "cripta" | "septima";
+export type VotoId = "companero" | "dilema" | "mejora" | "ancla" | "regreso" | "cripta" | "septima" | "lectura" | "pacto";
 
 export interface Objeto {
   id: string;
@@ -235,7 +235,7 @@ export interface Plan {
   cierra: boolean;
   motivoCierre: "resuelta" | "agotada" | null;
   /** Qué sigue al cierre de la escena. */
-  siguiente: "escena" | "voto" | null;
+  siguiente: "escena" | "voto" | "fin" | null;
   amenazaForzada: number;
   /** Índice de la escena que esta narración debe abrir, si abre alguna. */
   abre: number | null;

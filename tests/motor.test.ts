@@ -472,7 +472,7 @@ describe("capítulo 2", () => {
     expect(e.escena.indice).toBe(escenasDe(2)[0]);
     expect(e.npcs.guarda.conocido).toBe(true);
     const vista = vistaPara(e, 1, false);
-    expect(vista.capitulo).toEqual({ numero: 2, titulo: "Los Ausentes" });
+    expect(vista.capitulo).toMatchObject({ numero: 2, titulo: "Los Ausentes" });
     expect(vista.escena).toMatchObject({ numero: 1, total: 5, lugar: "refugio" });
   });
 
@@ -585,12 +585,44 @@ describe("capítulo 3", () => {
   it("se puede jugar entero y quedan dos votos propios más la mejora", () => {
     const e = cerrar(hastaElTres());
     expect(e.capitulo).toBe(3);
-    expect(e.resumenes).toHaveLength(ESCENAS.length);
+    expect(e.resumenes).toHaveLength(ESCENAS.length - escenasDe(4).length);
     expect(e.decisiones.cripta).toBeDefined();
     expect(e.decisiones.septima).toBeDefined();
     expect(e.refugio.mejoras).toHaveLength(3);
-    expect(vistaPara(e, 1, false).hayOtroCapitulo).toBe(false);
+    expect(vistaPara(e, 1, false).hayOtroCapitulo).toBe(true);
+  });
+
+  it("el capítulo 4 cierra la campaña con el voto del pacto y un epílogo sin opciones", () => {
+    const abierto = abrir(cerrar(hastaElTres()));
+    expect(abierto.capitulo).toBe(4);
+    expect(instruccionSistema(abierto)).toContain("La Dama del Umbral");
+    const e = cerrar(abierto, { pacto: "nombrar" });
+    expect(e.resumenes).toHaveLength(ESCENAS.length);
+    expect(e.decisiones.lectura).toBeDefined();
+    expect(e.decisiones.pacto).toBe("nombrar");
+    expect(e.refugio.mejoras).toHaveLength(3);
+    expect(e.opciones).toEqual([]);
+    expect(e.amenaza).toBe(0);
+    const vista = vistaPara(e, 1, false);
+    expect(vista.capitulo.final).toBe(true);
+    expect(vista.desenlace).toBe("Ponerle un plato");
+    expect(vista.hayOtroCapitulo).toBe(false);
     expect(() => empezarCapitulo(e, AHORA)).toThrow(ErrorJuego);
+  });
+
+  it("renovar el pacto se paga con vida máxima", () => {
+    const abierto = abrir(cerrar(hastaElTres()));
+    const antes = abierto.personajes[1]!.vidaMax;
+    const e = cerrar(abierto, { pacto: "renovar" });
+    expect(e.personajes[1]!.vidaMax).toBe(antes - 2);
+    expect(vistaPara(e, 1, false).desenlace).toBe("Firmar el renglón");
+  });
+
+  it("la Bruma solo cede por mérito propio con un crítico", () => {
+    const cede = salida({ cambios: { amenaza: -1 } });
+    const base = enJuego();
+    expect(turno(base, "b", 14, cede).amenaza).toBe(base.amenaza);
+    expect(turno(base, "b", 20, cede).amenaza).toBe(base.amenaza - 1);
   });
 
   it("entregar a Úrsula baja la Bruma y la enemista; callar deja la firma", () => {

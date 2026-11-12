@@ -117,15 +117,23 @@ function FinDeCapitulo({ vista }: { vista: Vista }) {
           <dd className="titulo text-2xl tabular-nums">{vista.npcs.filter((n) => n.relacion >= 2).length}</dd>
         </div>
       </dl>
-      {vista.mejoras.map((m) => (
+      {(vista.capitulo.final ? [] : vista.mejoras).map((m) => (
         <p key={m.id} className="mt-4 text-[1.05rem] leading-snug">
           <span className="titulo block text-lg">{m.titulo}</span>
           <span className="italic text-sepia">{m.efecto}</span>
         </p>
       ))}
-      <p className="cuento mt-6 text-2xl italic text-sangre">Continuará…</p>
+      {vista.capitulo.final && vista.desenlace && (
+        <p className="mt-5 text-[1.05rem] leading-snug">
+          <span className="versalitas block text-sepia">eligieron</span>
+          <span className="titulo text-xl">{vista.desenlace}</span>
+        </p>
+      )}
+      <p className="cuento mt-6 text-2xl italic text-sangre">{vista.capitulo.final ? "Fin" : "Continuará…"}</p>
       <p className="mt-1 text-[0.95rem] italic text-sepia">
-        {vista.hayOtroCapitulo
+        {vista.capitulo.final
+          ? "Así termina «La Hora Trece». La partida queda guardada para releerla."
+          : vista.hayOtroCapitulo
           ? `La partida queda guardada. Pueden seguir ahora con el capítulo ${siguiente} o volver otro día.`
           : `La partida queda guardada. El capítulo ${siguiente} llega en la próxima versión.`}
       </p>

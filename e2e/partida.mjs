@@ -13,7 +13,7 @@ import { mkdirSync } from 'node:fs';
 const BASE = process.env.BASE ?? 'http://localhost:3000';
 const SALIDA = process.env.CAPTURAS ?? './e2e/capturas';
 const ESCALA = Number(process.env.ESCALA ?? 1);
-const MAX_TURNOS = Number(process.env.MAX_TURNOS ?? 140);
+const MAX_TURNOS = Number(process.env.MAX_TURNOS ?? 190);
 mkdirSync(SALIDA, { recursive: true });
 
 const navegador = await chromium.launch();
@@ -93,10 +93,11 @@ for (;;) {
   if (turnos > MAX_TURNOS) throw new Error('demasiados turnos');
   await quieto(A); await quieto(B);
   await A.waitForTimeout(350);
+  if (await A.getByText('Fin', { exact: true }).isVisible().catch(() => false)) break;
   if (await A.getByText('Continuará…').isVisible().catch(() => false)) {
     // Fin de un capítulo: si hay otro, lo abre el segundo celular.
     const otro = B.getByRole('button', { name: /Empezar el capítulo/ });
-    if (!(await otro.waitFor({ timeout: 8000 }).then(() => true, () => false))) break;
+    await otro.waitFor({ timeout: 8000 });
     ok(votos === capitulos * 3, `capítulo ${capitulos}: se resolvieron sus tres votaciones`);
     await foto(A, `11-fin-capitulo-${capitulos}`);
     await otro.click();
@@ -162,10 +163,11 @@ for (;;) {
   if (turnos === 4) { await P.waitForTimeout(3600); await foto(P, '10-historia'); }
 }
 console.log(`  ${Math.floor(turnos)} turnos, ${votos} votos`);
-ok(capitulos === 3 && votos === 9, 'se jugaron los tres capítulos, con tres votaciones cada uno');
+ok(capitulos === 4 && votos === 11, 'se jugaron los cuatro capítulos y sus once votaciones');
+ok(await A.getByText('eligieron').isVisible(), 'el final muestra qué eligieron');
 await A.waitForTimeout(500);
 await foto(A, '11-fin');
-await B.getByText('Continuará…').waitFor({ timeout: 15000 });
+await B.getByText('Fin', { exact: true }).waitFor({ timeout: 15000 });
 ok(true, 'B también ve el final');
 
 console.log('5. Libro y resumen');
@@ -193,7 +195,7 @@ await A.getByRole('button', { name: 'Cerrar', exact: true }).click();
 
 console.log('6. Recarga y portada');
 await B.reload();
-await B.getByText('Continuará…').waitFor({ timeout: 15000 });
+await B.getByText('Fin', { exact: true }).waitFor({ timeout: 15000 });
 ok(true, 'B recarga y sigue en la partida');
 await A.goto(BASE);
 await A.getByText('partidas en este celular').waitFor();

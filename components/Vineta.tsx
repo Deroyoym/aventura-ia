@@ -360,6 +360,33 @@ function Umbral() {
   );
 }
 
+function Trece() {
+  return (
+    <>
+      {/* interior del campanario: dos arcos abiertos a la noche */}
+      <path d="M0 0h320v190H0z" fill={TINTA} />
+      <path d="M34 190V92a40 40 0 0180 0v98z" fill="#262a55" />
+      <path d="M206 190V92a40 40 0 0180 0v98z" fill="#262a55" />
+      <Luna x={248} y={84} r={16} />
+      {/* viga, campana y badajo */}
+      <path d="M96 30h128v7H96z" fill="#3a2d28" />
+      <path d="M157 37h6v10h-6z" fill="#3a2d28" />
+      <path d="M134 104c0-6 8-10 8-30a18 18 0 0136 0c0 20 8 24 8 30z" fill="#8a6f3a" />
+      <path d="M134 104h52v5h-52z" fill="#6f5830" />
+      <path d="M158 96h4v20h-4z" fill="#2a211d" />
+      <circle cx={160} cy={119} r={5} fill="#2a211d" />
+      {/* soga empalmada con el hilo rojo */}
+      <path d="M186 60c18 4 22 30 20 62" fill="none" stroke="#b9a37a" strokeWidth={2} />
+      <path d="M206 122c-1 22 1 40 0 62" fill="none" stroke={HILO} strokeWidth={2} />
+      {/* la bruma rodea un lugar vacío */}
+      <Niebla y={150} opacidad={0.55} />
+      <path d="M92 190v-34c0-12 6-18 6-26a12 12 0 0124 0c0 8 6 14 6 26v34z" fill={TINTA} opacity={0.9} />
+      <circle cx={70} cy={168} r={2} fill={VELA} />
+      <Luz x={70} y={168} r={16} />
+    </>
+  );
+}
+
 const ESCENAS: Record<Lugar, () => ReactNode> = {
   posada: Posada,
   cuarto: Cuarto,
@@ -371,6 +398,7 @@ const ESCENAS: Record<Lugar, () => ReactNode> = {
   espejo: Espejo,
   cripta: Cripta,
   umbral: Umbral,
+  trece: Trece,
 };
 
 export function Vineta({ lugar, className = "" }: { lugar: Lugar; className?: string }) {

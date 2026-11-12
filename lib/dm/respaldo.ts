@@ -41,6 +41,9 @@ export function salidaDeRespaldo(e: EstadoJuego, plan: Plan): SalidaDM {
       if (plan.siguiente === "voto" && def.votoAlCerrar) {
         parrafos.push(VOTOS[def.votoAlCerrar].contexto);
         escenaDeOpciones = null;
+      } else if (plan.siguiente === "fin") {
+        parrafos.push(def.resumenBase);
+        escenaDeOpciones = null;
       } else if (plan.abre !== null) {
         parrafos.push(escenaDef(plan.abre).aperturaBase);
         escenaDeOpciones = plan.abre;
