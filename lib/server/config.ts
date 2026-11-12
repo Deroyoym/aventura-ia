@@ -13,6 +13,7 @@ export function entorno() {
     supabaseSecreta: env.SUPABASE_SECRET_KEY || env.SUPABASE_SERVICE_ROLE_KEY || "",
     geminiClave: env.GEMINI_API_KEY || "",
     geminiModelo: env.GEMINI_MODEL || "",
+    geminiRespaldo: env.GEMINI_MODEL_RESPALDO || "",
     enVercel: !!env.VERCEL,
   };
 }
@@ -33,5 +34,7 @@ export function estadoServidor(): EstadoServidor {
     faltan,
     narrador: gemini ? "gemini" : "simulado",
     almacen: supabase ? "supabase" : "memoria",
+    modelo: e.geminiModelo || null,
+    modeloRespaldo: e.geminiRespaldo || null,
   };
 }

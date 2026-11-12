@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { interpretarAdjudicacion, interpretarSalida } from "@/lib/dm/esquema";
 import { extraerNarracion } from "@/lib/dm/narracion-parcial";
 import { instruccionSistema, mensajeTurno } from "@/lib/dm/prompt";
+import { crearSelector } from "@/lib/dm/modelos";
 import { ErrorNarrador, clasificarError, conReintentos, esperaSugerida } from "@/lib/dm/reintentos";
 import { narradorSimulado } from "@/lib/dm/simulado";
 import { planificar, prepararAccion, tirar } from "@/lib/game/motor";
@@ -91,6 +92,19 @@ describe("errores de la API", () => {
     expect(clasificarError(error429(POR_DIA))).toMatchObject({ codigo: "cuota", reintentable: false });
   });
 
+  it("reconoce un modelo sin cuota y resume la causa para el log", () => {
+    const sinCuota =
+      '{"error":{"code":429,"message":"Quota exceeded for metric: generate_content_free_tier_requests, limit: 0, model: x","details":[{"quotaId":"GenerateRequestsPerMinutePerProjectPerModel-FreeTier"},{"retryDelay":"31s"}]}}';
+    expect(clasificarError(error429(sinCuota))).toMatchObject({
+      codigo: "sin_cuota",
+      reintentable: false,
+      detalle: "HTTP 429 · GenerateRequestsPerMinutePerProjectPerModel-FreeTier · tope 0",
+    });
+    expect(clasificarError(Object.assign(new Error("The model is overloaded."), { status: 503 })).detalle).toBe(
+      "HTTP 503 · The model is overloaded.",
+    );
+  });
+
   it("clasifica el resto", () => {
     expect(clasificarError(Object.assign(new Error("x"), { status: 503 }))).toMatchObject({ codigo: "servidor", reintentable: true });
     expect(clasificarError(Object.assign(new Error("API key not valid"), { status: 400 }))).toMatchObject({ codigo: "config", reintentable: false });
@@ -157,6 +171,45 @@ describe("reintentos", () => {
       }, sinEsperar),
     ).rejects.toMatchObject({ fallo: { codigo: "limite", reintentable: false } });
     expect(llamadas).toBe(1);
+  });
+});
+
+describe("presupuesto de tiempo y modelo de respaldo", () => {
+  it("deja de reintentar cuando la espera no entra en el presupuesto", async () => {
+    let ahora = 0;
+    let llamadas = 0;
+    const p = conReintentos(
+      async () => {
+        llamadas++;
+        ahora += 20_000;
+        throw error429('{"details":[{"retryDelay":"30s"}]}');
+      },
+      { azar: () => 0, reloj: () => ahora, dormir: async (ms) => void (ahora += ms) },
+    );
+    await expect(p).rejects.toMatchObject({ fallo: { codigo: "limite", reintentable: false } });
+    expect(llamadas).toBe(2);
+  });
+
+  it("pasa al modelo de respaldo ante cuota o saturación, y vuelve después", () => {
+    let ahora = 0;
+    const s = crearSelector("flash", "lite", () => ahora);
+    expect(s.actual()).toBe("flash");
+    expect(s.degradar(clasificarError(new Error("cualquier cosa")))).toBe(false);
+    expect(s.degradar(clasificarError(error429(POR_MINUTO)))).toBe(true);
+    expect(s.actual()).toBe("lite");
+    // Si el respaldo también falla, no hay a dónde ir.
+    expect(s.degradar(clasificarError(error429(POR_MINUTO)))).toBe(false);
+    ahora += 6 * 60 * 1000;
+    expect(s.actual()).toBe("flash");
+    expect(s.degradar(clasificarError(error429(POR_DIA)))).toBe(true);
+    ahora += 60 * 60 * 1000;
+    expect(s.actual()).toBe("lite");
+  });
+
+  it("sin respaldo configurado no cambia de modelo", () => {
+    const s = crearSelector("flash", "");
+    expect(s.degradar(clasificarError(error429(POR_DIA)))).toBe(false);
+    expect(s.actual()).toBe("flash");
   });
 });
 

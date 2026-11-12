@@ -26,6 +26,9 @@ export interface EstadoServidor extends ModoServidor {
   listo: boolean;
   /** Variables de entorno que faltan para funcionar en producción. */
   faltan: string[];
+  /** Nombres de los modelos configurados, para comprobar el deploy. No son secretos. */
+  modelo: string | null;
+  modeloRespaldo: string | null;
 }
 
 export interface Instantanea {
