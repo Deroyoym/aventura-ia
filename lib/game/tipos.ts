@@ -29,10 +29,10 @@ export const NIVELES_TERROR: readonly NivelTerror[] = ["suave", "media", "fuerte
 
 export type Resultado = "critico" | "exito" | "costo" | "fallo" | "pifia";
 
-export type Lugar = "posada" | "cuarto" | "plaza" | "campanario" | "refugio" | "linde" | "bruma" | "espejo" | "cripta" | "umbral" | "trece" | "posta" | "coche" | "venta" | "puente" | "paramo" | "casaorbe" | "comedor" | "despacho" | "capilla";
+export type Lugar = "posada" | "cuarto" | "plaza" | "campanario" | "refugio" | "linde" | "bruma" | "espejo" | "cripta" | "umbral" | "trece" | "posta" | "coche" | "venta" | "puente" | "paramo" | "casaorbe" | "comedor" | "despacho" | "capilla" | "cuesta" | "postapaso" | "cumbre" | "otrolado";
 
 export type CompaneroId = "cuervo" | "perro" | "gata";
-export type VotoId = "companero" | "dilema" | "mejora" | "ancla" | "regreso" | "cripta" | "septima" | "lectura" | "pacto" | "viajera" | "peaje" | "rumbo" | "firma" | "deudas" | "alba";
+export type VotoId = "companero" | "dilema" | "mejora" | "ancla" | "regreso" | "cripta" | "septima" | "lectura" | "pacto" | "viajera" | "peaje" | "rumbo" | "firma" | "deudas" | "alba" | "rezagado" | "herencia" | "pago";
 
 export interface Objeto {
   id: string;

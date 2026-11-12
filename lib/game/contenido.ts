@@ -430,7 +430,7 @@ export const CAMPANAS_PUBLICAS: {
     titulo: "El Último Coche",
     bajada: "un viaje de noche para cuatro a seis",
     premisa: "Una diligencia cruza el páramo con un pasajero más de los que dice la lista. Cada uno lleva una carta, y un encargo que no piensa contar.",
-    jugadores: "4 a 6 jugadores · 2 capítulos",
+    jugadores: "4 a 6 jugadores · 3 capítulos",
     lugar: "coche",
   },
 ];

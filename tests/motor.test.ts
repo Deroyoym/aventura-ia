@@ -787,8 +787,42 @@ describe("El Último Coche: mesa grande por rondas", () => {
     expect(e.pistas).toContain("misma_tinta");
     expect(([1, 2, 3, 4] as Asiento[]).every((a) => e.personajes[a]!.secretoRevelado)).toBe(true);
     expect(e.decisiones.alba).toBe("irene");
-    expect(vistaPara(e, 1, false).hayOtroCapitulo).toBe(false);
+    expect(vistaPara(e, 1, false).hayOtroCapitulo).toBe(true);
     expect(e.resumenes).toHaveLength(10);
+
+    // Capítulo 3: el cierre de la campaña.
+    const abierto3 = narrar(empezarCapitulo(e, AHORA + 9));
+    expect(vistaPara(abierto3, 1, false).capitulo).toMatchObject({ numero: 3, titulo: "El Paso", final: true });
+    expect(vistaPara(abierto3, 1, false).encargo!.cumplido).toBeNull();
+
+    const todos = jugar(abierto3, { pago: "todos" });
+    expect(todos.resumenes).toHaveLength(15);
+    expect(todos.opciones).toEqual([]);
+    expect(todos.amenaza).toBe(0);
+    const vista = vistaPara(todos, 1, false);
+    expect(vista.desenlace).toBe("Pagar entre todos");
+    expect(vista.hayOtroCapitulo).toBe(false);
+    expect(([1, 2, 3, 4] as Asiento[]).every((a) => vistaPara(todos, a, false).encargo!.cumplido !== null)).toBe(true);
+
+    // Si se cumple la lista, quien llevaba el farol no sigue, y el epílogo se juega igual.
+    let antes = abierto3;
+    while (antes.voto?.id !== "pago") {
+      if (antes.voto) {
+        const o = antes.voto.opciones[0].id;
+        for (const a of [1, 2, 3, 4] as Asiento[]) if (antes.voto) antes = votar(antes, a, o, AHORA).estado;
+        if (antes.pendiente) antes = narrar(antes);
+      } else antes = ronda(antes);
+    }
+    const seQueda = antes.farol;
+    let epilogo = antes;
+    for (const a of [1, 2, 3, 4] as Asiento[]) if (epilogo.voto) epilogo = votar(epilogo, a, "lista", AHORA).estado;
+    epilogo = narrar(epilogo);
+    expect(epilogo.personajes[seQueda]!.quebrado).toBe(true);
+    expect(epilogo.farol).not.toBe(seQueda);
+    expect(ronda(epilogo).entradas.some((x) => x.tipo === "accion" && x.asiento === seQueda && x.id > epilogo.secuencia)).toBe(false);
+    const lista = jugar(epilogo);
+    expect(lista.memoria.some((m) => m.includes(lista.personajes[seQueda]!.nombre))).toBe(true);
+    expect(vistaPara(lista, 1, false).desenlace).toBe("Que se cumpla la lista");
   });
 
   it("pagar con una verdad revela el secreto de quien lleva el farol", () => {

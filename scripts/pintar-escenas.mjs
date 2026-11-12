@@ -59,6 +59,14 @@ const LUGARES = {
     "Interior de un despacho antiguo de noche: un escritorio enorme cubierto de papeles, tintero, plumas y un secante; estantes con libros de cuentas hasta el techo; en la pared, un mapa viejo de una llanura con postas marcadas. Una sola vela encendida y una ventana por la que entra luz de luna azul.",
   capilla:
     "Interior de una capilla privada muy chica y fría, de noche: un altar de piedra con dos velas y, encima, un libro grande y grueso cerrado con candado. En el piso, una lápida nueva y lisa. Una puerta entreabierta deja entrar bruma.",
+  cuesta:
+    "De día, cielo gris claro. Un camino de montaña angosto que sube en curvas cerradas entre roca gris y manchones de nieve vieja, con un barranco de un lado. Una diligencia antigua de cuatro caballos sube por una curva alta. Dos curvas más abajo, muy chico, un jinete solo. Al fondo y abajo, una llanura blanca de sal.",
+  postapaso:
+    "Interior de una posta de montaña que es también juzgado: salón bajo de piedra y madera, una estufa de hierro al rojo, un escritorio grande cubierto de papeles, lacre y sellos de bronce, un banco largo. Por una ventana chica se ve caer nieve al anochecer. Luz cálida de la estufa y de un farol.",
+  cumbre:
+    "Noche en la cumbre de un paso de montaña, nevando fino. En el centro, un mojón de piedra alto como una persona, cubierto de inscripciones ilegibles. Junto a él, cuatro figuras de pie con sombrero, apenas siluetas en la bruma que sube por la ladera. A lo lejos, la luz amarilla de un farol en la puerta de una posta.",
+  otrolado:
+    "Amanecer luminoso en un valle verde visto desde un camino de montaña que baja: prados, un río, un pueblito con humo de chimeneas, cielo rosado y dorado. En primer plano, de espaldas, una diligencia antigua baja despacio por el camino. Es la única imagen clara y cálida de la serie.",
 };
 
 const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });

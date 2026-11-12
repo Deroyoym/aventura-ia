@@ -844,6 +844,9 @@ export function aplicarNarracion(
   // El farol cambia de mano después de cada acción, salvo que el otro esté caído.
   if (actor) e.farol = siguienteAsiento(e, actor, enPie(e)) ?? actor;
 
+  // El farol nunca queda en manos de quien no puede actuar.
+  if (e.personajes[e.farol]?.quebrado) e.farol = siguienteAsiento(e, e.farol, enPie(e)) ?? e.farol;
+
   e.pendiente = null;
   e.narrando = null;
   e.turno += 1;
@@ -879,6 +882,14 @@ function aplicarEfectos(e: EstadoJuego, efectos: EfectosVoto): void {
     if (p && !p.secretoRevelado) {
       p.secretoRevelado = true;
       aviso(e, `El secreto de ${p.nombre} sale a la luz.`, "neutro");
+    }
+  }
+  if (efectos.quedaFarol) {
+    const p = e.personajes[e.farol];
+    if (p) {
+      p.quebrado = true;
+      aviso(e, `${p.nombre} se queda en el Paso.`, "mal");
+      e.memoria.push(`Quien se quedó en el Paso fue ${p.nombre}.`);
     }
   }
   if (efectos.revelaTodos) {

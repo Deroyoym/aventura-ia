@@ -40,6 +40,8 @@ const GENTE = {
     "Un escribano de unos cincuenta años, pulcro y algo pomposo: pelo oscuro peinado con raya y pomada, patillas, anteojos redondos chicos, levita gris oscura impecable con cuello duro. Sostiene un reloj de bolsillo con cadena. Sonrisa cortés que no le llega a los ojos.",
   remedios:
     "Un ama de llaves de unos setenta años, delgada y seca, de expresión severa y ojos atentos. Vestido negro de cuello cerrado, pelo blanco tirante en rodete, y un gran manojo de llaves antiguas colgado de la cintura, que sostiene con una mano.",
+  baltasar:
+    "Un juez de paz de montaña de más de setenta años, enorme y bonachón, de barba gris tupida y cejas gruesas. Lleva un gorro de piel, un abrigo pesado y varios sellos de bronce colgados del cuello con un cordón. Tiene una mano ahuecada detrás de la oreja, como quien no oye bien.",
 };
 
 const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
