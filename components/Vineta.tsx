@@ -415,6 +415,10 @@ const ESCENAS: Record<Lugar, () => ReactNode> = {
   venta: Noche,
   puente: Noche,
   paramo: Noche,
+  casaorbe: Noche,
+  comedor: Noche,
+  despacho: Noche,
+  capilla: Noche,
 };
 
 export function Vineta({ lugar, className = "" }: { lugar: Lugar; className?: string }) {

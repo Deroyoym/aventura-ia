@@ -51,6 +51,14 @@ const LUGARES = {
     "Un puente de piedra largo y angosto, sin baranda, sobre una salina blanca, de noche. La niebla tapa el puente por la mitad, y en ella se recortan cuatro jinetes inmóviles con sombrero, apenas siluetas. En primer plano, de espaldas, los faroles de una diligencia detenida.",
   paramo:
     "Noche en una llanura blanca de sal. Una diligencia detenida y algo inclinada, con una rueda rota apoyada al lado y un farol en el suelo. Muy lejos, a un costado, las luces cálidas de una casa grande. Cielo enorme con nubes y bruma en el horizonte.",
+  casaorbe:
+    "Un caserón antiguo de dos plantas, solo en medio de una llanura blanca de sal, de noche, con todas las ventanas encendidas con luz cálida. Portón de hierro abierto en primer plano, una escalinata, una capilla chica a un costado y cocheras. Bruma baja alrededor.",
+  comedor:
+    "Interior de un comedor señorial antiguo, de noche: una mesa muy larga con mantel, platos y candelabros encendidos, sillas de respaldo alto vacías. En la cabecera, sobre la pared, un gran retrato tapado con un paño negro. Cortinas pesadas, sombras largas.",
+  despacho:
+    "Interior de un despacho antiguo de noche: un escritorio enorme cubierto de papeles, tintero, plumas y un secante; estantes con libros de cuentas hasta el techo; en la pared, un mapa viejo de una llanura con postas marcadas. Una sola vela encendida y una ventana por la que entra luz de luna azul.",
+  capilla:
+    "Interior de una capilla privada muy chica y fría, de noche: un altar de piedra con dos velas y, encima, un libro grande y grueso cerrado con candado. En el piso, una lápida nueva y lisa. Una puerta entreabierta deja entrar bruma.",
 };
 
 const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });

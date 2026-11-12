@@ -102,6 +102,25 @@ CAPITULOS.push({
     "Abrí el capítulo: atardece en la Posta del Cruce, la última antes del Páramo de la Sal. La diligencia «La Rezagada» está enganchada y el cochero cuenta pasajeros con una lista en la mano. Presentá a cada personaje por su nombre en una sola frase, llegando por separado, con un detalle propio. Ninguno conoce a los otros.",
 });
 
+CAPITULOS.push({
+  numero: 102,
+  campana: "coche",
+  titulo: "Casa Orbe",
+  guia: [
+    "Segundo capítulo: lo que queda de la noche, dentro de Casa Orbe, la casa grande de la Compañía en medio del páramo. Los recibe el escribano Lázaro Quintana, encantador y con prisa: quiere que todos firmen un papel antes del alba.",
+    "Acá se puede descubrir: que la pasajera del velo es Irene Orbe, hija de Casilda; que Casilda citó a cada uno para saldar una cuenta, no para regalar nada; qué es el Libro de Deudas; que los encargos sin firma los escribió Quintana; y, al final, que Quintana les debe a los Recaudadores un peaje viejo y piensa pagarlo con uno de los pasajeros.",
+    "NO resuelvas todavía qué pasa con Quintana ni quién «no llega»: eso es del capítulo 3, en el Paso.",
+    "Cada jugador recibe un encargo NUEVO en esta casa (ver «Encargos»): lo encuentra doblado bajo su plato. Nunca reveles el de uno a los demás.",
+    "Tené en cuenta lo que decidieron en el viaje (ver «Decisiones tomadas» y «Memoria»):",
+    "- Rumbo: si se desviaron hacia las luces, llegan de noche cerrada y nadie los esperaba tan temprano. Si siguieron al Paso, lo encontraron cerrado por la nieve y un mozo de posta les dio un recado: «la lectura es en Casa Orbe»; llegan tarde y helados. Si volvieron a la venta, don Elías no abrió y los Recaudadores los fueron arreando por el páramo hasta el portón.",
+    "- La pasajera: si la dejaron viajar, entra con ellos sin levantarse el velo y Quintana palidece al verla. Si le vieron la cara, ya saben que se llama Irene. Si la bajaron en la venta, llegó antes que ellos, a caballo, y no les habla.",
+    "- El peaje: si entregaron el cofre, nadie recuerda bien qué llevaba, y el Libro de Deudas que aparece en la casa es el borrador, incompleto. Si pagaron con una verdad, Quintana ya la conoce: en el páramo todo se sabe. Si cruzaron sin pagar, los Recaudadores rodean la casa desde el principio.",
+    "Remedios, el ama de llaves, es quien dice las cosas como son. Quintana es el alivio cómico involuntario: pomposo, pulcro, ofendido por el barro en sus alfombras.",
+  ].join("\n"),
+  apertura:
+    "Abrí el capítulo 2: el coche llega al portón de Casa Orbe. Contá en una frase cómo llegaron según el rumbo que votaron. La casa tiene todas las ventanas encendidas. En la escalinata los espera un hombre pulcro, de levita, con un reloj en la mano: el escribano Quintana. Detrás, en la puerta, una mujer mayor con un manojo de llaves.",
+});
+
 export const capituloDef = (numero: number): CapituloDef => {
   const c = CAPITULOS.find((x) => x.numero === numero);
   if (!c) throw new Error(`Capítulo inexistente: ${numero}`);
@@ -150,6 +169,8 @@ LA VERDAD (solo para vos; los jugadores la descubren de a poco):
 ARCO DE LA CAMPAÑA:
 1. La lista del cochero: el viaje de noche, la pasajera de más, el peaje del puente.
 2. Casa Orbe: el testamento, el Libro de Deudas y el escribano.
+3. El Paso: el peaje de Quintana y quién no llega.
+- Quintana (NO antes del capítulo 2, y su plan NO antes del final del capítulo 2): hace años cruzó el páramo de noche sin pagar y los Recaudadores no olvidan. Les debe «algo que pese» y decidió que sea una persona. Por eso citó, con la letra de Casilda, a gente a la que nadie va a reclamar: «uno de ustedes no llega» no es una amenaza, es la cuenta que hizo. El testamento que lee es falso; el verdadero deja la Compañía a Irene y perdona todas las deudas del Libro.
 
 LOS SECRETOS DE LOS PERSONAJES: cada jugador escribió un secreto. Atalo a Casilda Orbe o a su Compañía sin forzarlo: una deuda, un favor, una carta que no se contestó. Insinuá primero, por susurros privados. No lo reveles a los demás a menos que la escena lo pida de verdad o el propio jugador lo cuente.
 `.trim();
@@ -157,6 +178,8 @@ LOS SECRETOS DE LOS PERSONAJES: cada jugador escribió un secreto. Atalo a Casil
 /** Un objetivo secreto. Se cumple o no según lo que el grupo termine votando. */
 export interface EncargoDef {
   id: string;
+  /** Capítulo en el que se reparte. */
+  capitulo: number;
   texto: string;
   /** true o false cuando ya se sabe; null mientras falte la votación que lo decide. */
   cumple: (decisiones: Partial<Record<VotoId, string>>) => boolean | null;
@@ -208,33 +231,75 @@ export const CAMPANAS: Record<CampanaId, CampanaDef> = {
     encargos: [
       {
         id: "velo",
+        capitulo: 101,
         texto: "Que la pasajera de más llegue a destino sin que nadie le vea la cara.",
         cumple: segun("viajera", (o) => o === "dejarla"),
       },
       {
         id: "rostro",
+        capitulo: 101,
         texto: "Saber quién es la pasajera de más antes de que termine la noche.",
         cumple: segun("viajera", (o) => o === "rostro"),
       },
       {
         id: "cofre_llega",
+        capitulo: 101,
         texto: "Que el cofre lacrado siga en el coche, cerrado, cuando crucen el puente.",
         cumple: segun("peaje", (o) => o !== "cofre"),
       },
       {
         id: "cofre_pierde",
+        capitulo: 101,
         texto: "Que el cofre lacrado no cruce el puente: que se quede en el páramo.",
         cumple: segun("peaje", (o) => o === "cofre"),
       },
       {
         id: "paso",
+        capitulo: 101,
         texto: "Que el coche siga hacia el Paso, pase lo que pase.",
         cumple: segun("rumbo", (o) => o === "seguir"),
       },
       {
         id: "no_paso",
+        capitulo: 101,
         texto: "Que el coche no llegue al Paso esta noche. Allá te esperan, y no para bien.",
         cumple: segun("rumbo", (o) => o !== "seguir"),
+      },
+      {
+        id: "que_firmen",
+        capitulo: 102,
+        texto: "Que todos firmen el papel del escribano antes del alba.",
+        cumple: segun("firma", (o) => o === "firmar"),
+      },
+      {
+        id: "que_no_firmen",
+        capitulo: 102,
+        texto: "Que esta noche nadie ponga su firma en nada.",
+        cumple: segun("firma", (o) => o !== "firmar"),
+      },
+      {
+        id: "que_se_lea",
+        capitulo: 102,
+        texto: "Que el Libro de Deudas se lea entero, en voz alta, delante de todos.",
+        cumple: segun("deudas", (o) => o === "leer"),
+      },
+      {
+        id: "que_no_se_lea",
+        capitulo: 102,
+        texto: "Que tu página del Libro de Deudas no la lea nadie.",
+        cumple: segun("deudas", (o) => o !== "leer"),
+      },
+      {
+        id: "con_quintana",
+        capitulo: 102,
+        texto: "Que el coche salga hacia el Paso con el escribano a bordo.",
+        cumple: segun("alba", (o) => o === "quintana"),
+      },
+      {
+        id: "con_irene",
+        capitulo: 102,
+        texto: "Que el coche salga hacia el Paso con la hija de Casilda a bordo.",
+        cumple: segun("alba", (o) => o === "irene"),
       },
     ],
   },
@@ -311,6 +376,20 @@ NPCS.push(
     nombre: "La pasajera del velo",
     rol: "Viajera de luto",
     guia: "Una mujer joven de luto cerrado, con velo y guantes. No habla: contesta con la cabeza o mostrando el boleto. Observa a cada pasajero con atención. Solo dice su nombre —Irene— si le ven la cara, y entonces habla poco, cortés y dura. No es un espectro, pero no hagas nada por desmentirlo.",
+  },
+  {
+    campana: "coche",
+    id: "quintana",
+    nombre: "Lázaro Quintana",
+    rol: "Escribano de la Compañía",
+    guia: "Cincuenta años, pulcro, de levita y reloj de cadena. Encantador mientras le sigan el paso; cuando lo contradicen se vuelve leguleyo y cita artículos. Le molesta el barro, las demoras y que lo tuteen. Tiene prisa por terminar antes del alba y no dice por qué. Nunca levanta la voz. Es el alivio cómico involuntario: pomposo en una casa de luto.",
+  },
+  {
+    campana: "coche",
+    id: "remedios",
+    nombre: "Remedios",
+    rol: "Ama de llaves de Casa Orbe",
+    guia: "Setenta años, seca, de negro, con un manojo de llaves a la cintura. Crió a Irene y cuidó a Casilda hasta el final. Detesta al escribano y no lo disimula. No da nada gratis: contesta una pregunta por cada cosa útil que hagan en la casa. Sabe dónde está cada papel.",
   },
   {
     campana: "coche",
@@ -590,6 +669,66 @@ PISTAS.push(
     titulo: "Papeles sin firma",
     texto: "Las cartas no son los únicos papeles del coche: más de un pasajero recibió, además, un encargo sin firma y con paga.",
     escena: 24,
+  },
+  {
+    id: "los_esperaban",
+    titulo: "Cubiertos contados",
+    texto: "En el comedor de Casa Orbe hay un cubierto por cada nombre de la lista. Los esperaban a ustedes, y a esta hora.",
+    escena: 25,
+  },
+  {
+    id: "sin_luto",
+    titulo: "El único sin luto",
+    texto: "La casa tiene los espejos tapados y los relojes parados a la hora en que murió Casilda. El escribano no lleva luto, y su reloj anda.",
+    escena: 25,
+  },
+  {
+    id: "renuncia",
+    titulo: "No es un recibo",
+    texto: "El papel que Quintana quiere que firmen no es un recibo de herencia: es una renuncia a todo reclamo contra la Compañía.",
+    escena: 26,
+  },
+  {
+    id: "misma_tinta",
+    titulo: "Tinta nueva",
+    texto: "El testamento que lee el escribano está escrito con la misma tinta nueva que la línea del dorso de la lista.",
+    escena: 26,
+  },
+  {
+    id: "borradores",
+    titulo: "Los borradores de Casilda",
+    texto: "En el despacho hay borradores de las cartas. Casilda citó a cada uno para saldar una cuenta —cobrarla o pedir perdón—, no para dejarle nada.",
+    escena: 27,
+  },
+  {
+    id: "pluma_escribano",
+    titulo: "La pluma de los encargos",
+    texto: "Los encargos sin firma se escribieron en este escritorio, con la pluma y el papel del escribano.",
+    escena: 27,
+  },
+  {
+    id: "paginas",
+    titulo: "Una página por pasajero",
+    texto: "El Libro de Deudas tiene una página por cada pasajero: lo que le debía a Casilda, o lo que ella le debía.",
+    escena: 28,
+  },
+  {
+    id: "pagina_cortada",
+    titulo: "La página que falta",
+    texto: "Al Libro le falta una página, cortada a navaja con mucho cuidado. Por el índice, era la del escribano.",
+    escena: 28,
+  },
+  {
+    id: "peaje_viejo",
+    titulo: "El peaje de Quintana",
+    texto: "El escribano cruzó el páramo de noche, hace años, sin pagar. Los Recaudadores vienen por él.",
+    escena: 29,
+  },
+  {
+    id: "la_cuenta_de_quintana",
+    titulo: "Uno no llega",
+    texto: "La línea del dorso de la lista no es una amenaza: es una cuenta. Quintana piensa pagar su peaje con uno de ustedes.",
+    escena: 29,
   },
 );
 
@@ -1556,8 +1695,11 @@ export const ESCENAS: EscenaDef[] = [
 ];
 
 ESCENAS_COCHE();
+ESCENAS_ORBE();
 
 export interface EfectosVoto {
+  /** Los secretos de todos quedan dichos ante todos. */
+  revelaTodos?: boolean;
   /** El secreto de quien lleva el farol queda dicho ante todos. */
   revelaFarol?: boolean;
   /** Vida que pierde cada personaje. */
@@ -2103,6 +2245,141 @@ export const VOTOS: Record<VotoId, VotoDef> = {
       },
     ],
   },
+  firma: {
+    id: "firma",
+    pregunta: "El papel está en la mesa. ¿Firman?",
+    contexto:
+      "Una bolsa de plata por cabeza a cambio de una firma. El escribano dice que es una formalidad. Tiene una sola pluma y mucho apuro.",
+    planteo:
+      "Cerrá la escena con el papel, el tintero y la pluma en el centro de la mesa, y Quintana mirando el reloj. No decidas por los jugadores si firman.",
+    narrar: true,
+    opciones: [
+      {
+        id: "firmar",
+        titulo: "Firmar y cobrar",
+        detalle: "Plata en mano y el escribano contento: la Bruma cede un punto. Lo firmado, firmado está.",
+        efectos: {
+          amenaza: -1,
+          relaciones: { quintana: 2, remedios: -2, viajera: -1 },
+          memoria: "Firmaron el papel del escribano: una renuncia a todo reclamo contra la Compañía. Cada uno cobró su bolsa.",
+        },
+        consecuencia:
+          "Eligieron firmar. La pluma pasa de mano en mano. Quintana seca cada firma con arena, sopla, y reparte las bolsas con dos dedos, como propinas. Remedios retira los platos sin terminar. Si la pasajera del velo está en la mesa, se levanta y sale.",
+        aviso: "Firmaron. Cada uno tiene su bolsa de plata.",
+      },
+      {
+        id: "negarse",
+        titulo: "No firmar nada",
+        detalle: "Sin plata y con el escribano en contra. Remedios queda de su lado, y la Bruma sube un punto.",
+        efectos: {
+          amenaza: 1,
+          relaciones: { quintana: -2, remedios: 2 },
+          memoria: "Se negaron a firmar el papel del escribano.",
+        },
+        consecuencia:
+          "Eligieron no firmar. Quintana recoge el papel con mucho cuidado, lo alisa, y dice que la noche es larga y las habitaciones frías, y que ya van a entrar en razón. Remedios, por primera vez, les sirve vino.",
+        aviso: "Nadie firmó. El escribano guarda el papel.",
+      },
+      {
+        id: "demorar",
+        titulo: "Pedir el original",
+        detalle: "Que muestre el testamento de puño de Casilda. Gana tiempo y deja ver la tinta; él no lo va a perdonar.",
+        efectos: {
+          pista: "misma_tinta",
+          relaciones: { quintana: -1, remedios: 1 },
+          memoria: "Le exigieron al escribano el testamento original antes de firmar nada. No lo tenía a mano.",
+        },
+        consecuencia:
+          "Eligieron pedir el original. Quintana sonríe, dice «por supuesto», revuelve sus pliegos y no lo encuentra. Dice que está arriba, que mañana, que es lo mismo. Mientras revuelve, el pliego que leía queda un momento a la luz: la tinta todavía brilla de nueva.",
+        aviso: "Pidieron el original. El escribano no lo tiene a mano.",
+      },
+    ],
+  },
+  deudas: {
+    id: "deudas",
+    pregunta: "El Libro de Deudas está abierto. ¿Qué hacen con él?",
+    contexto:
+      "Hay una página por cada uno. Lo que dice ahí lo sabe quien lo escribió, que está bajo la lápida, y quien lo lea ahora.",
+    planteo:
+      "Cerrá la escena con el Libro abierto sobre el altar e Irene diciendo que no lo va a decidir sola. No resuelvas qué se hace con él.",
+    narrar: true,
+    opciones: [
+      {
+        id: "leer",
+        titulo: "Leerlo en voz alta",
+        detalle: "Todas las páginas, delante de todos: los secretos de cada uno salen a la luz. Sin nada que esconder, la Bruma cede 2.",
+        efectos: {
+          revelaTodos: true,
+          amenaza: -2,
+          relaciones: { viajera: 1 },
+          memoria: "Leyeron el Libro de Deudas en voz alta: ya no hay secretos entre los pasajeros.",
+        },
+        consecuencia:
+          "Eligieron leerlo. Lee Remedios, sin entonación, página por página: decí en una frase lo que el Libro cuenta de cada personaje, usando el secreto que escribió su jugador. Nadie mira a nadie. Cuando termina, Irene dice que su madre perdonaba poco y anotaba todo.",
+        aviso: "Se leyó el Libro entero. Ya no hay secretos en el coche.",
+      },
+      {
+        id: "quemar",
+        titulo: "Quemarlo",
+        detalle: "Nadie sabrá lo que debía nadie. Tampoco lo que debía el escribano. La Bruma sube un punto.",
+        efectos: {
+          amenaza: 1,
+          relaciones: { viajera: -2, remedios: -1, quintana: 1 },
+          memoria: "Quemaron el Libro de Deudas en la capilla, sin leerlo.",
+        },
+        consecuencia:
+          "Eligieron quemarlo. Arde mal, como arde el papel viejo, y llena la capilla de humo. Irene no lo impide: mira. Remedios apaga las brasas con el pie y dice que la señora tardó cuarenta años en escribir eso.",
+        aviso: "Quemaron el Libro de Deudas.",
+      },
+      {
+        id: "irene",
+        titulo: "Dárselo cerrado a Irene",
+        detalle: "Es su herencia. Ella decide quién lee qué, y queda de su lado.",
+        efectos: {
+          relaciones: { viajera: 2, remedios: 1 },
+          memoria: "Le entregaron el Libro de Deudas a Irene Orbe sin leerlo.",
+        },
+        consecuencia:
+          "Eligieron dárselo a Irene. Ella lo cierra, le pone el candado y se lo cuelga del brazo como una cartera. Dice que cada uno puede pedirle su página cuando quiera, a solas, y que a ella no le interesa leer las ajenas. Casi sonríe.",
+        aviso: "Irene se queda con el Libro, cerrado.",
+      },
+    ],
+  },
+  alba: {
+    id: "alba",
+    pregunta: "Aclara. ¿Quién sube al coche?",
+    contexto:
+      "Los Recaudadores esperan en el portón y el plazo del escribano vence en el Paso. Mateo le hace caso a lo que diga la mesa.",
+    planteo:
+      "Es el cierre del capítulo: terminá con el coche enganchado, el cielo aclarando y Mateo con las riendas en la mano, esperando que le digan quién sube. No elijas por ellos.",
+    narrar: false,
+    opciones: [
+      {
+        id: "quintana",
+        titulo: "Con el escribano",
+        detalle: "Él conoce el Paso y a quién hay que firmarle. También hizo la lista.",
+        efectos: { relaciones: { quintana: 1, viajera: -2 }, memoria: "Salieron hacia el Paso con el escribano Quintana a bordo. Irene se quedó en la casa." },
+        consecuencia: "",
+        aviso: "El escribano sube al coche. Irene se queda en la escalinata.",
+      },
+      {
+        id: "irene",
+        titulo: "Con Irene",
+        detalle: "La heredera va a reclamar lo suyo al Paso. El escribano se queda con los del portón.",
+        efectos: { relaciones: { viajera: 2, quintana: -3 }, memoria: "Salieron hacia el Paso con Irene Orbe a bordo. El escribano quedó en la casa, con los Recaudadores en el portón." },
+        consecuencia: "",
+        aviso: "Irene sube al coche. El escribano se queda mirando el portón.",
+      },
+      {
+        id: "solos",
+        titulo: "Ninguno de los dos",
+        detalle: "Que arreglen sus cuentas entre ellos. Sin dueño a bordo, la Bruma sube 1.",
+        efectos: { amenaza: 1, memoria: "Salieron de Casa Orbe solos, sin el escribano ni la heredera." },
+        consecuencia: "",
+        aviso: "El coche sale solo con sus pasajeros.",
+      },
+    ],
+  },
   mejora: {
     id: "mejora",
     pregunta: "¿Qué arreglan primero en la Casa del Guarda?",
@@ -2393,6 +2670,244 @@ function ESCENAS_COCHE(): void {
         "Del otro lado del puente el coche anda cien pasos y se inclina, con un quejido de madera. Una rueda.\n\nMateo baja, la mira, y por una vez no dice nada sobre la Compañía. Se saca la lista del pecho y la alisa contra la rodilla, al farol.\n\n—Ya que estamos parados —dice—. Miren esto, que yo de letras no entiendo, y díganme si no es la misma mano.\n\nLejos, a un costado, hay luces. Una casa grande.",
       resumenBase:
         "Pasado el puente se rompió una rueda. La lista del cochero está escrita por Casilda Orbe; al dorso, con otra tinta, dice: «uno de ustedes no llega».",
+    },
+  );
+}
+
+function ESCENAS_ORBE(): void {
+  ESCENAS.push(
+    {
+      id: "porton",
+      capitulo: 102,
+      titulo: "El portón de Casa Orbe",
+      lugar: "casaorbe",
+      ambientacion:
+        "Casa Orbe: un caserón de dos plantas en medio de la sal, con cocheras, capilla y todas las ventanas encendidas. Los espejos están tapados con paños y los relojes parados. En la escalinata espera el escribano Lázaro Quintana, de levita, con el reloj en la mano; en la puerta, Remedios, el ama de llaves. Quintana quiere pasarlos derecho al comedor. Remedios quiere saber quién trae barro en las botas y quién trae otra cosa.",
+      objetivo: "Entrar a la casa y medir a quienes los reciben antes de sentarse a su mesa.",
+      vias: {
+        combate: "Desenganchar y guardar el coche, cargar el equipaje, abrirse paso cuando el escribano quiere separarlos.",
+        ingenio: "Fijarse en los relojes, los espejos tapados, los cubiertos puestos; revisar la cochera.",
+        dialogo: "Tantear a Quintana, ganarse a Remedios, preguntar por la muerta.",
+      },
+      npcs: ["quintana", "remedios", "mateo", "viajera"],
+      meta: 2,
+      tope: 3,
+      cierre:
+        "Quintana los hace pasar al comedor con una reverencia que le sale un poco corta. La mesa está puesta. Bajo cada plato asoma la punta de un papel doblado.",
+      opcionesBase: [
+        {
+          id: "a",
+          texto: "Meter el coche en la cochera y mirar qué más hay ahí",
+          enfoque: "combate",
+          tirada: { atributo: "fuerza", dificultad: "facil" },
+          avanza: true,
+        },
+        {
+          id: "b",
+          texto: "Fijarse en los relojes y los espejos de la entrada",
+          enfoque: "ingenio",
+          tirada: { atributo: "ingenio", dificultad: "media" },
+          avanza: true,
+        },
+        {
+          id: "c",
+          texto: "Preguntarle al ama de llaves cómo murió su señora",
+          enfoque: "dialogo",
+          tirada: { atributo: "carisma", dificultad: "media" },
+          avanza: true,
+        },
+      ],
+      aperturaBase:
+        "El portón de Casa Orbe está abierto. Detrás hay un caserón con todas las ventanas encendidas, como para una fiesta, y ni un ruido.\n\nEn la escalinata, un hombre de levita mira su reloj y después a ustedes.\n\n—Lázaro Quintana, escribano —dice—. Llegan con lo justo. Tengan la bondad de limpiarse las botas.\n\nEn la puerta, una vieja de negro con un manojo de llaves los cuenta con la vista, uno por uno, y no dice nada.",
+      resumenBase:
+        "Llegaron a Casa Orbe. Los recibieron el escribano Quintana, con apuro, y Remedios, el ama de llaves, con desconfianza. La mesa estaba puesta para ellos.",
+    },
+    {
+      id: "cena",
+      capitulo: 102,
+      titulo: "La cena del escribano",
+      lugar: "comedor",
+      ambientacion:
+        "El comedor grande de Casa Orbe: una mesa larga con un cubierto por cada nombre de la lista, candelabros, el retrato de Casilda Orbe tapado con un paño negro. Quintana preside, sirve él mismo el vino y lee un testamento: cada citado recibe una bolsa de plata si firma un papel antes del alba. Bajo cada plato hay un papel doblado, sin firma: un encargo nuevo. Remedios sirve la sopa y no le quita los ojos al escribano.",
+      objetivo: "Averiguar qué dice de verdad el papel que hay que firmar y qué gana el escribano con eso.",
+      vias: {
+        combate: "Arrebatarle el testamento, plantarse cuando quiere apurar la firma, destapar el retrato.",
+        ingenio: "Leer la letra chica del papel, comparar tintas, mirar qué hace Remedios con los ojos.",
+        dialogo: "Tirarle de la lengua a Quintana con vino y halagos, regatear la herencia, hacerlo citar artículos hasta que se enrede.",
+      },
+      npcs: ["quintana", "remedios", "viajera"],
+      meta: 2,
+      tope: 3,
+      cierre:
+        "Quintana deja el papel en el centro de la mesa, con un tintero y una sola pluma, y pone su reloj al lado. Dice que no hay apuro, y lo mira cada dos frases.",
+      votoAlCerrar: "firma",
+      opcionesBase: [
+        {
+          id: "a",
+          texto: "Destapar el retrato que cuelga sobre la cabecera",
+          enfoque: "combate",
+          tirada: { atributo: "destreza", dificultad: "media" },
+          avanza: true,
+        },
+        {
+          id: "b",
+          texto: "Leer la letra chica del papel antes de que lo retire",
+          enfoque: "ingenio",
+          tirada: { atributo: "ingenio", dificultad: "media" },
+          avanza: true,
+        },
+        {
+          id: "c",
+          texto: "Brindar con el escribano y preguntarle qué hereda él",
+          enfoque: "dialogo",
+          tirada: { atributo: "carisma", dificultad: "dificil" },
+          avanza: true,
+        },
+      ],
+      aperturaBase:
+        "El comedor es largo y frío a pesar de los candelabros. Hay un cubierto por cada uno, y nadie se equivocó en la cuenta.\n\nQuintana se sienta a la cabecera, debajo de un retrato tapado con un paño negro, y desdobla unos pliegos.\n\n—La finada fue generosa —dice—. Una bolsa de plata por cabeza. Una formalidad, una firma, y antes del alba cada cual sigue su camino.\n\nAl levantar el plato para la sopa, cada uno encuentra debajo un papel doblado. No tiene firma.",
+      resumenBase:
+        "En la cena, el escribano leyó un testamento: plata para cada uno a cambio de una firma antes del alba. Bajo cada plato había un encargo nuevo.",
+    },
+    {
+      id: "despacho",
+      capitulo: 102,
+      titulo: "El despacho de Casilda",
+      lugar: "despacho",
+      ambientacion:
+        "De madrugada, la casa en silencio. El despacho de Casilda Orbe: un escritorio enorme, estantes de libros de cuentas, un mapa del páramo con las postas marcadas. Está cerrado con llave y la llave la tiene Remedios, o la tiene Quintana. Adentro hay borradores de cartas, secantes, plumas. Por la ventana se ve el patio, y más allá del portón algo que se mueve en la bruma.",
+      objetivo: "Entrar al despacho y entender para qué los citó Casilda de verdad.",
+      vias: {
+        combate: "Forzar la puerta o la ventana, mover el escritorio, cortarle el paso a quien viene por el pasillo.",
+        ingenio: "Leer los borradores, calcar un secante, comparar la letra de los encargos con los papeles del escritorio.",
+        dialogo: "Convencer a Remedios de prestar la llave, hacer hablar a la pasajera del velo, distraer al escribano.",
+      },
+      npcs: ["remedios", "viajera", "quintana"],
+      meta: 2,
+      tope: 3,
+      cierre:
+        "Tienen los borradores en la mano cuando se oye la tos de Remedios en la puerta. No los reta. Dice que lo que buscan no está ahí, que está en la capilla, con la señora, y que ella tiene la llave.",
+      opcionesBase: [
+        {
+          id: "a",
+          texto: "Forzar la puerta del despacho sin despertar a nadie",
+          enfoque: "combate",
+          tirada: { atributo: "destreza", dificultad: "media" },
+          avanza: true,
+        },
+        {
+          id: "b",
+          texto: "Leer los borradores de cartas del escritorio",
+          enfoque: "ingenio",
+          tirada: { atributo: "ingenio", dificultad: "media" },
+          avanza: true,
+        },
+        {
+          id: "c",
+          texto: "Pedirle la llave a Remedios a cambio de una mano en la cocina",
+          enfoque: "dialogo",
+          tirada: { atributo: "carisma", dificultad: "media" },
+          avanza: true,
+        },
+      ],
+      aperturaBase:
+        "La casa se acuesta, o hace que se acuesta. En el pasillo del primer piso hay una sola puerta con cerradura de bronce: el despacho.\n\nPor debajo se cuela olor a tinta y a tabaco frío. Alguien estuvo adentro esta noche.\n\nEn la otra punta del pasillo se abre una puerta y se cierra. Unos pasos se alejan, parejos, de zapato fino.",
+      resumenBase:
+        "En el despacho encontraron los borradores de las cartas: Casilda los citó para saldar cuentas, no para dejarles herencia. Los encargos se escribieron en ese mismo escritorio.",
+    },
+    {
+      id: "capilla",
+      capitulo: 102,
+      titulo: "El Libro de Deudas",
+      lugar: "capilla",
+      ambientacion:
+        "La capilla de la casa, chica y helada. Casilda Orbe está enterrada bajo una lápida nueva, todavía sin fecha. Sobre el altar, Remedios pone lo que guardaba: el Libro de Deudas (el del cofre, si llegó; si no, el borrador, al que le faltan hojas). Tiene una página por pasajero. La pasajera del velo está presente y, si no lo hizo antes, acá se levanta el velo: es Irene, la hija. Afuera, los caballos de arreos negros esperan en el portón.",
+      objetivo: "Abrir el Libro de Deudas y decidir qué se hace con lo que dice de cada uno.",
+      vias: {
+        combate: "Romper el candado del Libro o del cofre, trancar la capilla, impedir que alguien se lo lleve.",
+        ingenio: "Buscar la propia página, leer el índice, notar la hoja cortada.",
+        dialogo: "Preguntarle a Irene qué quiere hacer con la herencia, pactar con otro pasajero, pedirle a Remedios que cuente lo que falta.",
+      },
+      npcs: ["remedios", "viajera"],
+      meta: 2,
+      tope: 3,
+      cierre:
+        "El Libro queda abierto sobre el altar. Cada uno sabe ya que tiene una página ahí. Irene dice que es de ella por herencia y de ustedes por lo que dice, y que no lo va a decidir sola.",
+      votoAlCerrar: "deudas",
+      opcionesBase: [
+        {
+          id: "a",
+          texto: "Romper el candado del Libro",
+          enfoque: "combate",
+          tirada: { atributo: "fuerza", dificultad: "media" },
+          avanza: true,
+        },
+        {
+          id: "b",
+          texto: "Buscar en el índice qué página es la propia",
+          enfoque: "ingenio",
+          tirada: { atributo: "ingenio", dificultad: "media" },
+          avanza: true,
+        },
+        {
+          id: "c",
+          texto: "Preguntarle a la hija de Casilda qué piensa hacer",
+          enfoque: "dialogo",
+          tirada: { atributo: "carisma", dificultad: "media" },
+          avanza: true,
+        },
+      ],
+      aperturaBase:
+        "La capilla está al fondo del patio. Adentro hace más frío que afuera.\n\nHay una lápida nueva en el piso, con un nombre y sin fecha. Remedios la rodea sin pisarla y deja sobre el altar un libro grande, con candado.\n\n—Acá está todo lo que ella sabía de ustedes —dice—. Y de algunos más.\n\nLa mujer del velo se queda en la puerta. Afuera, del otro lado del portón, relincha un caballo que no es de la casa.",
+      resumenBase:
+        "En la capilla abrieron el Libro de Deudas: una página por pasajero. Falta una, cortada a navaja: la del escribano. La pasajera del velo es Irene Orbe, la hija.",
+    },
+    {
+      id: "alba",
+      capitulo: 102,
+      titulo: "Antes de que aclare",
+      lugar: "casaorbe",
+      ambientacion:
+        "La hora antes del alba, en el patio de Casa Orbe. Los cuatro Recaudadores están en el portón y no entran: esperan. Preguntan por Lázaro Quintana, por su nombre. El escribano perdió la compostura: quiere el coche enganchado ya, a todos adentro y camino al Paso. Mateo no engancha sin que alguien le diga a quién le hace caso. Irene está en la escalinata con las llaves de la casa. La lista del cochero anda de mano en mano.",
+      objetivo: "Sacarle a Quintana por qué lo buscan y decidir con quién sale el coche.",
+      vias: {
+        combate: "Cerrarle el paso al escribano, sujetar a los caballos, sostener el portón.",
+        ingenio: "Atar cabos: la tinta de la lista, la hoja cortada, a quién miran los jinetes y a quién no.",
+        dialogo: "Apretar a Quintana hasta que confiese, preguntarles a los Recaudadores qué les deben, hablar con Irene.",
+      },
+      npcs: ["quintana", "viajera", "mateo", "remedios"],
+      meta: 2,
+      tope: 3,
+      cierre:
+        "Fin del capítulo. Quintana lo dice por fin, casi ofendido: una vez cruzó sin pagar, le dieron plazo, y el plazo vence en el Paso. Alguien tiene que no llegar, y él hizo la lista. El cielo empieza a aclarar. El coche está enganchado y hay que decidir quién sube.",
+      votoAlCerrar: "alba",
+      opcionesBase: [
+        {
+          id: "a",
+          texto: "Plantarse entre el escribano y el coche",
+          enfoque: "combate",
+          tirada: { atributo: "fuerza", dificultad: "media" },
+          avanza: true,
+        },
+        {
+          id: "b",
+          texto: "Fijarse a quién miran los jinetes del portón",
+          enfoque: "ingenio",
+          tirada: { atributo: "ingenio", dificultad: "media" },
+          avanza: true,
+        },
+        {
+          id: "c",
+          texto: "Preguntarle a Quintana qué les debe a los del portón",
+          enfoque: "dialogo",
+          tirada: { atributo: "voluntad", dificultad: "dificil" },
+          avanza: true,
+        },
+      ],
+      aperturaBase:
+        "Falta poco para el alba y el patio está lleno de gente despierta.\n\nEn el portón hay cuatro jinetes. No entran. Uno dice un nombre, sin levantar la voz, y el nombre es Lázaro Quintana.\n\nEl escribano baja la escalinata abrochándose mal la levita.\n\n—¡Cochero! ¡Enganche! ¡Salimos ya, todos, al Paso! —y, a ustedes, con una sonrisa que no le llega—: Es por el bien de la sucesión.\n\nMateo mira a los caballos, mira a los jinetes, y se sienta en el estribo a esperar que alguien le diga a quién le hace caso.",
+      resumenBase:
+        "Antes del alba, los Recaudadores vinieron a buscar al escribano. Quintana les debe un peaje viejo y armó la lista para pagarlo con uno de los pasajeros.",
     },
   );
 }

@@ -758,7 +758,37 @@ describe("El Último Coche: mesa grande por rondas", () => {
     const cumplidos = ([1, 2, 3, 4, 5, 6] as Asiento[]).map((a) => vistaPara(e, a, false).encargo!.cumplido);
     expect(cumplidos.filter((x) => x === true)).toHaveLength(3);
     expect(cumplidos.filter((x) => x === false)).toHaveLength(3);
+    expect(vistaPara(e, 1, false).hayOtroCapitulo).toBe(true);
+  });
+
+  it("el capítulo 2 reparte encargos nuevos y leer el Libro revela todos los secretos", () => {
+    const jugar = (inicial: EstadoJuego, votos: Record<string, string> = {}) => {
+      let e = inicial;
+      let guardia = 0;
+      while (e.fase !== "fin_capitulo" || e.voto) {
+        if (guardia++ > 80) throw new Error("El capítulo no termina");
+        if (e.voto) {
+          const opcion = votos[e.voto.id] ?? e.voto.opciones[0].id;
+          for (const a of [1, 2, 3, 4] as Asiento[]) if (e.voto) e = votar(e, a, opcion, AHORA).estado;
+          if (e.pendiente) e = narrar(e);
+        } else e = ronda(e);
+      }
+      return e;
+    };
+    const fin1 = jugar(abierta(4));
+    const viejos = Object.values(fin1.encargos!);
+    let e = narrar(empezarCapitulo(fin1, AHORA + 5));
+    expect(vistaPara(e, 1, false).capitulo).toMatchObject({ numero: 2, titulo: "Casa Orbe" });
+    expect(vistaPara(e, 1, false).escena.lugar).toBe("casaorbe");
+    expect(Object.values(e.encargos!).some((x) => viejos.includes(x))).toBe(false);
+    expect(vistaPara(e, 1, false).encargo!.cumplido).toBeNull();
+    expect(instruccionSistema(e)).toContain("Lázaro Quintana");
+    e = jugar(e, { firma: "demorar", deudas: "leer", alba: "irene" });
+    expect(e.pistas).toContain("misma_tinta");
+    expect(([1, 2, 3, 4] as Asiento[]).every((a) => e.personajes[a]!.secretoRevelado)).toBe(true);
+    expect(e.decisiones.alba).toBe("irene");
     expect(vistaPara(e, 1, false).hayOtroCapitulo).toBe(false);
+    expect(e.resumenes).toHaveLength(10);
   });
 
   it("pagar con una verdad revela el secreto de quien lleva el farol", () => {
