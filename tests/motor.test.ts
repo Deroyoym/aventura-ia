@@ -9,6 +9,7 @@ import {
   cambiarAvatar,
   cambiarTerror,
   empezarCapitulo,
+  iniciar,
   opcionesValidas,
   pasarFarol,
   planificar,
@@ -318,6 +319,34 @@ describe("escenas y votos", () => {
     expect(e.refugio.mejoras).toHaveLength(1);
     expect(e.companero).not.toBeNull();
     expect(e.decisiones.dilema).toBeDefined();
+  });
+});
+
+describe("ritmo de pistas y susurros", () => {
+  const turno = (e: EstadoJuego, s: ReturnType<typeof salida>) => {
+    let x = prepararAccion(e, e.farol, { tipo: "opcion", id: e.opciones[0].id }, AHORA);
+    x = tirar(x, e.farol, {}, dados(9), AHORA);
+    return aplicarNarracion(x, planificar(x), s, AHORA);
+  };
+
+  it("la apertura no entrega pistas y cada narración entrega una sola", () => {
+    const abierta = iniciar(preparada(), AHORA);
+    const e = aplicarNarracion(abierta, planificar(abierta), salida({ cambios: { pistas: ["plato_de_mas"] } }), AHORA);
+    expect(e.pistas).toEqual([]);
+    const r = turno(e, salida({ cambios: { pistas: ["plato_de_mas", "registro_raspado"] } }));
+    expect(r.pistas).toEqual(["plato_de_mas"]);
+  });
+
+  it("no deja pasar un susurro por turno al mismo jugador", () => {
+    const susurro = (n: number) => salida({ susurros: [{ jugador: 1, texto: `Susurro ${n}, dicho muy bajo.` }, { jugador: 2, texto: `Otro ${n}.` }] });
+    let e = enJuego();
+    const vistos: number[] = [];
+    for (let n = 1; n <= 4 && e.fase === "jugando" && !e.voto; n++) {
+      e = turno(e, susurro(n));
+      vistos.push(e.susurros.filter((s) => s.para === 1).length);
+    }
+    expect(vistos.slice(0, 3)).toEqual([1, 1, 1]);
+    expect(e.susurros.filter((s) => s.para === 2)).toHaveLength(e.susurros.filter((s) => s.para === 1).length);
   });
 });
 

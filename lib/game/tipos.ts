@@ -140,6 +140,8 @@ export interface Susurro {
   id: number;
   para: Asiento;
   texto: string;
+  /** Turno en que llegó. Falta en susurros guardados antes de que se registrara. */
+  turno?: number;
 }
 
 export interface ResumenEscena {

@@ -57,6 +57,9 @@ import {
 const MAX_ENTRADAS = 40;
 const MAX_MEMORIA = 12;
 const MAX_SUSURROS = 8;
+/** Un susurro pierde efecto si llega en todos los turnos: se deja pasar uno cada tantos por jugador. */
+const TURNOS_ENTRE_SUSURROS = 3;
+const PISTAS_POR_NARRACION = 1;
 const AMENAZA_INICIAL = 2;
 const VIDA_AL_LEVANTARSE = 3;
 const AVANCES_LIBRES_POR_ESCENA = 1;
@@ -533,11 +536,15 @@ function aplicarCambios(e: EstadoJuego, plan: Plan, salida: SalidaDM, actor: Asi
   }
   ajustarAmenaza(e, amenaza);
 
-  // Pistas: solo las del capítulo en curso que ya pueden haber aparecido.
-  for (const id of c.pistas) {
+  // Pistas: solo las del capítulo en curso que ya pueden haber aparecido, de a
+  // una por narración y nunca en la apertura, para que no se gasten de entrada.
+  let nuevas = 0;
+  for (const id of plan.tipo === "apertura" ? [] : c.pistas) {
     const pista = pistaDef(id);
     if (!pista || pista.escena > e.escena.indice || escenaDef(pista.escena).capitulo !== e.capitulo) continue;
+    if (e.pistas.includes(id) || nuevas >= PISTAS_POR_NARRACION) continue;
     descubrir(e, id);
+    nuevas += 1;
   }
 
   if (plan.tipo !== "apertura") {
@@ -560,8 +567,10 @@ function aplicarCambios(e: EstadoJuego, plan: Plan, salida: SalidaDM, actor: Asi
     const s = salida.susurros.find((x) => x.jugador === asiento);
     const texto = s && limpiar(s.texto, 280);
     if (!texto || !e.personajes[asiento]) continue;
+    const ultimo = e.susurros.findLast((x) => x.para === asiento);
+    if (ultimo && e.turno - (ultimo.turno ?? e.turno) < TURNOS_ENTRE_SUSURROS) continue;
     e.secuencia += 1;
-    e.susurros.push({ id: e.secuencia, para: asiento, texto });
+    e.susurros.push({ id: e.secuencia, para: asiento, texto, turno: e.turno });
   }
   if (e.susurros.length > MAX_SUSURROS) e.susurros.splice(0, e.susurros.length - MAX_SUSURROS);
 }
