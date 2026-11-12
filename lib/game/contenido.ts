@@ -182,6 +182,13 @@ export const OBJETOS: Record<string, Objeto> = {
     usos: 1,
     bono: { atributo: "voluntad", valor: 2 },
   },
+  firma: {
+    id: "firma",
+    nombre: "La séptima firma",
+    descripcion: "Un pedazo de la ordenanza con un nombre que el pueblo no debía leer.",
+    usos: 1,
+    bono: { atributo: "ingenio", valor: 2 },
+  },
   nana: {
     id: "nana",
     nombre: "La nana de Lía",

@@ -44,6 +44,23 @@ export const CAPITULOS: CapituloDef[] = [
   },
 ];
 
+CAPITULOS.push({
+  numero: 3,
+  titulo: "Los Siete",
+  guia: [
+    "En este capítulo los personajes siguen el hilo de los siete nudos hasta la cripta de los fundadores. Acá SÍ se revela el giro, de a poco y por lo que encuentran: en la cripta (escena 3), que nunca hubo peste y que seis fundadores pagaron con sus nombres; frente al umbral (escena 4), que la séptima firma es de Úrsula. No lo adelantes en las escenas 1 y 2: ahí solo hay indicios (una aguja, un acta raspada, un hilo rojo donde no debería estar).",
+    "NO reveles todavía cómo se rompe el pacto: eso es del capítulo 4. La Dama sigue sin tener figura; en la cripta habla por boca de los seis fundadores, que son Ausentes muy viejos, corteses y cansados.",
+    "Úrsula no miente: de verdad no lo recuerda. Si le dicen quién es, lo recuerda todo de golpe.",
+    "Tené en cuenta lo que pasó en la bruma (ver «Decisiones tomadas» y «Memoria»):",
+    "- Si se llevaron a Lía: está en la posada con Brígida, la cuenta de la Dama quedó rota y los Ausentes se acercan al pueblo de noche.",
+    "- Si el compañero animal ocupó su lugar: Lía está en el pueblo; no tienen compañero, y a veces lo oyen del otro lado de la bruma.",
+    "- Si dejaron a Lía: sigue en la bruma con los chicos, y los personajes llevan su nana.",
+    "El alguacil Corvino tiene en su casa una cuna y no recuerda para quién era: en el archivo puede aparecer el acta de su hija.",
+  ].join("\n"),
+  apertura:
+    "Abrí el capítulo 3: es de día, un día gris, y los personajes cruzan la plaza hacia el cabildo con el hilo de los siete nudos. Recordá en una frase cómo volvieron de la bruma según lo que decidieron con Lía. El alguacil Corvino está en la puerta del archivo.",
+});
+
 export const capituloDef = (numero: number): CapituloDef => {
   const c = CAPITULOS.find((x) => x.numero === numero);
   if (!c) throw new Error(`Capítulo inexistente: ${numero}`);
@@ -64,7 +81,8 @@ LA VERDAD (solo para vos; los jugadores la descubren de a poco, por pistas):
 - Cuando suena la campanada trece, la gente del pueblo queda inmóvil un instante y después olvida. Los personajes de los jugadores NUNCA quedan inmóviles ni olvidan: los dos lo ven todo.
 - Dentro de la bruma hay un reflejo de Valdebruma: las mismas calles, con todas las ventanas encendidas y las mesas servidas. Los Ausentes viven allí sin saber que fueron olvidados. Recuperan el rostro por un instante cuando alguien dice su nombre en voz alta.
 - La Dama lleva la cuenta de los entregados. Nadie sale de la bruma sin que la cuenta cierre: si uno sale, otro ocupa su lugar. Y la cuenta arrastra un hueco desde el principio: siete firmaron el pacto, seis pagaron.
-- Giro reservado para más adelante (NO lo reveles en los capítulos 1 y 2): la Peste Gris nunca fue una enfermedad; era la propia Dama. Uno de los siete fundadores lo sabía.
+- Giro reservado (NO lo reveles ni lo insinúes en los capítulos 1 y 2): la Peste Gris nunca fue una enfermedad. Era la propia Dama, que ya entonces se llevaba a la gente de la memoria. Los fundadores no la detuvieron: le pusieron horario.
+- Los Siete (NO antes del capítulo 3): seis fundadores pagaron el pacto con sus propios nombres y fueron los primeros Ausentes; sus tumbas en la cripta están vacías. La séptima raspó su firma de la ordenanza con una aguja de tejer para no pagar. Es Úrsula Vane, la tejedora. Como nunca pagó, la Dama no puede llevársela ni ella puede morir: lleva cien años atando un nudo por cada entregado y se obligó a olvidar por qué. Mientras su deuda siga abierta, la cuenta no cierra y el pacto no puede terminar.
 
 ARCO DE LA CAMPAÑA:
 1. La posada del Farol Tuerto: descubrir que el pueblo olvida a su gente y que la campana y el Libro son la causa.
@@ -238,6 +256,54 @@ export const PISTAS: Pista[] = [
     titulo: "Siete nudos",
     texto: "Al volver, el hilo trae siete nudos que nadie ató. El séptimo está hecho al revés.",
     escena: 9,
+  },
+  {
+    id: "aguja",
+    titulo: "Raspada con una aguja",
+    texto: "La séptima firma de la ordenanza no fue borrada a cuchillo, como los nombres del libro de huéspedes: la rasparon con algo fino, con paciencia, desde adentro del archivo.",
+    escena: 10,
+  },
+  {
+    id: "acta_ines",
+    titulo: "El acta de Inés",
+    texto: "En el registro de bautismos hay un renglón raspado con fecha de hace cuatro años. El padrino firmó igual: «por Inés, hija del alguacil».",
+    escena: 10,
+  },
+  {
+    id: "custodios",
+    titulo: "La lista de los Custodios",
+    texto: "En la sacristía hay una lista de quienes escribieron en el Libro antes de Anselmo. Ninguno murió: todos terminan con la misma palabra, «entregado».",
+    escena: 11,
+  },
+  {
+    id: "tumbas_vacias",
+    titulo: "Seis tumbas vacías",
+    texto: "En la cripta hay siete tumbas. Seis están abiertas y vacías, con un plato y una vela adentro. La séptima nunca tuvo nombre.",
+    escena: 12,
+  },
+  {
+    id: "no_hubo_peste",
+    titulo: "Nunca hubo enfermos",
+    texto: "El testimonio grabado en la cripta no habla de fiebre ni de muertos: habla de camas tendidas, cunas vacías y nombres que nadie sabía decir. La Peste Gris no fue una enfermedad.",
+    escena: 12,
+  },
+  {
+    id: "seis_pagaron",
+    titulo: "Los primeros Ausentes",
+    texto: "Los seis fundadores pagaron el pacto con sus propios nombres. Siguen ahí abajo, sin rostro, cuidando una puerta de bruma.",
+    escena: 13,
+  },
+  {
+    id: "firma_septima",
+    titulo: "La séptima firma",
+    texto: "Bajo el raspado todavía se lee, de atrás para adelante como un nudo al revés: Úrsula Vane.",
+    escena: 13,
+  },
+  {
+    id: "ovillo_completo",
+    titulo: "Treinta y seis mil nudos",
+    texto: "El ovillo de Úrsula tiene un nudo por cada persona entregada en cien años. Cuando se termine el hilo, se termina la cuenta.",
+    escena: 14,
   },
 ];
 
@@ -735,6 +801,240 @@ export const ESCENAS: EscenaDef[] = [
     resumenBase:
       "Salieron de la bruma siguiendo el hilo. Al volver, el cordel traía siete nudos que nadie ató; el último, hecho al revés.",
   },
+  // ───────────────────────── Capítulo 3: Los Siete ─────────────────────────
+  {
+    id: "archivo",
+    capitulo: 3,
+    titulo: "El archivo del cabildo",
+    lugar: "plaza",
+    ambientacion:
+      "De día, Valdebruma finge normalidad: postigos abiertos, ropa tendida, vecinos que saludan y no miran a los ojos. En un costado de la plaza está el cabildo, y en su altillo el archivo: cien años de actas atadas con cinta. El alguacil Corvino tiene la llave y la orden de no dejar pasar a nadie, aunque no recuerda quién se la dio. Arriba está la ordenanza original del toque de queda, con siete firmas y una raspada, y el registro de bautismos.",
+    objetivo: "Entrar al archivo y examinar la ordenanza original: quién fue el séptimo y cómo borró su firma.",
+    vias: {
+      combate: "Trepar al altillo por el patio, forzar el armario de las actas, sostener la estantería que se viene abajo.",
+      ingenio: "Comparar los raspados, encontrar el registro de bautismos, notar el cabo de hilo rojo que cierra la cinta de la ordenanza.",
+      dialogo: "Convencer a Corvino de que abra, o de que suba con ustedes a buscar el nombre que le falta.",
+    },
+    npcs: ["corvino"],
+    meta: 3,
+    tope: 6,
+    cierre:
+      "La ordenanza dice dónde descansan los Siete: en la cripta, bajo el altar de la iglesia. La llave la tiene el párroco.",
+    opcionesBase: [
+      {
+        id: "a",
+        texto: "Trepar al altillo por el patio del cabildo",
+        enfoque: "combate",
+        tirada: { atributo: "destreza", dificultad: "media" },
+        avanza: true,
+      },
+      {
+        id: "b",
+        texto: "Comparar el raspado de la firma con los del libro de huéspedes",
+        enfoque: "ingenio",
+        tirada: { atributo: "ingenio", dificultad: "media" },
+        avanza: true,
+      },
+      {
+        id: "c",
+        texto: "Pedirle a Corvino que suba a buscar un nombre",
+        enfoque: "dialogo",
+        tirada: { atributo: "carisma", dificultad: "media" },
+        avanza: true,
+      },
+    ],
+    aperturaBase:
+      "De día la plaza parece otra: hay ropa tendida y una mujer que barre su umbral. Nadie los mira dos veces. Nadie los mira una, tampoco.\n\nEl cabildo es un edificio bajo con un altillo de ventanas ciegas. En la puerta, el alguacil Corvino hace girar una llave entre los dedos.\n\n—Al archivo no sube nadie —dice—. Es orden. —Frunce el ceño—. No me pregunten de quién.",
+    resumenBase:
+      "En el archivo del cabildo vieron la ordenanza original: la séptima firma fue raspada con algo fino, desde adentro. Los Siete descansan en la cripta de la iglesia.",
+  },
+  {
+    id: "sacristia",
+    capitulo: 3,
+    titulo: "La sacristía",
+    lugar: "campanario",
+    ambientacion:
+      "La iglesia a media tarde, vacía. En la sacristía, el padre Anselmo guarda el Libro de los Ausentes en un arcón y la llave de la cripta colgada del cuello. No baja desde que heredó la pluma: dice que ahí abajo le hablan. Sobre la mesa hay una lista con los nombres de los Custodios anteriores. Cómo los recibe depende de lo que pasó en el campanario: con rencor, con gratitud o con vergüenza.",
+    objetivo: "Conseguir la llave de la cripta y decidir cómo bajar.",
+    vias: {
+      combate: "Mover el altar que tapa la trampa, forzar la reja de la escalera, sostener a Anselmo cuando le fallan las piernas.",
+      ingenio: "Leer la lista de los Custodios, encontrar la trampa bajo el altar, notar que la llave es de hueso.",
+      dialogo: "Lograr que Anselmo cuente qué le dicen desde abajo, o que entregue la llave por su voluntad.",
+    },
+    npcs: ["anselmo"],
+    meta: 3,
+    tope: 6,
+    cierre:
+      "La trampa bajo el altar está abierta y la escalera baja a oscuras. Anselmo, en el borde, tiene la llave en la mano. Hay que decidir cómo se baja.",
+    votoAlCerrar: "cripta",
+    opcionesBase: [
+      {
+        id: "a",
+        texto: "Correr el altar que tapa la entrada",
+        enfoque: "combate",
+        tirada: { atributo: "fuerza", dificultad: "media" },
+        avanza: true,
+      },
+      {
+        id: "b",
+        texto: "Leer la lista de los Custodios anteriores",
+        enfoque: "ingenio",
+        tirada: { atributo: "ingenio", dificultad: "facil" },
+        avanza: true,
+      },
+      {
+        id: "c",
+        texto: "Preguntarle a Anselmo qué le dicen desde abajo",
+        enfoque: "dialogo",
+        tirada: { atributo: "voluntad", dificultad: "media" },
+        avanza: true,
+      },
+    ],
+    aperturaBase:
+      "La iglesia huele a cera fría. Sus pasos suenan demasiado.\n\nEn la sacristía, el padre Anselmo está sentado frente a un arcón cerrado, con las manos sobre la tapa como quien calma a un animal. Del cuello le cuelga una llave blanca.\n\n—Sé a qué vienen —dice sin girarse—. Yo no bajo. Desde que tengo la pluma, ahí abajo me conocen la voz.",
+    resumenBase:
+      "En la sacristía, el padre Anselmo les mostró la entrada a la cripta de los Siete, bajo el altar.",
+  },
+  {
+    id: "cripta",
+    capitulo: 3,
+    titulo: "La cripta de los Siete",
+    lugar: "cripta",
+    ambientacion:
+      "Bajo el altar, una cripta de bóvedas bajas con siete tumbas en círculo. Seis están abiertas y vacías: adentro de cada una hay un plato, una vela consumida y un nombre casi borrado. La séptima está cerrada y nunca tuvo nombre. En la pared, grabado a punzón, el testimonio de los fundadores: no habla de fiebre ni de muertos, habla de camas tendidas y de nombres que nadie sabía decir. El aire está quieto y hace más frío a cada paso hacia el fondo, donde la bruma sale de una grieta en el suelo.",
+    objetivo: "Leer el testimonio de los fundadores y entender qué pagaron los seis que están en las tumbas vacías.",
+    vias: {
+      combate: "Levantar la losa de la séptima tumba, apuntalar la bóveda que cede, abrirse paso por el derrumbe hacia el fondo.",
+      ingenio: "Descifrar el testimonio grabado, leer los nombres gastados, entender por qué en las tumbas hay platos.",
+      dialogo: "Decir en voz alta los nombres de los seis: algo contesta desde el fondo.",
+    },
+    npcs: [],
+    meta: 3,
+    tope: 6,
+    cierre:
+      "Al fondo de la cripta el suelo está abierto. Abajo hay una sala redonda y, en el medio, una puerta hecha de bruma. Seis figuras muy viejas, sin rostro, se ponen de pie.",
+    opcionesBase: [
+      {
+        id: "a",
+        texto: "Levantar la losa de la tumba sin nombre",
+        enfoque: "combate",
+        tirada: { atributo: "fuerza", dificultad: "dificil" },
+        avanza: true,
+      },
+      {
+        id: "b",
+        texto: "Descifrar el testimonio grabado en la pared",
+        enfoque: "ingenio",
+        tirada: { atributo: "ingenio", dificultad: "media" },
+        avanza: true,
+      },
+      {
+        id: "c",
+        texto: "Decir en voz alta los nombres de las tumbas",
+        enfoque: "dialogo",
+        tirada: { atributo: "voluntad", dificultad: "media" },
+        avanza: true,
+      },
+    ],
+    aperturaBase:
+      "La escalera termina en un piso de losas húmedas. La luz alcanza para contar siete tumbas puestas en círculo, como sillas alrededor de una mesa.\n\nSeis están abiertas. No hay huesos. En cada una hay un plato y un cabo de vela.\n\nLa séptima está cerrada. Donde debería ir el nombre, la piedra está lisa.\n\nDesde el fondo, por una grieta, sube la bruma. Despacio, como quien respira dormido.",
+    resumenBase:
+      "En la cripta encontraron seis tumbas vacías y una sin nombre. El testimonio de los fundadores no habla de una enfermedad: la Peste Gris fue otra cosa.",
+  },
+  {
+    id: "umbral",
+    capitulo: 3,
+    titulo: "El umbral",
+    lugar: "umbral",
+    ambientacion:
+      "Debajo de la cripta, la sala redonda donde se firmó el pacto. En el centro hay una puerta sin pared, hecha de bruma: el Umbral. La custodian los seis fundadores, los primeros Ausentes, viejísimos y corteses. Por ellos habla la Dama. No amenaza: ofrece. A cada personaje le ofrece lo que su secreto pide (olvidar una culpa, recuperar a alguien, que nadie se entere) a cambio de que se vuelvan por donde vinieron. En el dintel de la puerta está la ordenanza verdadera, y en ella la séptima firma, que acá no se pudo raspar del todo.",
+    objetivo: "Resistir lo que ofrece la Dama y leer la séptima firma.",
+    vias: {
+      combate: "Sostenerse contra la bruma que tira hacia la puerta, arrancar la ordenanza del dintel, apartar a un fundador que cierra el paso.",
+      ingenio: "Leer la firma al revés, como un nudo; notar qué fundador falta en el círculo; entender por qué la cuenta no cierra.",
+      dialogo: "Contestarle a la Dama sin aceptar ni mentir; decir el propio secreto en voz alta para que deje de servirle; preguntarles a los fundadores por la séptima.",
+    },
+    npcs: [],
+    meta: 3,
+    tope: 6,
+    cierre:
+      "La firma se deja leer: Úrsula Vane. Los seis fundadores bajan la cabeza. La voz de todos dice, casi con ternura, que hace cien años que la espera, y que ahora ustedes saben el nombre que le falta.",
+    votoAlCerrar: "septima",
+    opcionesBase: [
+      {
+        id: "a",
+        texto: "Avanzar contra la bruma hasta el dintel",
+        enfoque: "combate",
+        tirada: { atributo: "fuerza", dificultad: "dificil" },
+        avanza: true,
+      },
+      {
+        id: "b",
+        texto: "Leer la firma de atrás para adelante, como un nudo",
+        enfoque: "ingenio",
+        tirada: { atributo: "ingenio", dificultad: "media" },
+        avanza: true,
+      },
+      {
+        id: "c",
+        texto: "Contestarle a la voz sin aceptar lo que ofrece",
+        enfoque: "dialogo",
+        tirada: { atributo: "voluntad", dificultad: "dificil" },
+        avanza: true,
+      },
+    ],
+    aperturaBase:
+      "Abajo no hay bóvedas: hay una sala redonda, lisa, y en el medio una puerta. No tiene pared. Es un marco de piedra lleno de bruma que se mueve como una cortina.\n\nAlrededor hay seis figuras sentadas. Son muy viejas. Cuando ustedes bajan el último escalón se ponen de pie, de a una, con cuidado, como gente a la que le duelen las rodillas.\n\n—Bienvenidos —dicen las seis, con una sola voz que no es de ninguna—. Hace mucho que no baja nadie con nombre.",
+    resumenBase:
+      "Bajo la cripta, frente a una puerta de bruma, los seis fundadores hablaron con la voz de la Dama. La séptima firma del pacto es de Úrsula Vane, la tejedora.",
+  },
+  {
+    id: "ovillo",
+    capitulo: 3,
+    titulo: "Lo que sabe la tejedora",
+    lugar: "linde",
+    ambientacion:
+      "Atardece en la última casa del pueblo. Úrsula teje en el umbral, como siempre, y el ovillo está más chico que ayer: queda hilo para pocos nudos. Lo que pase acá depende de lo que decidieron frente al Umbral: si vienen a decirle quién es, si ya entregaron su nombre o si piensan callar. La bruma está más cerca de la casa que nunca.",
+    objetivo: "Hacerse cargo de lo que decidieron sobre Úrsula y prepararse para la última hora trece.",
+    vias: {
+      combate: "Trancar la casa contra la bruma, cargar el ovillo adentro, sostener a Úrsula cuando se le doblan las piernas.",
+      ingenio: "Contar cuánto hilo queda, comparar el ovillo con el cuaderno del Guarda, entender qué pasa cuando se termine.",
+      dialogo: "Hablar con Úrsula: decirle, preguntarle, acompañarla o despedirse.",
+    },
+    npcs: ["ursula", "brigida"],
+    meta: 2,
+    tope: 3,
+    cierre:
+      "Fin del capítulo. Vuelven a la Casa del Guarda al caer la noche. Dejá un gancho hacia el final: al ovillo le queda hilo para un solo nudo, y esta noche la campana va a sonar para alguien que ustedes conocen.",
+    votoAlCerrar: "mejora",
+    opcionesBase: [
+      {
+        id: "a",
+        texto: "Entrar el ovillo antes de que la bruma lo alcance",
+        enfoque: "combate",
+        tirada: { atributo: "fuerza", dificultad: "media" },
+        avanza: true,
+      },
+      {
+        id: "b",
+        texto: "Contar cuánto hilo le queda al ovillo",
+        enfoque: "ingenio",
+        tirada: { atributo: "ingenio", dificultad: "facil" },
+        avanza: true,
+      },
+      {
+        id: "c",
+        texto: "Sentarse al lado de Úrsula y hablarle",
+        enfoque: "dialogo",
+        tirada: { atributo: "carisma", dificultad: "facil" },
+        avanza: true,
+      },
+    ],
+    aperturaBase:
+      "Atardece sobre la última casa. La bruma ya no está parada como una pared: se apoya en el espino, se prueba en el umbral.\n\nÚrsula teje. El ovillo, que ayer le llegaba a la rodilla, hoy le cabe en la falda.\n\n—Volvieron con cara de velorio, criaturas —dice sin levantar la cabeza—. Siéntense. Y díganme de una vez lo que vienen masticando desde la plaza.",
+    resumenBase:
+      "Al atardecer volvieron a la casa de Úrsula. Al ovillo le queda hilo para muy pocos nudos.",
+  },
 ];
 
 export interface EfectosVoto {
@@ -940,6 +1240,106 @@ export const VOTOS: Record<VotoId, VotoDef> = {
         consecuencia:
           "Lía decide quedarse: alguien tiene que cuidar a los chicos. Les enseña la nana, verso por verso, y les pide una sola cosa para su hermano: que no deje de acordarse. La voz de todos dice que la cuenta está en orden. Narralo con pena y con respeto por la decisión de la chica.",
         aviso: "Lía se queda. Ustedes se llevan su nana.",
+      },
+    ],
+  },
+  cripta: {
+    id: "cripta",
+    pregunta: "¿Cómo bajan a la cripta?",
+    contexto: "La escalera baja a oscuras y Anselmo dice que ahí abajo le conocen la voz. Arriba, el pueblo va a notar que alguien abrió el altar.",
+    planteo:
+      "Cerrá la escena con la trampa abierta bajo el altar y Anselmo en el borde, con la llave de hueso en la mano. Hay que decidir cómo se baja: con él, solos, o dejando avisado al alguacil. No elijas por los jugadores.",
+    narrar: true,
+    opciones: [
+      {
+        id: "anselmo",
+        titulo: "Con Anselmo",
+        detalle: "El Custodio conoce las tumbas: empiezan con una pista de la cripta. Pero abajo le conocen la voz, y la Bruma sube un punto.",
+        efectos: {
+          amenaza: 1,
+          pista: "tumbas_vacias",
+          relaciones: { anselmo: 1 },
+          memoria: "El padre Anselmo bajó con ellos a la cripta de los Siete.",
+        },
+        consecuencia:
+          "Eligieron bajar con Anselmo. Baja último, agarrado a la pared, rezando en voz muy baja. A mitad de la escalera algo le contesta el rezo desde abajo, con su misma voz. No retrocede.",
+        aviso: "Anselmo baja con ustedes. Abajo ya lo oyeron.",
+      },
+      {
+        id: "solos",
+        titulo: "Solos, con la llave",
+        detalle: "Nadie más se arriesga. Anselmo les da su vela bendita (+2 a una tirada de voluntad).",
+        efectos: {
+          objeto: "vela",
+          memoria: "Bajaron solos a la cripta de los Siete; Anselmo se quedó rezando arriba.",
+        },
+        consecuencia:
+          "Eligieron bajar solos. Anselmo les cuelga la llave de hueso, les pone en la mano un cabo de vela bendita y se queda arriba, de rodillas junto a la trampa, para que al volver tengan una voz hacia la que caminar.",
+        aviso: "Bajan solos. Anselmo reza arriba, junto a la trampa.",
+      },
+      {
+        id: "corvino",
+        titulo: "Dejando avisado a Corvino",
+        detalle: "El alguacil cuida la puerta de la iglesia: la Bruma cede un punto. Pero el pueblo se entera de lo que buscan.",
+        efectos: {
+          amenaza: -1,
+          relaciones: { corvino: 1, anselmo: -1 },
+          memoria: "El alguacil Corvino montó guardia en la iglesia mientras ellos bajaban a la cripta.",
+        },
+        consecuencia:
+          "Eligieron avisar a Corvino. El alguacil llega con dos faroles y sin preguntas, se planta en la puerta de la iglesia y les dice que si en una hora no suben, baja a buscarlos, ordenanza o no. Anselmo lo mira como a un intruso.",
+        aviso: "Corvino monta guardia en la puerta de la iglesia.",
+      },
+    ],
+  },
+  septima: {
+    id: "septima",
+    pregunta: "Saben quién es la séptima. ¿Qué hacen con su nombre?",
+    contexto:
+      "Mientras Úrsula no pague, la cuenta no cierra. La Dama no puede tomarla por su cuenta: alguien tiene que decirle el nombre, o decírselo a ella.",
+    planteo:
+      "Cerrá la escena con la firma leída —Úrsula Vane— y la voz de todos diciendo que hace cien años que la espera. Los personajes tienen ahora el nombre que le falta a la cuenta. No resuelvas qué hacen con él: lo votan los jugadores.",
+    narrar: true,
+    opciones: [
+      {
+        id: "decirle",
+        titulo: "Decírselo a Úrsula",
+        detalle: "Ella tiene derecho a saber quién es. La Dama pierde su secreto y la Bruma sube 2, pero Úrsula recuerda cómo se firmó el pacto.",
+        efectos: {
+          amenaza: 2,
+          relaciones: { ursula: 2 },
+          memoria: "Decidieron contarle a Úrsula que ella es la séptima fundadora. Al saberlo, recuerda cómo se firmó el pacto.",
+        },
+        consecuencia:
+          "Eligieron guardarse el nombre para decírselo a ella. La voz de todos se enfría: dice que los nombres dichos en voz alta no se pueden desdecir. Los seis fundadores se sientan de nuevo, y uno, antes de sentarse, hace con la cabeza algo que parece un gracias. Suben con la bruma pegada a los talones.",
+        aviso: "Le van a decir a Úrsula quién es.",
+      },
+      {
+        id: "entregarla",
+        titulo: "Darle el nombre a la Dama",
+        detalle: "La cuenta cierra: la Bruma cede 3 y la campana calla unas noches. Úrsula paga lo que debe.",
+        efectos: {
+          amenaza: -3,
+          relaciones: { ursula: -3, anselmo: 1 },
+          memoria: "Le dieron a la Dama el nombre de Úrsula Vane. La cuenta de los Siete quedó cerrada y la tejedora empezó a borrarse.",
+        },
+        consecuencia:
+          "Eligieron decir el nombre frente al Umbral. La bruma de la puerta se aquieta como agua que encuentra su nivel. La voz de todos dice «gracias» y suena sincera. Arriba, en la linde, a una vieja se le cae el ovillo de la falda y no sabe por qué. No lo narres como un triunfo: narralo como una deuda ajena que cobraron ellos.",
+        aviso: "Dijeron el nombre. La cuenta de los Siete cierra.",
+      },
+      {
+        id: "callar",
+        titulo: "Callar y guardarlo",
+        detalle: "Ni para una ni para la otra. Se llevan la firma (+2 a una tirada de ingenio); la Dama sabe que la tienen y la Bruma sube 1.",
+        efectos: {
+          amenaza: 1,
+          objeto: "firma",
+          relaciones: { ursula: 1 },
+          memoria: "Se guardaron el nombre de la séptima fundadora sin decírselo a nadie. La Dama sabe que lo tienen.",
+        },
+        consecuencia:
+          "Eligieron callar. Arrancan del dintel el pedazo de ordenanza con la firma y se lo guardan. La voz de todos no se enoja: dice que puede esperar, que es lo que mejor hace, y que ellos no. Los fundadores los miran subir sin moverse.",
+        aviso: "Se guardan la firma. La Dama espera.",
       },
     ],
   },
