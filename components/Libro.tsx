@@ -212,12 +212,21 @@ function PestanaDiario({ sala }: { sala: SalaEnVivo }) {
         </ul>
       </Seccion>
 
-      <Seccion titulo="la gente del pueblo">
+      <Seccion titulo={vista.campana.id === "coche" ? "la gente del camino" : "la gente del pueblo"}>
         {vista.npcs.length === 0 && <p className="italic text-sepia">Aún no conocen a nadie.</p>}
         <ul className="space-y-2">
           {vista.npcs.map((n) => (
-            <li key={n.id} className="flex items-center justify-between gap-3">
-              <div className="min-w-0">
+            <li key={n.id} className="flex items-center gap-3">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={`/gente/${n.id}.webp`}
+                alt=""
+                width={44}
+                height={44}
+                loading="lazy"
+                className="h-11 w-11 shrink-0 rounded-full object-cover [box-shadow:0_0_0_1.5px_#8a6f3a]"
+              />
+              <div className="min-w-0 flex-1">
                 <p className="text-[1.05rem] leading-tight">{n.nombre}</p>
                 <p className="truncate text-[0.92rem] italic text-sepia">{n.rol}</p>
               </div>
