@@ -385,7 +385,7 @@ export function planificar(e: EstadoJuego): Plan {
   const resuelta = e.escena.avance + avance >= def.meta;
   const agotada = !resuelta && e.escena.turnos + 1 >= def.tope;
   const cierra = resuelta || agotada;
-  const siguiente = !cierra ? null : def.votoAlCerrar ? "voto" : "escena";
+  const siguiente = !cierra ? null : def.votoAlCerrar ? "voto" : esUltimaDelCapitulo(e.escena.indice) ? "fin" : "escena";
 
   return {
     tipo: "accion",
@@ -531,7 +531,9 @@ function aplicarCambios(e: EstadoJuego, plan: Plan, salida: SalidaDM, actor: Asi
 
   if (aplicarInventario(e, c.inventario)) huboCosto = true;
 
-  let amenaza = acotar(Math.round(c.amenaza), -1, limite.amenaza) + plan.amenazaForzada;
+  // La Bruma solo retrocede por mérito propio con un éxito crítico (y al resolver una escena).
+  const cede = plan.resultado === "critico" ? -1 : 0;
+  let amenaza = acotar(Math.round(c.amenaza), cede, limite.amenaza) + plan.amenazaForzada;
   if (amenaza > 0) huboCosto = true;
 
   // Un fallo sin consecuencias no es un fallo: si el modelo no cobró nada, cobra el código.
@@ -669,6 +671,8 @@ function cerrarEscena(e: EstadoJuego, plan: Plan, salida: SalidaDM): void {
   if (plan.siguiente === "voto" && def.votoAlCerrar) {
     e.voto = crearVoto(e, def.votoAlCerrar);
     if (esUltimaDelCapitulo(e.escena.indice)) e.fase = "fin_capitulo";
+  } else if (plan.siguiente === "fin") {
+    e.fase = "fin_capitulo";
   } else if (plan.abre !== null) {
     abrirEscena(e, plan.abre);
   }
@@ -725,7 +729,7 @@ export function aplicarNarracion(
   if (plan.cierra) cerrarEscena(e, plan, salida);
   if (plan.tipo === "tras_voto" && plan.abre !== null) abrirEscena(e, plan.abre);
 
-  e.opciones = e.voto ? [] : opcionesValidas(salida.opciones, e.escena.indice, e.escena.libres);
+  e.opciones = e.voto || e.fase === "fin_capitulo" ? [] : opcionesValidas(salida.opciones, e.escena.indice, e.escena.libres);
 
   // El farol cambia de mano después de cada acción, salvo que el otro esté caído.
   if (actor) {

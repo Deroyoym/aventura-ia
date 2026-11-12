@@ -18,6 +18,8 @@ export interface CapituloDef {
   guia: string;
   /** Directiva para la narración que abre el capítulo. */
   apertura: string;
+  /** El último de la campaña: al cerrarlo no hay «continuará». */
+  final?: boolean;
 }
 
 export const CAPITULOS: CapituloDef[] = [
@@ -61,6 +63,26 @@ CAPITULOS.push({
     "Abrí el capítulo 3: es de día, un día gris, y los personajes cruzan la plaza hacia el cabildo con el hilo de los siete nudos. Recordá en una frase cómo volvieron de la bruma según lo que decidieron con Lía. El alguacil Corvino está en la puerta del archivo.",
 });
 
+CAPITULOS.push({
+  numero: 4,
+  titulo: "La Dama del Umbral",
+  final: true,
+  guia: [
+    "Es el último capítulo y transcurre en una sola noche. Acá se revela quién es la Dama y cómo se termina el pacto. No lo sueltes de entrada: en las escenas 1 y 2 juntan lo que hace falta; en la 3 suben; en la 4 la Dama llega al campanario y ahí se entiende quién es; la 5 es el epílogo.",
+    "Lo que está en juego: el último renglón del Libro se escribe solo, con los nombres de los dos personajes. Si la tinta se seca a la hora trece, el pueblo los olvida y pasan a la bruma.",
+    "Cómo se le hace frente: una campana que toca una mano viva da horas que existen. Con el badajo puesto y alguien tirando de la soga, la campana da las doce y la trece no llega. Mientras tanto hay que decir en voz alta los nombres de los Ausentes: cada nombre dicho por alguien que lo quiso devuelve un rostro.",
+    "La Dama llega en la escena 4 sin figura: un lugar vacío que la bruma rodea, del tamaño de una persona sentada. Habla ella misma por primera vez, con voz baja y cansada, sin amenazar. Qué se hace con ella lo deciden los jugadores con un voto: no lo resuelvas vos.",
+    "Tené en cuenta lo decidido antes (ver «Decisiones tomadas» y «Memoria»):",
+    "- Tobías: si fue borrado en el capítulo 1, sigue en la bruma y es uno de los nombres que hay que decir. Si no, anda con ellos y quiere tirar de la soga.",
+    "- Lía: si salió de la bruma, está con Brígida y sabe los nombres de los chicos; si se quedó, la oyen cantar la nana del otro lado.",
+    "- Úrsula: si le dijeron quién es, lo recuerda todo y viene por su voluntad con el ovillo; si la entregaron, es una Ausente más en la plaza y el ovillo quedó en su umbral; si callaron, ella no sabe nada y los personajes llevan su firma.",
+    "- El compañero animal, si lo perdieron en la bruma, aparece entre los Ausentes de la plaza.",
+    "Brígida sigue siendo el alivio cómico, incluso esta noche: cobra, protesta y sube igual.",
+  ].join("\n"),
+  apertura:
+    "Abrí el capítulo 4: cae la última noche sobre la Casa del Guarda. Mostrá en una frase la mejora que hicieron en la casa. El Guarda puso la mesa para mucha más gente de la que cabe. Golpean la puerta: es el padre Anselmo, sin aliento, con el Libro de los Ausentes abrazado contra el pecho.",
+});
+
 export const capituloDef = (numero: number): CapituloDef => {
   const c = CAPITULOS.find((x) => x.numero === numero);
   if (!c) throw new Error(`Capítulo inexistente: ${numero}`);
@@ -83,6 +105,8 @@ LA VERDAD (solo para vos; los jugadores la descubren de a poco, por pistas):
 - La Dama lleva la cuenta de los entregados. Nadie sale de la bruma sin que la cuenta cierre: si uno sale, otro ocupa su lugar. Y la cuenta arrastra un hueco desde el principio: siete firmaron el pacto, seis pagaron.
 - Giro reservado (NO lo reveles ni lo insinúes en los capítulos 1 y 2): la Peste Gris nunca fue una enfermedad. Era la propia Dama, que ya entonces se llevaba a la gente de la memoria. Los fundadores no la detuvieron: le pusieron horario.
 - Los Siete (NO antes del capítulo 3): seis fundadores pagaron el pacto con sus propios nombres y fueron los primeros Ausentes; sus tumbas en la cripta están vacías. La séptima raspó su firma de la ordenanza con una aguja de tejer para no pagar. Es Úrsula Vane, la tejedora. Como nunca pagó, la Dama no puede llevársela ni ella puede morir: lleva cien años atando un nudo por cada entregado y se obligó a olvidar por qué. Mientras su deuda siga abierta, la cuenta no cierra y el pacto no puede terminar.
+- La Dama (NO antes del capítulo 4): es la primera olvidada del valle. Una mujer que vivía sola en la casa de la linde —la que hoy llaman Casa del Guarda— antes de que hubiera pueblo. Cuando murió no quedaba nadie que dijera su nombre, y ni ella lo sabe ya. No tiene figura porque nadie la recuerda. Se lleva la memoria de otros porque no tiene propia: cada Ausente es una silla ocupada en su mesa. No es malvada: está sola y cree que cobra una deuda justa. El plato de más que pone Brígida, y el de la cabecera en la mesa del Guarda, son para ella sin que nadie lo sepa.
+- El final (capítulo 4): el pacto se sostiene en tres cosas: la cuenta (el Libro, el ovillo), la hora que no existe (una campana sin badajo que suena sola) y el olvido. Se puede romper (tocar la campana a mano y decir todos los nombres), renovar (firmar un pacto nuevo y pagarlo uno mismo) o cambiar (darle a la Dama un nombre y un lugar en la mesa). Lo eligen los jugadores.
 
 ARCO DE LA CAMPAÑA:
 1. La posada del Farol Tuerto: descubrir que el pueblo olvida a su gente y que la campana y el Libro son la causa.
@@ -304,6 +328,54 @@ export const PISTAS: Pista[] = [
     titulo: "Treinta y seis mil nudos",
     texto: "El ovillo de Úrsula tiene un nudo por cada persona entregada en cien años. Cuando se termine el hilo, se termina la cuenta.",
     escena: 14,
+  },
+  {
+    id: "ultimo_renglon",
+    titulo: "El último renglón",
+    texto: "Al Libro de los Ausentes le queda un solo renglón, y se está escribiendo solo. Las letras que van apareciendo son las de sus nombres.",
+    escena: 15,
+  },
+  {
+    id: "mesa_puesta",
+    titulo: "La cabecera",
+    texto: "El Guarda puso la mesa para medio pueblo. El plato de la cabecera es el más viejo de la casa: está gastado en el borde y nunca se usó.",
+    escena: 15,
+  },
+  {
+    id: "badajo",
+    titulo: "El badajo de los Siete",
+    texto: "El badajo de la campana está guardado en el cabildo, envuelto en una bandera. Lo descolgaron los fundadores la noche del pacto: una campana que toca una mano viva da horas que existen.",
+    escena: 16,
+  },
+  {
+    id: "huecos",
+    titulo: "El nombre que falta",
+    texto: "Cuando a un vecino le dicen el nombre que le falta en la casa, llora antes de acordarse. El olvido no borra el cariño: le tapa la boca.",
+    escena: 16,
+  },
+  {
+    id: "la_primera",
+    titulo: "La casa de la linde",
+    texto: "En la piedra más vieja del campanario alguien grabó una casa sola al borde de la bruma y una mujer sentada a una mesa. La piedra es anterior a la iglesia, y al pueblo.",
+    escena: 17,
+  },
+  {
+    id: "doce",
+    titulo: "Doce campanadas",
+    texto: "La soga de la campana está cortada a la altura de una mano. Nadie tiró de ella en cien años: por eso la campana da una hora de más.",
+    escena: 17,
+  },
+  {
+    id: "sin_nombre",
+    titulo: "La que no tiene nombre",
+    texto: "La Dama no tiene figura porque no queda nadie que la recuerde. Fue la primera olvidada del valle, y la casa de la linde era suya.",
+    escena: 18,
+  },
+  {
+    id: "sillas",
+    titulo: "Una silla por noche",
+    texto: "La Dama no quiere al pueblo. Quiere que alguien se siente a su mesa: cada Ausente es una silla ocupada.",
+    escena: 18,
   },
 ];
 
@@ -1035,6 +1107,238 @@ export const ESCENAS: EscenaDef[] = [
     resumenBase:
       "Al atardecer volvieron a la casa de Úrsula. Al ovillo le queda hilo para muy pocos nudos.",
   },
+  {
+    id: "renglon",
+    capitulo: 4,
+    titulo: "El último renglón",
+    lugar: "refugio",
+    ambientacion:
+      "Última noche. En la Casa del Guarda la mesa está puesta para mucha más gente de la que cabe: platos sobre los bancos, sobre el arcón, en el alféizar. En la cabecera hay un plato viejo, gastado, que nunca se usó. Anselmo llega con el Libro de los Ausentes: le queda un solo renglón, la pluma ya no le obedece y las letras aparecen solas, despacio. Son los nombres de los dos personajes. Cuando la tinta se seque, a la hora trece, el pueblo los va a olvidar.",
+    objetivo: "Entender qué va a pasar esta noche y con qué cuentan para impedirlo.",
+    vias: {
+      combate: "Intentar tachar, mojar o arrancar el renglón (no se puede: la tinta vuelve); sujetar a Anselmo, que quiere quemar el Libro; trancar la casa.",
+      ingenio: "Leer en el cuaderno del Guarda la única noche sin hora trece; contar los platos; mirar el de la cabecera.",
+      dialogo: "Hacer que Anselmo cuente lo que nunca contó: qué pasa con un Custodio cuando se le termina el Libro.",
+    },
+    npcs: ["anselmo", "guarda"],
+    meta: 3,
+    tope: 5,
+    cierre:
+      "Queda claro: sus nombres se están escribiendo y hay tiempo hasta la hora trece. El cuaderno del Guarda dice que una sola noche, hace sesenta años, no hubo campanada: fue la noche en que un monaguillo se colgó de la soga por jugar. Salen hacia la plaza.",
+    opcionesBase: [
+      {
+        id: "a",
+        texto: "Arrancar el renglón antes de que termine de escribirse",
+        enfoque: "combate",
+        tirada: { atributo: "fuerza", dificultad: "dificil" },
+        avanza: true,
+      },
+      {
+        id: "b",
+        texto: "Buscar en el cuaderno del Guarda una noche sin campanada",
+        enfoque: "ingenio",
+        tirada: { atributo: "ingenio", dificultad: "media" },
+        avanza: true,
+      },
+      {
+        id: "c",
+        texto: "Pedirle a Anselmo que diga qué le pasa al último Custodio",
+        enfoque: "dialogo",
+        tirada: { atributo: "carisma", dificultad: "media" },
+        avanza: true,
+      },
+    ],
+    aperturaBase:
+      "Cae la última noche. En la Casa del Guarda hay platos por todas partes: en la mesa, en los bancos, en el alféizar. Alguien que no ven sigue sacando más del aparador.\n\nGolpean la puerta. Es el padre Anselmo, sin aliento, con el Libro abrazado contra el pecho.\n\n—Ya no escribo yo —dice, y lo abre sobre la mesa, entre los platos.\n\nQueda un renglón. En el renglón hay dos letras nuevas, húmedas. Son las primeras de sus nombres.",
+    resumenBase:
+      "El último renglón del Libro se escribe solo, con los nombres de los dos. Una sola noche en cien años no hubo hora trece: la noche en que alguien tiró de la soga.",
+  },
+  {
+    id: "vecinos",
+    capitulo: 4,
+    titulo: "Puertas con sal",
+    lugar: "plaza",
+    ambientacion:
+      "La plaza bajo toque de queda, por última vez. Todas las puertas tienen sal en el umbral y gente despierta detrás. En el cabildo, envuelto en una bandera, está el badajo que los fundadores descolgaron. Hace falta el badajo y hace falta gente: los nombres de los Ausentes solo valen dichos por quien los quiso. Corvino cuida la plaza; Brígida mira desde la puerta de la posada con el libro de huéspedes bajo el brazo. En el borde de la bruma, los Ausentes ya no están quietos: se acercan de a un paso.",
+    objetivo: "Conseguir el badajo y sacar a los vecinos de sus casas, contra una ordenanza de cien años.",
+    vias: {
+      combate: "Forzar el arcón del cabildo, cargar el badajo (pesa como un chico dormido), abrir una puerta trancada desde adentro.",
+      ingenio: "Decirle a cada casa el nombre exacto que le falta, sacado del cuaderno; encontrar el badajo por la bandera que lo envuelve.",
+      dialogo: "Convencer a Corvino de romper su propio toque de queda; lograr que Brígida vaya puerta por puerta cobrando deudas viejas.",
+    },
+    npcs: ["corvino", "brigida", "tobias"],
+    meta: 3,
+    tope: 5,
+    cierre:
+      "Tienen el badajo y se abre una puerta, después otra. Los vecinos salen con faroles, sin saber del todo por qué, y se juntan al pie de la iglesia. Falta decidir de dónde se leen los nombres.",
+    votoAlCerrar: "lectura",
+    opcionesBase: [
+      {
+        id: "a",
+        texto: "Forzar el arcón del cabildo donde guardan el badajo",
+        enfoque: "combate",
+        tirada: { atributo: "fuerza", dificultad: "media" },
+        avanza: true,
+      },
+      {
+        id: "b",
+        texto: "Golpear una puerta y decir el nombre que falta adentro",
+        enfoque: "ingenio",
+        tirada: { atributo: "ingenio", dificultad: "media" },
+        avanza: true,
+      },
+      {
+        id: "c",
+        texto: "Pedirle a Corvino que rompa su propio toque de queda",
+        enfoque: "dialogo",
+        tirada: { atributo: "carisma", dificultad: "dificil" },
+        avanza: true,
+      },
+    ],
+    aperturaBase:
+      "La plaza está vacía y no está dormida. Detrás de cada postigo hay una rendija de luz y alguien que mira.\n\nEl alguacil Corvino cruza hacia ustedes con la linterna baja.\n\n—Hay ordenanza —dice, sin ganas—. Y esta noche, además, hay algo en el aire que no me gusta.\n\nEn el borde de la bruma, las figuras sin rostro dan un paso. Todas juntas.",
+    resumenBase:
+      "Sacaron el badajo del cabildo y, por primera vez en cien años, los vecinos de Valdebruma salieron a la plaza después del toque de queda.",
+  },
+  {
+    id: "soga",
+    capitulo: 4,
+    titulo: "La soga cortada",
+    lugar: "campanario",
+    ambientacion:
+      "La escalera del campanario, con medio pueblo detrás y los Ausentes llenando la plaza. La escalera se estira: cada vuelta tiene más escalones que la anterior. Arriba, la campana cuelga sin badajo y la soga está cortada a la altura de una mano. Hay que colgar el badajo, empalmar la soga y llegar antes de que el renglón termine de escribirse. En la piedra más vieja del muro hay un grabado anterior a la iglesia: una casa sola en la linde y una mujer sentada a una mesa.",
+    objetivo: "Llegar arriba, colgar el badajo y dejar la soga lista antes de la hora trece.",
+    vias: {
+      combate: "Subir el badajo a pulso por una escalera que no se termina; izarlo hasta la campana; sostener la puerta contra la bruma.",
+      ingenio: "Engañar a la escalera contando los escalones en voz alta; empalmar la soga con el hilo rojo; leer el grabado de la piedra vieja.",
+      dialogo: "Mantener juntos a los vecinos, que quieren volverse; darle a Anselmo algo que hacer que no sea escribir.",
+    },
+    npcs: ["anselmo"],
+    meta: 3,
+    tope: 5,
+    cierre:
+      "El badajo cuelga, la soga llega al piso. Abajo, la plaza está llena de figuras sin rostro que miran hacia arriba. En el Libro falta una sola letra. La bruma entra por los cuatro arcos del campanario y se abre alrededor de un lugar vacío.",
+    opcionesBase: [
+      {
+        id: "a",
+        texto: "Izar el badajo a pulso hasta la campana",
+        enfoque: "combate",
+        tirada: { atributo: "fuerza", dificultad: "dificil" },
+        avanza: true,
+      },
+      {
+        id: "b",
+        texto: "Contar los escalones en voz alta para que no se estiren",
+        enfoque: "ingenio",
+        tirada: { atributo: "ingenio", dificultad: "media" },
+        avanza: true,
+      },
+      {
+        id: "c",
+        texto: "Frenar a los vecinos que quieren volverse",
+        enfoque: "dialogo",
+        tirada: { atributo: "carisma", dificultad: "media" },
+        avanza: true,
+      },
+    ],
+    aperturaBase:
+      "La puerta de la iglesia está abierta. Adentro, la escalera de caracol sube como siempre y, como siempre, sube de más.\n\nDetrás de ustedes vienen los vecinos, con faroles, hablando bajo. Brígida cierra la fila, protestando por las rodillas de todos.\n\nA la tercera vuelta ya no se oye la plaza. A la quinta, alguien atrás dice que esto no tiene fin y que mejor se vuelve.",
+    resumenBase:
+      "Subieron al campanario con los vecinos detrás, colgaron el badajo y empalmaron la soga cortada.",
+  },
+  {
+    id: "trece",
+    capitulo: 4,
+    titulo: "La hora trece",
+    lugar: "trece",
+    ambientacion:
+      "El campanario, a un momento de la hora trece. La bruma entró por los cuatro arcos y se abre alrededor de un lugar vacío del tamaño de una persona sentada: la Dama. Por primera vez habla con su propia voz, baja y cansada. No amenaza. Pregunta cuántos son, si alguien se queda a comer. Abajo, los vecinos empiezan a decir nombres y en la plaza aparecen caras. La soga está al alcance de la mano. En el Libro, la tinta del último renglón todavía brilla.",
+    objetivo: "Sostener la campana y los nombres hasta entender qué es la Dama y qué quiere.",
+    vias: {
+      combate: "Colgarse de la soga y hacer sonar la campana contra una bruma que la frena; sostener el Libro abierto para que la tinta no seque.",
+      ingenio: "Atar cabos: el plato de la cabecera, la casa de la linde, por qué no tiene figura; preguntarle por algo que solo sabría alguien que vivió ahí.",
+      dialogo: "Preguntarle cómo se llama; contestarle lo que pregunta; guiar a los vecinos para que no dejen de decir nombres.",
+    },
+    npcs: ["anselmo", "brigida"],
+    meta: 3,
+    tope: 6,
+    cierre:
+      "La campana ya dio once. La Dama no sabe decir su propio nombre, y se entiende: es la primera olvidada, la casa de la linde era suya y cada Ausente es alguien sentado a su mesa. Falta una campanada. Lo que pase con ella, con el pacto y con el pueblo depende de lo que hagan ahora.",
+    votoAlCerrar: "pacto",
+    opcionesBase: [
+      {
+        id: "a",
+        texto: "Colgarse de la soga y hacer sonar la campana",
+        enfoque: "combate",
+        tirada: { atributo: "fuerza", dificultad: "dificil" },
+        avanza: true,
+      },
+      {
+        id: "b",
+        texto: "Preguntarle qué había en la casa de la linde",
+        enfoque: "ingenio",
+        tirada: { atributo: "ingenio", dificultad: "media" },
+        avanza: true,
+      },
+      {
+        id: "c",
+        texto: "Preguntarle a la Dama cómo se llama",
+        enfoque: "dialogo",
+        tirada: { atributo: "voluntad", dificultad: "dificil" },
+        avanza: true,
+      },
+    ],
+    aperturaBase:
+      "La bruma entra por los cuatro arcos a la vez y no llena el campanario: lo rodea. En el medio deja un hueco, del tamaño de alguien sentado.\n\n—Cuántos son —dice el hueco. Es una voz baja, de mujer cansada—. Nunca suben tantos.\n\nAbajo, en la plaza, una vecina dice un nombre en voz alta. Después otra. Entre las figuras sin rostro aparece una cara, y se apaga, y aparece otra.\n\nLa soga cuelga al alcance de la mano.",
+    resumenBase:
+      "A la hora trece la Dama subió al campanario. No tiene figura ni nombre: fue la primera olvidada del valle, y lleva cien años llenando su mesa.",
+  },
+  {
+    id: "manana",
+    capitulo: 4,
+    titulo: "La primera mañana",
+    lugar: "refugio",
+    ambientacion:
+      "Amanece en Valdebruma. Lo que se ve depende de lo que decidieron en el campanario (ver «Decisiones tomadas» y «Memoria»): si rompieron el pacto, hay gente con cara volviendo a casas que no los esperaban y otros, los más viejos, que se deshacen en paz; si lo renovaron, el pueblo duerme tranquilo y el Libro nuevo está sobre su mesa; si le dieron nombre a la Dama, hay una vecina nueva en la posada y la bruma tiene un sendero. Los personajes vuelven a la Casa del Guarda. La mesa sigue puesta.",
+    objetivo: "Despedirse: ver qué quedó del pueblo, de la gente que conocieron y de ellos mismos.",
+    vias: {
+      combate: "Ayudar con las manos: levantar la mesa, acompañar a alguien hasta su puerta, descolgar la ordenanza del cabildo.",
+      ingenio: "Recorrer el pueblo mirando qué cambió: los relojes, el plato de más, la cuna del alguacil.",
+      dialogo: "Hablar con quien les falte: Brígida, Tobías, Anselmo, Úrsula, o entre ellos, de sus secretos.",
+    },
+    npcs: ["brigida", "tobias", "anselmo", "corvino", "ursula"],
+    meta: 2,
+    tope: 3,
+    cierre:
+      "El final. Mostrá en una imagen qué fue de cada personaje del pueblo que les importó, y terminá con los dos personajes y la mesa de la Casa del Guarda: el plato de la cabecera, usado o guardado según lo que eligieron. Los relojes de la posada vuelven a andar.",
+    opcionesBase: [
+      {
+        id: "a",
+        texto: "Levantar la mesa del Guarda, plato por plato",
+        enfoque: "combate",
+        tirada: { atributo: "fuerza", dificultad: "facil" },
+        avanza: true,
+      },
+      {
+        id: "b",
+        texto: "Recorrer el pueblo mirando qué cambió",
+        enfoque: "ingenio",
+        tirada: { atributo: "ingenio", dificultad: "facil" },
+        avanza: true,
+      },
+      {
+        id: "c",
+        texto: "Ir a la posada a despedirse de Brígida",
+        enfoque: "dialogo",
+        tirada: { atributo: "carisma", dificultad: "facil" },
+        avanza: true,
+      },
+    ],
+    aperturaBase:
+      "Amanece. No es un gran amanecer: es gris, como todos los de Valdebruma. Pero es el primero que ustedes ven llegar sin haber contado las campanadas.\n\nEn la Casa del Guarda la mesa sigue puesta. Alguien, que no vieron, dobló las servilletas.\n\nDesde el pueblo llega un ruido que no habían oído nunca acá: gente hablando fuerte en la calle.",
+    resumenBase:
+      "Amaneció en Valdebruma. Los relojes de la posada volvieron a andar, y en la Casa del Guarda la mesa quedó puesta.",
+  },
 ];
 
 export interface EfectosVoto {
@@ -1340,6 +1644,107 @@ export const VOTOS: Record<VotoId, VotoDef> = {
         consecuencia:
           "Eligieron callar. Arrancan del dintel el pedazo de ordenanza con la firma y se lo guardan. La voz de todos no se enoja: dice que puede esperar, que es lo que mejor hace, y que ellos no. Los fundadores los miran subir sin moverse.",
         aviso: "Se guardan la firma. La Dama espera.",
+      },
+    ],
+  },
+  lectura: {
+    id: "lectura",
+    pregunta: "¿De dónde leen los nombres?",
+    contexto:
+      "Los vecinos esperan al pie de la iglesia y no recuerdan a quién tienen que nombrar. Alguien tiene que ir dictándoles, y hay tres registros de cien años de olvidos.",
+    planteo:
+      "Cerrá la escena con los vecinos juntos al pie de la iglesia, el badajo en brazos, y la pregunta en el aire: no se acuerdan de a quién nombrar. Hay tres registros: el cuaderno del Guarda, el ovillo de la tejedora y el propio Libro. No elijas por los jugadores.",
+    narrar: true,
+    opciones: [
+      {
+        id: "cuaderno",
+        titulo: "El cuaderno del Guarda",
+        detalle: "Los anotó a todos, con fecha y con oficio. Lo leen ustedes: la Bruma cede un punto y el Guarda queda de su lado.",
+        efectos: {
+          amenaza: -1,
+          relaciones: { guarda: 2 },
+          memoria: "Los nombres de los Ausentes se leyeron del cuaderno del Guarda.",
+        },
+        consecuencia:
+          "Eligieron el cuaderno del Guarda. Cuando lo abren, las páginas se dan vuelta solas hasta la primera, y una mano que no se ve les señala el renglón. Brígida se lo arrebata: dice que con esa letra de forasteros no se entiende nada, y empieza a leer ella, a los gritos.",
+        aviso: "Leen del cuaderno del Guarda.",
+      },
+      {
+        id: "ovillo",
+        titulo: "El ovillo de la tejedora",
+        detalle: "Un nudo por nombre: se lee con los dedos y no se saltea a nadie. Cada uno recibe un nudo de la tejedora (+2 a una tirada de voluntad).",
+        efectos: {
+          objeto: "nudo",
+          memoria: "Los nombres de los Ausentes se leyeron del ovillo de la tejedora, nudo por nudo.",
+        },
+        consecuencia:
+          "Eligieron el ovillo. Si Úrsula sigue en su casa, lo trae ella misma, apoyada en Tobías o en un vecino, y va diciendo los nombres al tocar cada nudo sin saber de dónde los saca. Si fue entregada, el ovillo quedó en su umbral: lo levanta Brígida y los nudos le dictan a ella. El hilo se va desenrollando escalera arriba.",
+        aviso: "Leen del ovillo, nudo por nudo.",
+      },
+      {
+        id: "libro",
+        titulo: "El Libro de los Ausentes",
+        detalle: "Anselmo los escribió y Anselmo los lee. Les da su vela bendita (+2 a una tirada de voluntad), pero el Libro es de la Dama: la Bruma sube un punto.",
+        efectos: {
+          amenaza: 1,
+          objeto: "vela",
+          relaciones: { anselmo: 2 },
+          memoria: "El padre Anselmo leyó en voz alta, del Libro, los nombres que él mismo había escrito.",
+        },
+        consecuencia:
+          "Eligieron el Libro. Anselmo lo abre por la primera página que escribió él, hace cuarenta años, y lee con la voz que usa para los bautismos. A cada nombre levanta la vista y busca en la plaza. Las páginas ya leídas se ponen grises, como ceniza.",
+        aviso: "Anselmo lee del Libro los nombres que escribió.",
+      },
+    ],
+  },
+  pacto: {
+    id: "pacto",
+    pregunta: "Falta una campanada. ¿Qué hacen con el pacto?",
+    contexto:
+      "La campana dio once. La Dama está en el campanario, sin figura y sin nombre, y el último renglón del Libro dice los suyos. Lo que elijan ahora no se deshace.",
+    planteo:
+      "Cerrá la escena con la campana recién dada la undécima, la tinta del renglón casi seca y la Dama esperando. Ella misma dice las tres salidas, sin apuro: pueden dar la última campanada y terminar con todo; pueden firmar en el renglón un pacto nuevo; o pueden hacer lo que nadie hizo, que es preguntarle si quiere quedarse. No resuelvas nada: lo votan los jugadores.",
+    narrar: true,
+    opciones: [
+      {
+        id: "romper",
+        titulo: "Dar las doce",
+        detalle: "La hora trece deja de existir y el pacto se rompe. Vuelven los que alguien todavía quiere. La Dama se queda sola en la bruma, sin horario.",
+        efectos: {
+          amenaza: -10,
+          relaciones: { tobias: 2, brigida: 2, corvino: 2 },
+          memoria: "FINAL: dieron la campanada doce y rompieron el pacto. La hora trece no existe más.",
+        },
+        consecuencia:
+          "Eligieron romper el pacto. Dan la campanada doce a mano y la trece no llega. El renglón con sus nombres se borra del Libro, y después todos los demás. En la plaza, los Ausentes que alguien nombró recuperan la cara y bajan hacia sus casas; los más antiguos, que no tienen a nadie, se deshacen despacio, como quien por fin se acuesta. La Dama no grita: dice «entonces vuelvo a comer sola», y la bruma retrocede hasta la linde y se queda ahí. Si Úrsula está presente, ata el último nudo y se sienta a descansar. No lo narres como un triunfo limpio: el pueblo va a tener que recordar por su cuenta todo lo que hizo.",
+        aviso: "Dieron las doce. La hora trece no existe más.",
+      },
+      {
+        id: "renovar",
+        titulo: "Firmar el renglón",
+        detalle: "Un pacto nuevo: nadie más es borrado, y lo pagan ustedes, un recuerdo por noche. Cada uno pierde 2 de vida máxima. El pueblo no se entera.",
+        efectos: {
+          amenaza: -4,
+          vidaMax: -2,
+          relaciones: { anselmo: 2 },
+          memoria: "FINAL: firmaron un pacto nuevo y son los Custodios. Pagan con sus propios recuerdos, uno por noche, y se quedan en Valdebruma.",
+        },
+        consecuencia:
+          "Eligieron renovar el pacto. Firman debajo de sus propios nombres y el renglón cambia: ya no dice a quién se entrega, dice quién paga. La Dama acepta con una cortesía antigua. Anselmo suelta la pluma y llora de alivio, y eso también duele. Los Ausentes vuelven al borde de la bruma, quietos. Desde esta noche, cada uno le deja a la Dama un recuerdo antes de dormir: narrá el primero que entrega cada personaje, pequeño y querido. Nadie en el pueblo va a saber lo que les deben.",
+        aviso: "Firmaron. El pacto sigue, y lo pagan ustedes.",
+      },
+      {
+        id: "nombrar",
+        titulo: "Ponerle un plato",
+        detalle: "Nadie le preguntó nunca si quería quedarse. Darle un nombre y un lugar en la mesa. No se sabe qué pasa cuando la Dama tiene nombre.",
+        efectos: {
+          amenaza: -10,
+          relaciones: { brigida: 2, tobias: 1, anselmo: 1 },
+          memoria: "FINAL: le dieron a la Dama un nombre, Aldara, y un lugar en la mesa. El pacto no se rompió ni se renovó: dejó de hacer falta.",
+        },
+        consecuencia:
+          "Eligieron invitarla. Le dicen que en la casa de la linde hay una mesa puesta y un plato en la cabecera que nadie usó. El hueco en la bruma tarda en contestar. Dice que no tiene nombre para dar en la puerta. Brígida, que subió protestando, abre el libro de huéspedes, moja la pluma y dice que en su posada nadie come sin anotarse: «Aldara. Algo hay que poner». Al escribirse el nombre, el hueco tiene por un instante el contorno de una mujer vieja. La campana no da ni doce ni trece. El renglón del Libro queda en blanco. Los Ausentes de la plaza no desaparecen: empiezan a caminar, cada uno hacia una luz. No expliques las reglas nuevas: mostrá que la bruma ahora tiene un sendero.",
+        aviso: "La anotaron en el libro de huéspedes: Aldara.",
       },
     ],
   },

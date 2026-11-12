@@ -1,4 +1,4 @@
-import { ESCENAS, NPCS, PISTAS, capituloDef, escenaDef, escenasDe } from "./campana";
+import { ESCENAS, NPCS, PISTAS, VOTOS, capituloDef, escenaDef, escenasDe } from "./campana";
 import { COMPANEROS, ETIQUETAS_RELACION, MEJORAS, type Companero } from "./contenido";
 import type { Avatar } from "./avatar";
 import { RETRATOS_MAX, avatarDe, ayudasDisponibles, estaPintando, hayOtroCapitulo } from "./motor";
@@ -47,7 +47,9 @@ export interface Vista {
   yo: Asiento;
   fase: Fase;
   terror: NivelTerror;
-  capitulo: { numero: number; titulo: string };
+  capitulo: { numero: number; titulo: string; final: boolean };
+  /** Cómo terminó la campaña, cuando ya terminó. */
+  desenlace: string | null;
   /** Si el servidor puede pintar retratos con el modelo de imágenes. */
   retratos: boolean;
   /** Si al terminar este capítulo hay otro para seguir. */
@@ -124,7 +126,9 @@ export function vistaPara(
     yo,
     fase: e.fase,
     terror: e.terror,
-    capitulo: { numero: capitulo.numero, titulo: capitulo.titulo },
+    capitulo: { numero: capitulo.numero, titulo: capitulo.titulo, final: !!capitulo.final },
+    desenlace:
+      (capitulo.final && e.fase === "fin_capitulo" && VOTOS.pacto.opciones.find((o) => o.id === e.decisiones.pacto)?.titulo) || null,
     hayOtroCapitulo: hayOtroCapitulo(e),
     retratos: !!extra.retratos,
     escena: {

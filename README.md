@@ -4,7 +4,7 @@ Juego de rol narrativo cooperativo para dos jugadores, con una IA como máster. 
 
 > En Valdebruma suena cada noche una campanada que no existe. Y cada vez, alguien deja de haber existido.
 
-Cada jugador entra con un código de sala, crea su personaje (raza, clase, un retrato armado por piezas, rasgo y un secreto que el otro no ve) y juegan por turnos. Hay tres capítulos, de 20 a 30 minutos cada uno: «La posada del Farol Tuerto», «Los Ausentes» y «Los Siete». Lo que se decide en uno pesa en el siguiente.
+Cada jugador entra con un código de sala, crea su personaje (raza, clase, un retrato armado por piezas, rasgo y un secreto que el otro no ve) y juegan por turnos. La campaña completa son cuatro capítulos, de 20 a 30 minutos cada uno: «La posada del Farol Tuerto», «Los Ausentes», «Los Siete» y «La Dama del Umbral», con tres finales posibles. Lo que se decide en uno pesa en el siguiente.
 
 ## Cómo se juega
 
