@@ -4,7 +4,7 @@ Juego de rol narrativo cooperativo para dos jugadores, con una IA como máster. 
 
 > En Valdebruma suena cada noche una campanada que no existe. Y cada vez, alguien deja de haber existido.
 
-Cada jugador entra con un código de sala, crea su personaje (raza, clase, rasgo y un secreto que el otro no ve) y juegan por turnos. El capítulo 1, «La posada del Farol Tuerto», dura entre 20 y 30 minutos.
+Cada jugador entra con un código de sala, crea su personaje (raza, clase, rasgo y un secreto que el otro no ve) y juegan por turnos. Hay dos capítulos, de 20 a 30 minutos cada uno: «La posada del Farol Tuerto» y «Los Ausentes». Lo que se decide en uno pesa en el siguiente.
 
 ## Cómo se juega
 
@@ -12,7 +12,8 @@ Cada jugador entra con un código de sala, crea su personaje (raza, clase, rasgo
 - **Tiradas.** d20 + atributo contra una dificultad (fácil 8, media 12, difícil 15, heroica 18). Hay éxito crítico, éxito, éxito con costo, fallo y pifia. El rasgo del personaje y el compañero animal dan ventaja.
 - **Escenas.** Cada escena se resuelve juntando avances por cualquiera de las tres vías. Si se acaban los turnos, se resuelve igual, pero a un costo.
 - **La Bruma.** Un medidor de amenaza de 0 a 10 que sube con los fallos y las malas decisiones. En 7 todo cuesta más; en 10 se tira con desventaja.
-- **Decisiones de los dos.** El compañero animal, el dilema del campanario y la mejora del refugio se votan. Si no coinciden dos veces, decide quien lleva el farol.
+- **Decisiones de los dos.** El compañero animal, los dilemas y la mejora del refugio se votan. Si no coinciden dos veces, decide quien lleva el farol.
+- **Entre capítulos.** Al cerrar un capítulo arreglan una cosa en la Casa del Guarda. Al empezar el siguiente descansan (vida completa, el rasgo se recupera) y esa mejora rinde: más vida, una pista, menos Bruma o vendas.
 - **Intensidad del terror.** Suave, media o fuerte. Cualquiera de los dos puede bajarla en cualquier momento.
 
 ## Arquitectura
@@ -22,7 +23,7 @@ El servidor es la única autoridad: el navegador nunca escribe estado ni ve una 
 ```
 app/api/salas/…          routes: crear sala, unirse, personaje, acción y turno (streaming)
 lib/game/                reglas como funciones puras: tiradas, turnos, escenas, votos
-lib/game/campana.ts      la campaña y el capítulo 1, escritos a mano (solo servidor)
+lib/game/campana.ts      la campaña y sus capítulos, escritos a mano (solo servidor)
 lib/dm/                  el máster: prompt, esquema JSON, streaming, reintentos
 lib/server/              salas, asientos, almacén (Supabase o memoria) y Realtime
 lib/client/              estado de la sala en el navegador

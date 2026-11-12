@@ -60,6 +60,8 @@ export interface ErrorApi {
 
 export type PeticionTurno =
   | { tipo: "inicio" }
+  /** Pasa al capítulo siguiente y narra su apertura. */
+  | { tipo: "capitulo" }
   | { tipo: "opcion"; id: string }
   | { tipo: "libre"; texto: string }
   | { tipo: "tirar"; rasgo?: boolean; companero?: boolean; objeto?: string }

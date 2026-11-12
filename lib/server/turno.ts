@@ -9,6 +9,7 @@ import { salidaDeRespaldo } from "@/lib/dm/respaldo";
 import { narradorSimulado } from "@/lib/dm/simulado";
 import {
   aplicarNarracion,
+  empezarCapitulo,
   iniciar,
   limpiar,
   limpiarNarracion,
@@ -217,6 +218,8 @@ export function prepararTurno(acceso: Acceso, peticion: PeticionTurno): (emitir:
 
       if (peticion.tipo === "inicio") {
         estado = iniciar(estado, ahora());
+      } else if (peticion.tipo === "capitulo") {
+        estado = empezarCapitulo(estado, ahora());
       } else if (peticion.tipo === "opcion") {
         estado = prepararAccion(estado, asiento, { tipo: "opcion", id: peticion.id }, ahora());
       } else if (peticion.tipo === "libre") {

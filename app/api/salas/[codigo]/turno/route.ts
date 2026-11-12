@@ -8,7 +8,7 @@ import { prepararTurno } from "@/lib/server/turno";
 /** Un turno puede incluir reintentos con espera ante un 429. */
 export const maxDuration = 120;
 
-const TIPOS: PeticionTurno["tipo"][] = ["inicio", "opcion", "libre", "tirar", "continuar"];
+const TIPOS: PeticionTurno["tipo"][] = ["inicio", "capitulo", "opcion", "libre", "tirar", "continuar"];
 const LATIDO_MS = 10_000;
 
 /**

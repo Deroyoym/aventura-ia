@@ -1,10 +1,12 @@
 import { describe, expect, it } from "vitest";
-import { ESCENAS } from "@/lib/game/campana";
+import { ESCENAS, escenasDe } from "@/lib/game/campana";
+import { instruccionSistema, mensajeTurno } from "@/lib/dm/prompt";
 import { clasificar, resolverTirada } from "@/lib/game/dados";
 import {
   aplicarNarracion,
   armarPersonaje,
   cambiarTerror,
+  empezarCapitulo,
   opcionesValidas,
   pasarFarol,
   planificar,
@@ -310,10 +312,132 @@ describe("escenas y votos", () => {
       s = tirar(s, asiento, {}, dados(14), AHORA);
       e = aplicarNarracion(s, planificar(s), salidaDeRespaldo(s, planificar(s)), AHORA);
     }
-    expect(e.resumenes).toHaveLength(ESCENAS.length);
+    expect(e.resumenes).toHaveLength(escenasDe(1).length);
     expect(e.refugio.mejoras).toHaveLength(1);
     expect(e.companero).not.toBeNull();
     expect(e.decisiones.dilema).toBeDefined();
+  });
+});
+
+describe("capítulo 2", () => {
+  /** Juega con la primera opción de cada voto (o la indicada) hasta cerrar el capítulo en curso. */
+  function hastaElFinal(inicial: EstadoJuego, votos: Record<string, string> = {}): EstadoJuego {
+    let e = inicial;
+    let guardia = 0;
+    while (e.fase !== "fin_capitulo" || e.voto) {
+      if (guardia++ > 200) throw new Error("El capítulo no termina");
+      if (e.voto) {
+        const opcion = votos[e.voto.id] ?? e.voto.opciones[0].id;
+        e = votar(votar(e, 1, opcion, AHORA).estado, 2, opcion, AHORA).estado;
+        if (e.pendiente) e = aplicarNarracion(e, planificar(e), salidaDeRespaldo(e, planificar(e)), AHORA);
+        continue;
+      }
+      const asiento = e.farol;
+      let s = prepararAccion(e, asiento, { tipo: "opcion", id: "a" }, AHORA);
+      s = tirar(s, asiento, {}, dados(14), AHORA);
+      e = aplicarNarracion(s, planificar(s), salidaDeRespaldo(s, planificar(s)), AHORA);
+    }
+    return e;
+  }
+  const abrir = (e: EstadoJuego) => {
+    const s = empezarCapitulo(e, AHORA);
+    return aplicarNarracion(s, planificar(s), salidaDeRespaldo(s, planificar(s)), AHORA);
+  };
+
+  it("no se puede empezar antes de cerrar el capítulo 1", () => {
+    expect(() => empezarCapitulo(enJuego(), AHORA)).toThrow(ErrorJuego);
+  });
+
+  it("abre el capítulo 2 descansados y con la mejora del refugio aplicada", () => {
+    const fin = hastaElFinal(enJuego(), { mejora: "hogar" });
+    const vidaMax = fin.personajes[1]!.vidaMax;
+    fin.personajes[1]!.vida = 2;
+    fin.personajes[1]!.rasgoUsado = true;
+    expect(vistaPara(fin, 1, false).hayOtroCapitulo).toBe(true);
+
+    const s = empezarCapitulo(fin, AHORA);
+    expect(s.capitulo).toBe(2);
+    expect(s.personajes[1]).toMatchObject({ vidaMax: vidaMax + 2, vida: vidaMax + 2, rasgoUsado: false });
+    expect(planificar(s)).toMatchObject({ tipo: "apertura", abre: escenasDe(2)[0] });
+    expect(mensajeTurno(s, planificar(s))).toContain("La mesa servida");
+    expect(instruccionSistema(s)).toContain("Los Ausentes");
+    expect(instruccionSistema(s)).not.toContain("El cuarto que nadie recuerda");
+
+    const e = aplicarNarracion(s, planificar(s), salidaDeRespaldo(s, planificar(s)), AHORA);
+    expect(e.fase).toBe("jugando");
+    expect(e.escena.indice).toBe(escenasDe(2)[0]);
+    expect(e.npcs.guarda.conocido).toBe(true);
+    const vista = vistaPara(e, 1, false);
+    expect(vista.capitulo).toEqual({ numero: 2, titulo: "Los Ausentes" });
+    expect(vista.escena).toMatchObject({ numero: 1, total: 5, lugar: "refugio" });
+  });
+
+  it("las otras mejoras rinden al empezar: una pista, menos Bruma o vendas", () => {
+    const con = (mejora: string) => empezarCapitulo(hastaElFinal(enJuego(), { mejora }), AHORA);
+    expect(con("biblioteca").pistas).toContain("cuaderno_guarda");
+    const fin = hastaElFinal(enJuego(), { mejora: "cerrojos" });
+    expect(empezarCapitulo(fin, AHORA).amenaza).toBe(Math.max(0, fin.amenaza - 2));
+    expect(con("botica").personajes[2]!.inventario.some((o) => o.id === "vendas")).toBe(true);
+  });
+
+  it("solo valen las pistas del capítulo en curso", () => {
+    const e = abrir(hastaElFinal(enJuego()));
+    let s = prepararAccion(e, e.farol, { tipo: "opcion", id: "a" }, AHORA);
+    s = tirar(s, e.farol, {}, dados(14), AHORA);
+    const r = aplicarNarracion(s, planificar(s), salida({ cambios: { pistas: ["campana_muda", "hilo_rojo", "siete_nudos"] } }), AHORA);
+    expect(r.pistas).toContain("hilo_rojo");
+    expect(r.pistas).not.toContain("siete_nudos");
+    expect(r.pistas.filter((p) => p === "campana_muda")).toHaveLength(e.pistas.includes("campana_muda") ? 1 : 0);
+  });
+
+  it("si Tobías fue borrado, no vuelve a aparecer en el pueblo", () => {
+    const fin = hastaElFinal(enJuego(), { dilema: "dejar" });
+    expect(fin.decisiones.dilema).toBe("dejar");
+    const e = hastaElFinal(abrir(fin));
+    expect(e.entradas.some((x) => x.tipo === "sistema" && x.texto.startsWith("Tobías"))).toBe(false);
+  });
+
+  it("el voto del regreso puede costar al compañero o dejar la nana", () => {
+    const base = abrir(hastaElFinal(enJuego()));
+    const sin = hastaElFinal(base, { regreso: "companero" });
+    expect(sin.companero).toBeNull();
+    expect(sin.npcs.lia.relacion).toBe(2);
+    const nana = hastaElFinal(base, { regreso: "dejarla" });
+    expect(nana.companero).not.toBeNull();
+    expect(nana.personajes[1]!.inventario.some((o) => o.id === "nana")).toBe(true);
+  });
+
+  it("recorre el capítulo 2 entero y no repite la mejora ya hecha", () => {
+    const fin1 = hastaElFinal(enJuego(), { mejora: "hogar" });
+    let e = abrir(fin1);
+    let vioMejora = false;
+    let guardia = 0;
+    while (e.fase !== "fin_capitulo" || e.voto) {
+      if (guardia++ > 200) throw new Error("El capítulo no termina");
+      if (e.voto) {
+        if (e.voto.id === "mejora") {
+          vioMejora = true;
+          expect(e.voto.opciones.map((o) => o.id)).not.toContain("hogar");
+          expect(() => votar(e, 1, "hogar", AHORA)).toThrow(ErrorJuego);
+        }
+        const opcion = e.voto.opciones[0].id;
+        e = votar(votar(e, 1, opcion, AHORA).estado, 2, opcion, AHORA).estado;
+        if (e.pendiente) e = aplicarNarracion(e, planificar(e), salidaDeRespaldo(e, planificar(e)), AHORA);
+        continue;
+      }
+      const asiento = e.farol;
+      let s = prepararAccion(e, asiento, { tipo: "opcion", id: "a" }, AHORA);
+      s = tirar(s, asiento, {}, dados(14), AHORA);
+      e = aplicarNarracion(s, planificar(s), salidaDeRespaldo(s, planificar(s)), AHORA);
+    }
+    expect(vioMejora).toBe(true);
+    expect(e.capitulo).toBe(2);
+    expect(e.resumenes).toHaveLength(ESCENAS.length);
+    expect(e.refugio.mejoras).toHaveLength(2);
+    expect(e.decisiones.ancla).toBeDefined();
+    expect(e.decisiones.regreso).toBeDefined();
+    expect(vistaPara(e, 1, false).hayOtroCapitulo).toBe(false);
+    expect(() => empezarCapitulo(e, AHORA)).toThrow(ErrorJuego);
   });
 });
 

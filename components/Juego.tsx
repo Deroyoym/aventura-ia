@@ -36,7 +36,7 @@ function BarraSuperior({ sala, alAbrir }: { sala: SalaEnVivo; alAbrir: (p: Pesta
         </button>
         <button type="button" className="min-w-0 flex-1 text-left" onClick={() => alAbrir("diario")}>
           <p className="versalitas truncate text-bruma">
-            capítulo {ROMANOS[vista.capitulo.numero - 1]} · escena {ROMANOS[vista.escena.indice]}
+            capítulo {ROMANOS[vista.capitulo.numero - 1]} · escena {ROMANOS[vista.escena.numero - 1]}
           </p>
           <p className="titulo line-clamp-2 text-[1.02rem] leading-[1.15] text-hueso">{vista.escena.titulo}</p>
         </button>
@@ -92,6 +92,7 @@ function BarraSuperior({ sala, alAbrir }: { sala: SalaEnVivo; alAbrir: (p: Pesta
 }
 
 function FinDeCapitulo({ vista }: { vista: Vista }) {
+  const siguiente = ROMANOS[vista.capitulo.numero];
   return (
     <section className="aparecer mt-8 text-center">
       <Ornamento className="mb-5 text-sepia" />
@@ -121,7 +122,9 @@ function FinDeCapitulo({ vista }: { vista: Vista }) {
       ))}
       <p className="cuento mt-6 text-2xl italic text-sangre">Continuará…</p>
       <p className="mt-1 text-[0.95rem] italic text-sepia">
-        La partida queda guardada. El capítulo II llega en la próxima versión.
+        {vista.hayOtroCapitulo
+          ? `La partida queda guardada. Pueden seguir ahora con el capítulo ${siguiente} o volver otro día.`
+          : `La partida queda guardada. El capítulo ${siguiente} llega en la próxima versión.`}
       </p>
     </section>
   );
@@ -190,7 +193,22 @@ export function Juego({ sala }: { sala: SalaEnVivo }) {
         pie={terminado ? <FinDeCapitulo vista={vista} /> : null}
       />
       {terminado ? (
-        <div className="hoja-inferior shrink-0 px-3.5 pb-[max(0.9rem,env(safe-area-inset-bottom))] pt-3">
+        <div className="hoja-inferior flex shrink-0 flex-col gap-2 px-3.5 pb-[max(0.9rem,env(safe-area-inset-bottom))] pt-3">
+          {sala.error && (
+            <p className="text-center text-[1.02rem] leading-snug text-hueso" role="alert">
+              {sala.error}
+            </p>
+          )}
+          {vista.hayOtroCapitulo && (
+            <button
+              type="button"
+              className="boton boton-vela w-full"
+              disabled={sala.enviando}
+              onClick={() => void sala.turno({ tipo: "capitulo" })}
+            >
+              {sala.enviando ? "Abriendo el capítulo…" : `Empezar el capítulo ${ROMANOS[vista.capitulo.numero]}`}
+            </button>
+          )}
           <Link href="/" className="boton boton-noche w-full">
             Volver a la portada
           </Link>

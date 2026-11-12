@@ -1,6 +1,6 @@
-import { CAPITULO_1, ESCENAS, NPCS, PISTAS, escenaDef } from "./campana";
+import { ESCENAS, NPCS, PISTAS, capituloDef, escenaDef, escenasDe } from "./campana";
 import { COMPANEROS, ETIQUETAS_RELACION, MEJORAS, type Companero } from "./contenido";
-import { ayudasDisponibles } from "./motor";
+import { ayudasDisponibles, hayOtroCapitulo } from "./motor";
 import {
   ASIENTOS,
   otroAsiento,
@@ -44,8 +44,13 @@ export interface Vista {
   fase: Fase;
   terror: NivelTerror;
   capitulo: { numero: number; titulo: string };
+  /** Si al terminar este capítulo hay otro para seguir. */
+  hayOtroCapitulo: boolean;
   escena: {
+    /** Posición en la lista completa de escenas de la campaña. */
     indice: number;
+    /** Número de escena dentro del capítulo, desde 1. */
+    numero: number;
     total: number;
     titulo: string;
     lugar: Lugar;
@@ -54,7 +59,7 @@ export interface Vista {
     turnos: number;
     tope: number;
   };
-  escenas: { titulo: string; lugar: Lugar }[];
+  escenas: { titulo: string; lugar: Lugar; capitulo: number; numero: number }[];
   farol: Asiento;
   amenaza: number;
   personajes: Partial<Record<Asiento, PersonajeVista>>;
@@ -85,6 +90,9 @@ function personajeVista(p: Personaje, yo: Asiento): PersonajeVista {
 export function vistaPara(e: EstadoJuego, yo: Asiento, narrando: boolean): Vista {
   const def = escenaDef(e.escena.indice);
   const otro = otroAsiento(yo);
+  const capitulo = capituloDef(e.capitulo);
+  const delCapitulo = escenasDe(e.capitulo);
+  const numeroDe = (indice: number) => escenasDe(ESCENAS[indice].capitulo).indexOf(indice) + 1;
 
   const personajes: Vista["personajes"] = {};
   for (const a of ASIENTOS) {
@@ -96,10 +104,12 @@ export function vistaPara(e: EstadoJuego, yo: Asiento, narrando: boolean): Vista
     yo,
     fase: e.fase,
     terror: e.terror,
-    capitulo: CAPITULO_1,
+    capitulo: { numero: capitulo.numero, titulo: capitulo.titulo },
+    hayOtroCapitulo: hayOtroCapitulo(e),
     escena: {
       indice: e.escena.indice,
-      total: ESCENAS.length,
+      numero: numeroDe(e.escena.indice),
+      total: delCapitulo.length,
       titulo: def.titulo,
       lugar: def.lugar,
       avance: e.escena.avance,
@@ -107,7 +117,7 @@ export function vistaPara(e: EstadoJuego, yo: Asiento, narrando: boolean): Vista
       turnos: e.escena.turnos,
       tope: def.tope,
     },
-    escenas: ESCENAS.map((s) => ({ titulo: s.titulo, lugar: s.lugar })),
+    escenas: ESCENAS.map((s, i) => ({ titulo: s.titulo, lugar: s.lugar, capitulo: s.capitulo, numero: numeroDe(i) })),
     farol: e.farol,
     amenaza: e.amenaza,
     personajes,
@@ -124,7 +134,7 @@ export function vistaPara(e: EstadoJuego, yo: Asiento, narrando: boolean): Vista
       titulo,
       texto,
     })),
-    pistasTotales: PISTAS.length,
+    pistasTotales: PISTAS.filter((p) => ESCENAS[p.escena].capitulo <= e.capitulo).length,
     opciones: e.opciones,
     pendiente: e.pendiente,
     ayudas: ayudasDisponibles(e, yo),
