@@ -214,6 +214,21 @@ export function definirPersonaje(
 export const puedeEmpezar = (e: EstadoJuego): boolean =>
   e.fase === "preparacion" && activos(e).length >= campanaDe(e).jugadores.min;
 
+/** Encargos secretos del capítulo en curso: se barajan y se reparte uno por jugador. */
+function repartirEncargos(e: EstadoJuego, ahora: number): void {
+  const encargos = campanaDe(e)
+    .encargos.filter((x) => x.capitulo === e.capitulo)
+    .map((x) => x.id);
+  if (!encargos.length) return;
+  let semilla = (ahora % 2147483647) + 1;
+  for (let i = encargos.length - 1; i > 0; i--) {
+    semilla = (semilla * 48271) % 2147483647;
+    const j = semilla % (i + 1);
+    [encargos[i], encargos[j]] = [encargos[j], encargos[i]];
+  }
+  e.encargos = Object.fromEntries(activos(e).map((a, i) => [a, encargos[i % encargos.length]]));
+}
+
 export function iniciar(estado: EstadoJuego, ahora: number): EstadoJuego {
   if (estado.fase !== "preparacion") throw new ErrorJuego("ya_empezo", "La partida ya empezó.", 409);
   if (!puedeEmpezar(estado)) {
@@ -224,17 +239,7 @@ export function iniciar(estado: EstadoJuego, ahora: number): EstadoJuego {
   }
   const e = structuredClone(estado);
   e.farol = activos(e)[0];
-  // Encargos secretos: se barajan y se reparte uno por jugador.
-  const encargos = campanaDe(e).encargos.map((x) => x.id);
-  if (encargos.length) {
-    let semilla = ahora % 2147483647;
-    for (let i = encargos.length - 1; i > 0; i--) {
-      semilla = (semilla * 48271) % 2147483647;
-      const j = semilla % (i + 1);
-      [encargos[i], encargos[j]] = [encargos[j], encargos[i]];
-    }
-    e.encargos = Object.fromEntries(activos(e).map((a, i) => [a, encargos[i % encargos.length]]));
-  }
+  repartirEncargos(e, ahora);
   e.pendiente = { tipo: "inicio" };
   e.actualizado = ahora;
   return e;
@@ -876,6 +881,13 @@ function aplicarEfectos(e: EstadoJuego, efectos: EfectosVoto): void {
       aviso(e, `El secreto de ${p.nombre} sale a la luz.`, "neutro");
     }
   }
+  if (efectos.revelaTodos) {
+    for (const asiento of ASIENTOS) {
+      const p = e.personajes[asiento];
+      if (p) p.secretoRevelado = true;
+    }
+    aviso(e, "Los secretos de todos salen a la luz.", "neutro");
+  }
   if (efectos.danio) {
     for (const asiento of ASIENTOS) if (e.personajes[asiento]) ajustarVida(e, asiento, -efectos.danio);
     revisarQuebrados(e);
@@ -992,7 +1004,15 @@ export function empezarCapitulo(estado: EstadoJuego, ahora: number): EstadoJuego
   }
   const e = structuredClone(estado);
   e.capitulo = proximo;
-  aviso(e, `Capítulo ${ordenDe(e.capitulo)}: ${capituloDef(e.capitulo).titulo}. Un día de descanso.`);
+  aviso(
+    e,
+    campanaDe(e).rondas
+      ? `Capítulo ${ordenDe(e.capitulo)}: ${capituloDef(e.capitulo).titulo}. Un respiro, y un encargo nuevo para cada uno.`
+      : `Capítulo ${ordenDe(e.capitulo)}: ${capituloDef(e.capitulo).titulo}. Un día de descanso.`,
+  );
+  repartirEncargos(e, ahora);
+  e.ronda = [];
+  e.farol = activos(e)[0] ?? e.farol;
   // La mejora se aplica antes de curar, para que la vida máxima nueva cuente.
   aplicarMejora(e, e.refugio.mejoras[e.refugio.mejoras.length - 1]);
   for (const asiento of ASIENTOS) {

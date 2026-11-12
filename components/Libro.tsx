@@ -224,6 +224,7 @@ function PestanaDiario({ sala }: { sala: SalaEnVivo }) {
                 width={44}
                 height={44}
                 loading="lazy"
+                onError={(e) => (e.currentTarget.style.visibility = "hidden")}
                 className="h-11 w-11 shrink-0 rounded-full object-cover [box-shadow:0_0_0_1.5px_#8a6f3a]"
               />
               <div className="min-w-0 flex-1">

@@ -36,6 +36,10 @@ const GENTE = {
     "Una mujer joven de luto riguroso: vestido negro de cuello alto, guantes negros y un velo negro translúcido que le cubre toda la cara, de modo que apenas se adivinan los rasgos. Muy derecha, quieta.",
   elias:
     "Un ventero viejo y ciego, de barba blanca corta, ojos cerrados y la cabeza apenas ladeada, como quien escucha. Chaleco de lana, camisa arremangada, manos grandes.",
+  quintana:
+    "Un escribano de unos cincuenta años, pulcro y algo pomposo: pelo oscuro peinado con raya y pomada, patillas, anteojos redondos chicos, levita gris oscura impecable con cuello duro. Sostiene un reloj de bolsillo con cadena. Sonrisa cortés que no le llega a los ojos.",
+  remedios:
+    "Un ama de llaves de unos setenta años, delgada y seca, de expresión severa y ojos atentos. Vestido negro de cuello cerrado, pelo blanco tirante en rodete, y un gran manojo de llaves antiguas colgado de la cintura, que sostiene con una mano.",
 };
 
 const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
