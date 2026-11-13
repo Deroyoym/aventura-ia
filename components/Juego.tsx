@@ -146,7 +146,7 @@ function FinDeCapitulo({ vista }: { vista: Vista }) {
       <p className="cuento mt-6 text-2xl italic text-sangre">{vista.capitulo.final ? "Fin" : "Continuará…"}</p>
       <p className="mt-1 text-[0.95rem] italic text-sepia">
         {vista.capitulo.final
-          ? "Así termina «La Hora Trece». La partida queda guardada para releerla."
+          ? `Así termina «${vista.campana.titulo}». La partida queda guardada para releerla.`
           : vista.hayOtroCapitulo
           ? `La partida queda guardada. Pueden seguir ahora con el capítulo ${siguiente} o volver otro día.`
           : `La partida queda guardada. El capítulo ${siguiente} llega en la próxima versión.`}

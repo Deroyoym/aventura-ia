@@ -121,6 +121,27 @@ CAPITULOS.push({
     "Abrí el capítulo 2: el coche llega al portón de Casa Orbe. Contá en una frase cómo llegaron según el rumbo que votaron. La casa tiene todas las ventanas encendidas. En la escalinata los espera un hombre pulcro, de levita, con un reloj en la mano: el escribano Quintana. Detrás, en la puerta, una mujer mayor con un manojo de llaves.",
 });
 
+CAPITULOS.push({
+  numero: 103,
+  campana: "coche",
+  titulo: "El Paso",
+  final: true,
+  guia: [
+    "Último capítulo: el día de subida y la noche en el Paso, donde vence el plazo del escribano. Acá se cierra todo: quién hereda, quién paga el peaje y quién llega del otro lado.",
+    "La regla que se descubre en este capítulo: los Recaudadores no quieren una persona, quieren «lo que pesa». Una vida es solo lo más fácil de entregar. Qué se les da lo deciden los jugadores con un voto: no lo resuelvas vos.",
+    "Cada jugador recibe un encargo NUEVO al salir de Casa Orbe (ver «Encargos»): lo encuentra cosido en el forro de su abrigo. Nunca reveles el de uno a los demás.",
+    "Tené en cuenta lo decidido antes (ver «Decisiones tomadas» y «Memoria»):",
+    "- Quién subió al coche: si fue el escribano, Irene viene detrás a caballo, con Remedios; si fue Irene, el que viene detrás es Quintana, apurado y solo, con los Recaudadores a la vista; si no subió ninguno, vienen los dos, cada uno por su lado.",
+    "- El papel: si firmaron, Quintana lo lleva encima y lo va a usar ante el juez. Si no, no tiene nada de ellos.",
+    "- El Libro de Deudas: si lo leyeron, todos saben lo de todos y nadie puede amenazar a nadie con eso. Si lo quemaron, la única prueba contra el escribano es el testamento verdadero. Si lo tiene Irene, ella decide cuándo abrirlo.",
+    "- Si en el capítulo 1 entregaron el cofre, el testamento verdadero no existe en papel: solo lo sabe Remedios de memoria, y hay que convencer al juez de escucharla.",
+    "El juez Baltasar Rey es el alivio cómico: sordo de un oído, lento, honrado, y quiere todo por escrito y con sello.",
+    "Es el final de la campaña: no dejes ganchos para después.",
+  ].join("\n"),
+  apertura:
+    "Abrí el capítulo 3: ya es de día y el coche deja atrás la sal y empieza a subir hacia el Paso entre piedra y nieve vieja. Contá en una frase quién va a bordo según lo que votaron al alba. Mateo avisa que hay que estar arriba antes de que oscurezca. Cada uno nota algo duro en el forro del abrigo: un papel cosido que anoche no estaba.",
+});
+
 export const capituloDef = (numero: number): CapituloDef => {
   const c = CAPITULOS.find((x) => x.numero === numero);
   if (!c) throw new Error(`Capítulo inexistente: ${numero}`);
@@ -199,6 +220,8 @@ export interface CampanaDef {
   rondas: boolean;
   eventosAmenaza: Record<number, string>;
   encargos: EncargoDef[];
+  /** El voto que decide cómo termina la campaña. */
+  votoFinal: VotoId;
 }
 
 export const CAMPANAS: Record<CampanaId, CampanaDef> = {
@@ -215,6 +238,7 @@ export const CAMPANAS: Record<CampanaId, CampanaDef> = {
       10: "La amenaza llegó a 10: la Bruma está adentro. La Dama del Umbral repara en los personajes; uno de ellos escucha su propio nombre dicho con la voz de alguien que perdió.",
     },
     encargos: [],
+    votoFinal: "pacto",
   },
   coche: {
     id: "coche",
@@ -301,7 +325,44 @@ export const CAMPANAS: Record<CampanaId, CampanaDef> = {
         texto: "Que el coche salga hacia el Paso con la hija de Casilda a bordo.",
         cumple: segun("alba", (o) => o === "irene"),
       },
+      {
+        id: "no_esperar",
+        capitulo: 103,
+        texto: "Que el coche no se detenga a esperar a nadie en la cuesta.",
+        cumple: segun("rezagado", (o) => o !== "esperar"),
+      },
+      {
+        id: "esperar",
+        capitulo: 103,
+        texto: "Que quien viene detrás alcance al coche antes del Paso.",
+        cumple: segun("rezagado", (o) => o === "esperar"),
+      },
+      {
+        id: "para_irene",
+        capitulo: 103,
+        texto: "Que el juez le dé la Compañía a la hija de Casilda.",
+        cumple: segun("herencia", (o) => o === "irene"),
+      },
+      {
+        id: "para_quintana",
+        capitulo: 103,
+        texto: "Que el juez dé por bueno el testamento del escribano.",
+        cumple: segun("herencia", (o) => o === "quintana"),
+      },
+      {
+        id: "que_pague",
+        capitulo: 103,
+        texto: "Que el escribano pague con lo suyo el peaje que debe.",
+        cumple: segun("pago", (o) => o === "quintana"),
+      },
+      {
+        id: "que_cruce",
+        capitulo: 103,
+        texto: "Que el escribano cruce el Paso y llegue del otro lado.",
+        cumple: segun("pago", (o) => o !== "quintana"),
+      },
     ],
+    votoFinal: "pago",
   },
 };
 
@@ -390,6 +451,13 @@ NPCS.push(
     nombre: "Remedios",
     rol: "Ama de llaves de Casa Orbe",
     guia: "Setenta años, seca, de negro, con un manojo de llaves a la cintura. Crió a Irene y cuidó a Casilda hasta el final. Detesta al escribano y no lo disimula. No da nada gratis: contesta una pregunta por cada cosa útil que hagan en la casa. Sabe dónde está cada papel.",
+  },
+  {
+    campana: "coche",
+    id: "baltasar",
+    nombre: "Juez Baltasar Rey",
+    rol: "Juez de paz del Paso",
+    guia: "Setenta y tantos, enorme, sordo del oído izquierdo, con gorro de piel y los sellos colgados del cuello. Lento, honrado y terco: no escucha nada que no esté escrito, firmado y sellado, y hace repetir todo. Es el alivio cómico: confunde nombres, pide testigos para lo obvio, ofrece caldo en mitad de una acusación. No le teme a nadie, tampoco a los del mojón.",
   },
   {
     campana: "coche",
@@ -729,6 +797,48 @@ PISTAS.push(
     titulo: "Uno no llega",
     texto: "La línea del dorso de la lista no es una amenaza: es una cuenta. Quintana piensa pagar su peaje con uno de ustedes.",
     escena: 29,
+  },
+  {
+    id: "plazo",
+    titulo: "Hasta que oscurezca",
+    texto: "El plazo del escribano vence cuando caiga la noche en el Paso. Los Recaudadores no suben de día: esperan arriba.",
+    escena: 30,
+  },
+  {
+    id: "jinete_atras",
+    titulo: "Alguien sube detrás",
+    texto: "Desde la primera curva se ve un jinete que sube desde Casa Orbe, sin acortar ni perder distancia.",
+    escena: 30,
+  },
+  {
+    id: "firma_calcada",
+    titulo: "La firma calcada",
+    texto: "La firma de Casilda en el testamento del escribano tiene el mismo temblor, en el mismo lugar, en las tres copias. Está calcada.",
+    escena: 31,
+  },
+  {
+    id: "testamento_verdadero",
+    titulo: "Lo que quería Casilda",
+    texto: "El testamento verdadero deja la Compañía a Irene y perdona todas las deudas del Libro. Casilda los citó para decírselo en persona, y no llegó.",
+    escena: 31,
+  },
+  {
+    id: "mojon",
+    titulo: "El mojón del Paso",
+    texto: "En el mojón de piedra del Paso hay nombres grabados: los que no llegaron. El último renglón está vacío y tiene la fecha de hoy.",
+    escena: 32,
+  },
+  {
+    id: "lo_que_pesa",
+    titulo: "Lo que pesa",
+    texto: "Los Recaudadores no quieren a una persona: quieren lo que pesa. Una vida es solo lo más fácil de entregar.",
+    escena: 32,
+  },
+  {
+    id: "seis_del_ano_pasado",
+    titulo: "Los del año pasado",
+    texto: "Los seis nombres más nuevos del mojón son los pasajeros del último coche del año pasado. Con ellos pagó Quintana los intereses.",
+    escena: 33,
   },
 );
 
@@ -1696,8 +1806,11 @@ export const ESCENAS: EscenaDef[] = [
 
 ESCENAS_COCHE();
 ESCENAS_ORBE();
+ESCENAS_PASO();
 
 export interface EfectosVoto {
+  /** Quien lleva el farol queda fuera de juego: no sigue viaje. */
+  quedaFarol?: boolean;
   /** Los secretos de todos quedan dichos ante todos. */
   revelaTodos?: boolean;
   /** El secreto de quien lleva el farol queda dicho ante todos. */
@@ -2380,6 +2493,143 @@ export const VOTOS: Record<VotoId, VotoDef> = {
       },
     ],
   },
+  rezagado: {
+    id: "rezagado",
+    pregunta: "Alguien sube detrás. ¿El coche lo espera?",
+    contexto:
+      "De acá a la cumbre el camino no da para dos. Esperar cuesta luz, y arriba hay que estar antes de que oscurezca.",
+    planteo:
+      "Cerrá la escena en el último tramo ancho de la cuesta, con el jinete a dos curvas, ya reconocible, y Mateo preguntando si para o sigue. No elijas por los jugadores.",
+    narrar: true,
+    opciones: [
+      {
+        id: "esperar",
+        titulo: "Esperarlo",
+        detalle: "Sube con ustedes el tramo que falta. Se pierde luz: la Bruma sube un punto.",
+        efectos: { amenaza: 1, memoria: "Esperaron en la cuesta a quien venía detrás; llegó al Paso con ellos." },
+        consecuencia:
+          "Eligieron esperar. El jinete (o los jinetes: quien no subió al coche en Casa Orbe) los alcanza con el caballo reventado y sube el último tramo colgado del estribo, sin dar las gracias o dándolas de más, según quién sea. Llegan arriba con la última luz.",
+        aviso: "Esperaron. Llegan arriba con lo justo.",
+      },
+      {
+        id: "seguir",
+        titulo: "Seguir sin parar",
+        detalle: "Llegan con luz de sobra: la Bruma cede un punto. El de atrás, que se arregle.",
+        efectos: { amenaza: -1, memoria: "No esperaron en la cuesta a quien venía detrás; llegó al Paso más tarde, por su cuenta." },
+        consecuencia:
+          "Eligieron seguir. Mateo hace sonar el látigo y el coche toma el tramo angosto. El jinete de atrás grita algo que el viento no deja oír. Llegan a la cumbre con el sol todavía alto; quien venía detrás va a llegar igual, tarde y de mal modo.",
+        aviso: "No esperaron. Llegan arriba con luz.",
+      },
+      {
+        id: "farol",
+        titulo: "Dejarle un farol en la curva",
+        detalle: "Ni lo esperan ni lo abandonan: le marcan el camino. Quien venga, lo recordará.",
+        efectos: { relaciones: { viajera: 1, mateo: 1 }, memoria: "No esperaron en la cuesta, pero dejaron un farol encendido en la curva para quien venía detrás." },
+        consecuencia:
+          "Eligieron dejarle una luz. Mateo cuelga un farol de un hierro de la curva, refunfuñando por el aceite, y sigue. Desde arriba se lo ve un buen rato: un punto amarillo que alguien, al fin, alcanza.",
+        aviso: "Dejaron un farol en la curva y siguieron.",
+      },
+    ],
+  },
+  herencia: {
+    id: "herencia",
+    pregunta: "El juez tiene el sello en el aire. ¿A quién le dan la razón?",
+    contexto:
+      "Dos testamentos sobre la mesa. El juez sabe cuál es falso; pregunta qué es justo a los que viajaron toda la noche por esta herencia.",
+    planteo:
+      "Cerrá la escena con el juez Baltasar Rey con el sello mojado en el aire, las dos pilas de papeles delante, preguntándoles a los pasajeros qué es lo justo. No resuelvas la sucesión.",
+    narrar: true,
+    opciones: [
+      {
+        id: "irene",
+        titulo: "A Irene",
+        detalle: "La Compañía para la hija y las deudas del Libro, perdonadas. El escribano queda sin papel que lo ampare.",
+        efectos: {
+          relaciones: { viajera: 3, quintana: -3, baltasar: 1, remedios: 2 },
+          memoria: "El juez del Paso le dio la Compañía a Irene Orbe. Las deudas del Libro quedaron perdonadas.",
+        },
+        consecuencia:
+          "Eligieron a Irene. El juez sella el testamento verdadero (o, si no hay papel, la declaración de Remedios, que hace repetir tres veces), y tacha el otro con una raya gruesa. Irene dice lo primero que dice como dueña: que ninguno de los presentes le debe nada a nadie de esa casa. Quintana pide apelar. El juez le ofrece caldo.",
+        aviso: "El juez falla a favor de Irene. Las deudas quedan perdonadas.",
+      },
+      {
+        id: "quintana",
+        titulo: "Al escribano",
+        detalle: "Vale su testamento: cada pasajero cobra su parte y la Compañía queda en sus manos. Irene se queda sin nada.",
+        efectos: {
+          relaciones: { quintana: 3, viajera: -3, baltasar: -2, remedios: -3 },
+          memoria: "Los pasajeros respaldaron el testamento del escribano ante el juez. La Compañía quedó para Quintana.",
+        },
+        consecuencia:
+          "Eligieron respaldar al escribano. El juez los mira largo, uno por uno, y sella a disgusto: la ley le permite equivocarse si se lo piden por unanimidad de testigos. Quintana reparte bolsas con las manos temblándole de alivio. Irene se baja el velo. Afuera ya casi no hay luz.",
+        aviso: "El juez da por bueno el testamento del escribano.",
+      },
+      {
+        id: "nadie",
+        titulo: "A ninguno",
+        detalle: "Que la Compañía se cierre y La Rezagada sea el último coche de verdad. Nadie hereda; nadie debe.",
+        efectos: {
+          relaciones: { baltasar: 2, mateo: -1, viajera: -1, quintana: -2 },
+          memoria: "Pidieron al juez que no heredara nadie: la Compañía de Postas Orbe se disuelve.",
+        },
+        consecuencia:
+          "Eligieron que no herede nadie. El juez se rasca bajo el gorro, dice que es irregular y que le gusta, y sella un tercer papel que escribe ahí mismo: la Compañía se disuelve, las deudas con ella. Mateo pregunta, bajito, de quién son ahora los caballos.",
+        aviso: "La Compañía se disuelve. Nadie hereda y nadie debe.",
+      },
+    ],
+  },
+  pago: {
+    id: "pago",
+    pregunta: "Es la hora. ¿Con qué se paga el último peaje?",
+    contexto:
+      "Los Recaudadores quieren lo que pesa. El renglón vacío del mojón tiene la fecha de hoy, y no va a quedar en blanco.",
+    planteo:
+      "Cerrá la escena con los cuatro Recaudadores junto al mojón diciendo qué aceptan: al que debe; lo que carga cada pasajero, entre todos; o lo que estaba escrito, uno de la lista. No resuelvas el pago: lo votan los jugadores.",
+    narrar: true,
+    opciones: [
+      {
+        id: "quintana",
+        titulo: "Que pague el que debe",
+        detalle: "Entregan al escribano. La cuenta cierra con su nombre en el mojón, y la Bruma se va con él.",
+        efectos: {
+          amenaza: -10,
+          relaciones: { viajera: 1, baltasar: -1 },
+          memoria: "FINAL: entregaron al escribano Quintana a los Recaudadores. Su nombre quedó grabado en el mojón del Paso.",
+        },
+        consecuencia:
+          "Eligieron que pague el que debe. Nadie tiene que empujarlo: cuando los pasajeros se abren, entre Quintana y el mojón no queda nadie. Camina solo, acomodándose la levita. Pregunta si puede conservar el reloj. No le contestan. La bruma baja por la ladera llevándoselo, y en la piedra hay un nombre nuevo. No lo narres como un triunfo: nadie festeja, y el juez apaga su farol.",
+        aviso: "El escribano paga su peaje. Hay un nombre nuevo en el mojón.",
+      },
+      {
+        id: "todos",
+        titulo: "Pagar entre todos",
+        detalle: "Cada uno deja en el mojón lo que carga: su página, su bolsa, su encargo. Nadie se queda arriba. Cada uno pierde 2 de vida máxima.",
+        efectos: {
+          amenaza: -10,
+          vidaMax: -2,
+          relaciones: { viajera: 2, mateo: 2, baltasar: 2 },
+          memoria: "FINAL: pagaron el peaje entre todos, dejando en el mojón lo que cada uno cargaba. Nadie se quedó en el Paso; el escribano tampoco.",
+        },
+        consecuencia:
+          "Eligieron pagar entre todos. De a uno, cada pasajero deja al pie del mojón lo que carga: decí qué deja cada personaje (su encargo, su página del Libro, la bolsa, algo que nombre su secreto) y cómo, al soltarlo, se le olvida un poco. Mateo deja la lista. Irene, si está, deja el velo. Los Recaudadores pesan el montón con la mirada, y alcanza. El renglón de hoy queda grabado con una sola palabra: «pagado». Quintana no entiende por qué sigue ahí, y el juez se lo lleva del brazo a dictarle una confesión.",
+        aviso: "Pagaron entre todos. En el mojón dice: «pagado».",
+      },
+      {
+        id: "lista",
+        titulo: "Que se cumpla la lista",
+        detalle: "Uno no llega: quien lleva el farol se queda en el Paso. Los demás cruzan sin deberle nada a nadie.",
+        efectos: {
+          quedaFarol: true,
+          amenaza: -10,
+          relaciones: { quintana: 2, viajera: -2, mateo: -2, baltasar: -2 },
+          memoria: "FINAL: se cumplió la lista. Uno de los pasajeros se quedó en el Paso para pagar el peaje del escribano.",
+        },
+        consecuencia:
+          "Eligieron que se cumpla la lista. Quien lleva el farol es el que no llega. Contá cómo deja el farol en el suelo y camina hasta el mojón, por su voluntad o porque los demás miran para otro lado, según lo que haya pasado en la mesa; dale una última frase corta, sin discurso. Su nombre aparece en la piedra. Quintana se seca la frente. Nadie lo mira a él tampoco.",
+        aviso: "Se cumplió la lista. Uno no llega.",
+      },
+    ],
+  },
   mejora: {
     id: "mejora",
     pregunta: "¿Qué arreglan primero en la Casa del Guarda?",
@@ -2908,6 +3158,244 @@ function ESCENAS_ORBE(): void {
         "Falta poco para el alba y el patio está lleno de gente despierta.\n\nEn el portón hay cuatro jinetes. No entran. Uno dice un nombre, sin levantar la voz, y el nombre es Lázaro Quintana.\n\nEl escribano baja la escalinata abrochándose mal la levita.\n\n—¡Cochero! ¡Enganche! ¡Salimos ya, todos, al Paso! —y, a ustedes, con una sonrisa que no le llega—: Es por el bien de la sucesión.\n\nMateo mira a los caballos, mira a los jinetes, y se sienta en el estribo a esperar que alguien le diga a quién le hace caso.",
       resumenBase:
         "Antes del alba, los Recaudadores vinieron a buscar al escribano. Quintana les debe un peaje viejo y armó la lista para pagarlo con uno de los pasajeros.",
+    },
+  );
+}
+
+function ESCENAS_PASO(): void {
+  ESCENAS.push(
+    {
+      id: "cuesta",
+      capitulo: 103,
+      titulo: "La cuesta",
+      lugar: "cuesta",
+      ambientacion:
+        "De día, por primera vez. El camino deja la sal y sube en curvas cerradas entre piedra gris y nieve vieja, con el barranco de un lado. Los caballos resbalan, el coche pesa, y hay que estar arriba antes de que oscurezca. Desde cada curva se ve la anterior: alguien sube detrás, a caballo, siempre a la misma distancia. En el forro del abrigo de cada pasajero hay un papel cosido que anoche no estaba.",
+      objetivo: "Subir la cuesta a tiempo y saber quién viene detrás.",
+      vias: {
+        combate: "Empujar el coche en el hielo, calzar las ruedas, bajar a despejar un derrumbe.",
+        ingenio: "Elegir la huella buena, aligerar la carga, mirar con un catalejo quién sube detrás.",
+        dialogo: "Animar a Mateo, que quiere dar la vuelta; sonsacar a quien viaja con ellos; ponerse de acuerdo sobre qué hacer con el de atrás.",
+      },
+      npcs: ["mateo", "viajera", "quintana"],
+      meta: 2,
+      tope: 3,
+      cierre:
+        "El coche gana el último tramo ancho antes de la cumbre. El jinete de atrás está a dos curvas, y se lo reconoce. Mateo pregunta si para o si sigue: de acá en más no hay dónde dar paso.",
+      votoAlCerrar: "rezagado",
+      opcionesBase: [
+        {
+          id: "a",
+          texto: "Bajar a empujar el coche en el hielo",
+          enfoque: "combate",
+          tirada: { atributo: "fuerza", dificultad: "media" },
+          avanza: true,
+        },
+        {
+          id: "b",
+          texto: "Mirar desde la curva quién sube detrás",
+          enfoque: "ingenio",
+          tirada: { atributo: "ingenio", dificultad: "media" },
+          avanza: true,
+        },
+        {
+          id: "c",
+          texto: "Convencer a Mateo de que no dé la vuelta",
+          enfoque: "dialogo",
+          tirada: { atributo: "carisma", dificultad: "media" },
+          avanza: true,
+        },
+      ],
+      aperturaBase:
+        "Es de día. Ninguno de ustedes había visto todavía la cara de los otros con luz.\n\nLa sal quedó abajo, blanca y quieta. El camino sube en curvas, con piedra de un lado y nada del otro, y los caballos echan vapor.\n\n—Arriba antes de que oscurezca —dice Mateo—. Después de eso, yo no manejo: rezo.\n\nEn la curva de abajo, chico todavía, sube un jinete.",
+      resumenBase:
+        "Subieron la cuesta del Paso de día, con alguien siguiéndolos a caballo desde Casa Orbe.",
+    },
+    {
+      id: "juzgado",
+      capitulo: 103,
+      titulo: "La Posta del Paso",
+      lugar: "postapaso",
+      ambientacion:
+        "La última posta, arriba, pegada a la roca: un salón con estufa de hierro que es también juzgado de paz. Lo atiende el juez Baltasar Rey, sordo de un oído, con los sellos colgados del cuello. Acá se abre la sucesión de Casilda Orbe. Sobre la mesa terminan todos los papeles que haya: el testamento del escribano, el verdadero si existe, el papel firmado si firmaron, el Libro si no se quemó. El juez no escucha nada que no esté escrito. Afuera empieza a nevar.",
+      objetivo: "Lograr que el juez escuche y vea cuál de los dos testamentos es bueno.",
+      vias: {
+        combate: "Impedir que alguien se lleve o queme un papel, sostener la puerta contra la ventisca, traer a la fuerza a un testigo que se escabulle.",
+        ingenio: "Comparar firmas y tintas delante del juez, ordenar las pruebas, encontrar el sello que falta.",
+        dialogo: "Declarar, hacer declarar a Remedios o a Mateo, gritarle al juez del lado del oído bueno, desarmar los artículos que cita el escribano.",
+      },
+      npcs: ["baltasar", "quintana", "viajera", "remedios"],
+      meta: 2,
+      tope: 3,
+      cierre:
+        "El juez junta los papeles en dos pilas, moja el sello, y lo deja en el aire. Dice que la ley le alcanza para saber cuál es falso, pero no para saber qué es justo, y que para eso están los que viajaron con la muerta en la boca toda la noche. Que digan ellos.",
+      votoAlCerrar: "herencia",
+      opcionesBase: [
+        {
+          id: "a",
+          texto: "Atajar al que quiere arrimar un papel a la estufa",
+          enfoque: "combate",
+          tirada: { atributo: "destreza", dificultad: "media" },
+          avanza: true,
+        },
+        {
+          id: "b",
+          texto: "Poner las tres copias de la firma una sobre otra, a la luz",
+          enfoque: "ingenio",
+          tirada: { atributo: "ingenio", dificultad: "media" },
+          avanza: true,
+        },
+        {
+          id: "c",
+          texto: "Declarar ante el juez, del lado del oído bueno",
+          enfoque: "dialogo",
+          tirada: { atributo: "carisma", dificultad: "media" },
+          avanza: true,
+        },
+      ],
+      aperturaBase:
+        "La Posta del Paso es un salón bajo con una estufa de hierro al rojo y un escritorio lleno de sellos.\n\nDetrás del escritorio hay un hombre enorme, con gorro de piel, que los mira entrar y pone una mano detrás de la oreja.\n\n—¿Sucesión Orbe? —grita—. ¡Hablen fuerte y de a uno! ¡Y lo que no esté escrito, no me lo cuenten!\n\nAfuera cae el primer copo. Falta poco para que oscurezca.",
+      resumenBase:
+        "En la Posta del Paso, el juez Baltasar Rey abrió la sucesión de Casilda Orbe con los dos testamentos sobre la mesa.",
+    },
+    {
+      id: "mojon",
+      capitulo: 103,
+      titulo: "El mojón",
+      lugar: "cumbre",
+      ambientacion:
+        "Anochece en la cumbre. A cien pasos de la posta, donde el camino empieza a bajar del otro lado, hay un mojón de piedra alto como un hombre, cubierto de nombres grabados. La bruma sube por la ladera como una marea. Con ella llegan los cuatro Recaudadores, a pie esta vez, y se paran junto al mojón. No miran al coche: miran a Quintana. El escribano, acorralado, empieza a señalar a los pasajeros de a uno, ofreciéndolos.",
+      objetivo: "Entender qué aceptan de verdad los Recaudadores antes de que el escribano elija por todos.",
+      vias: {
+        combate: "Ponerse entre el escribano y el pasajero que señala, sujetarlo, arrastrar el coche hasta el mojón.",
+        ingenio: "Leer los nombres del mojón, notar qué miran los Recaudadores cuando alguien ofrece algo, recordar el peaje del puente.",
+        dialogo: "Preguntarles qué cuenta como pago, ofrecer algo para ver si lo pesan, hacer hablar al escribano de la primera vez que cruzó.",
+      },
+      npcs: ["quintana", "viajera", "mateo", "baltasar"],
+      meta: 2,
+      tope: 3,
+      cierre:
+        "Queda dicho: no quieren a una persona, quieren lo que pesa. El último renglón del mojón está vacío y tiene la fecha de hoy. Los cuatro esperan sin apuro. La noche ya cerró.",
+      opcionesBase: [
+        {
+          id: "a",
+          texto: "Ponerse delante del pasajero que señala el escribano",
+          enfoque: "combate",
+          tirada: { atributo: "fuerza", dificultad: "media" },
+          avanza: true,
+        },
+        {
+          id: "b",
+          texto: "Leer los nombres grabados en el mojón",
+          enfoque: "ingenio",
+          tirada: { atributo: "ingenio", dificultad: "media" },
+          avanza: true,
+        },
+        {
+          id: "c",
+          texto: "Preguntarles a los Recaudadores qué cuenta como pago",
+          enfoque: "dialogo",
+          tirada: { atributo: "voluntad", dificultad: "dificil" },
+          avanza: true,
+        },
+      ],
+      aperturaBase:
+        "Oscurece de golpe, como oscurece arriba.\n\nDonde el camino empieza a bajar hay una piedra parada, alta como un hombre. Está cubierta de letras.\n\nLa bruma sube por la ladera sin viento que la empuje. Cuando llega a la piedra, hay cuatro figuras al lado. Vinieron a pie.\n\n—Lázaro Quintana —dicen—. Es hoy.\n\nEl escribano retrocede hasta tocar el coche con la espalda, y los mira a ustedes como quien cuenta monedas.",
+      resumenBase:
+        "Al anochecer, los Recaudadores esperaron al escribano junto al mojón del Paso. No quieren a una persona: quieren lo que pesa.",
+    },
+    {
+      id: "pago",
+      capitulo: 103,
+      titulo: "El último peaje",
+      lugar: "cumbre",
+      ambientacion:
+        "El mojón, de noche cerrada, con nieve. Los Recaudadores esperan el pago. Quintana está de rodillas o está corriendo, según cómo lo hayan tratado. El juez mira desde la puerta de la posta con un farol. Irene tiene lo que sea que haya heredado. Cada pasajero lleva encima algo que pesa: su página, su bolsa, su encargo, su secreto. Los seis nombres más nuevos del mojón son los pasajeros del año pasado.",
+      objetivo: "Aguantar la última hora y poner sobre el mojón lo que haga falta para decidir.",
+      vias: {
+        combate: "Traer al escribano de vuelta, sostener a quien flaquea, resistir el frío que sale de los cuatro.",
+        ingenio: "Sumar lo que pesa cada cosa: el Libro, la Compañía, el testamento falso, los encargos; leer los nombres nuevos del mojón.",
+        dialogo: "Ofrecer, regatear, confesar; hablarle a Quintana; preguntarle a cada compañero qué está dispuesto a dejar.",
+      },
+      npcs: ["quintana", "viajera", "mateo", "baltasar"],
+      meta: 2,
+      tope: 3,
+      cierre:
+        "Los Recaudadores dicen qué aceptan. Aceptan a quien debe. Aceptan, entre todos los pasajeros, lo que cada uno carga. O aceptan lo que estaba escrito: uno de la lista. Falta decidir.",
+      votoAlCerrar: "pago",
+      opcionesBase: [
+        {
+          id: "a",
+          texto: "Traer de vuelta al escribano antes de que se pierda en la nieve",
+          enfoque: "combate",
+          tirada: { atributo: "fuerza", dificultad: "media" },
+          avanza: true,
+        },
+        {
+          id: "b",
+          texto: "Leer los seis nombres más nuevos del mojón",
+          enfoque: "ingenio",
+          tirada: { atributo: "ingenio", dificultad: "media" },
+          avanza: true,
+        },
+        {
+          id: "c",
+          texto: "Preguntarle a cada uno qué está dispuesto a dejar",
+          enfoque: "dialogo",
+          tirada: { atributo: "carisma", dificultad: "dificil" },
+          avanza: true,
+        },
+      ],
+      aperturaBase:
+        "Nieva fino. El farol del juez es un punto amarillo en la puerta de la posta.\n\nLos cuatro no se movieron del mojón. Tampoco tienen frío.\n\n—Algo que pese —dicen—. Lo sabe desde hace años.\n\nQuintana se ríe, una risa corta, de hombre que hizo todas las cuentas y le dieron.\n\n—Tengo una lista —dice—. Tiene sus nombres.",
+      resumenBase:
+        "Junto al mojón, los Recaudadores dijeron qué aceptan como pago: al que debe, lo que carga cada pasajero, o uno de la lista.",
+    },
+    {
+      id: "otro_lado",
+      capitulo: 103,
+      titulo: "Del otro lado",
+      lugar: "otrolado",
+      ambientacion:
+        "Amanece del otro lado del Paso: un valle verde, con humo de chimeneas, que ninguno había visto. El coche baja despacio. Lo que se ve y quién va a bordo depende de lo que pagaron en el mojón y de a quién le dio la razón el juez (ver «Decisiones tomadas» y «Memoria»). Mateo canta, mal. En el pescante ya no hay lista.",
+      objetivo: "Bajar al valle y despedirse: de los otros, de lo que cada uno cargaba, del coche.",
+      vias: {
+        combate: "Frenar el coche en la bajada, ayudar a quien quedó débil, cargar lo que quede.",
+        ingenio: "Mirar atrás desde la primera curva: el mojón, la posta, quién quedó arriba.",
+        dialogo: "Decirse lo que no se dijeron; contarse (o no) los encargos; despedirse de Mateo, de Irene, de quien corresponda.",
+      },
+      npcs: ["mateo", "viajera"],
+      meta: 2,
+      tope: 3,
+      cierre:
+        "El final. Mostrá en una imagen qué fue de cada personaje del camino que les importó, y de cada pasajero en la primera posta del valle. Mateo rompe la lista en cuatro y la tira al viento, o la guarda, según cómo terminó. Cerrá con La Rezagada vacía, desenganchada, al sol.",
+      opcionesBase: [
+        {
+          id: "a",
+          texto: "Ir en el pescante, frenando la bajada con Mateo",
+          enfoque: "combate",
+          tirada: { atributo: "fuerza", dificultad: "facil" },
+          avanza: true,
+        },
+        {
+          id: "b",
+          texto: "Mirar hacia atrás desde la primera curva",
+          enfoque: "ingenio",
+          tirada: { atributo: "ingenio", dificultad: "facil" },
+          avanza: true,
+        },
+        {
+          id: "c",
+          texto: "Contarles a los demás cuál era el encargo propio",
+          enfoque: "dialogo",
+          tirada: { atributo: "carisma", dificultad: "facil" },
+          avanza: true,
+        },
+      ],
+      aperturaBase:
+        "Del otro lado amanece distinto. No hay sal: hay pasto, y abajo, lejos, humo de chimeneas.\n\nEl coche baja con el freno puesto. Mateo canta algo que no es una canción.\n\nAdentro hay más lugar que anoche, o el mismo, según. Nadie tiene ya nada cosido en el forro.\n\nEn la primera curva, quien quiera puede darse vuelta y mirar el Paso una vez más.",
+      resumenBase:
+        "Amaneció del otro lado del Paso. La Rezagada bajó al valle con los que llegaron.",
     },
   );
 }

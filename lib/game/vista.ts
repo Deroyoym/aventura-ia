@@ -146,7 +146,7 @@ export function vistaPara(
     encargo: encargo ? { texto: encargo.texto, cumplido: encargo.cumple(e.decisiones) } : null,
     capitulo: { numero: ordenDe(capitulo.numero), titulo: capitulo.titulo, final: !!capitulo.final },
     desenlace:
-      (capitulo.final && e.fase === "fin_capitulo" && VOTOS.pacto.opciones.find((o) => o.id === e.decisiones.pacto)?.titulo) || null,
+      (capitulo.final && e.fase === "fin_capitulo" && VOTOS[campana.votoFinal].opciones.find((o) => o.id === e.decisiones[campana.votoFinal])?.titulo) || null,
     hayOtroCapitulo: hayOtroCapitulo(e),
     retratos: !!extra.retratos,
     escena: {
